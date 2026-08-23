@@ -10,11 +10,17 @@ import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
     primary = AppColors.accent,
-    background = AppColors.darkBackground,
-    surface = AppColors.gradientStart,
     onPrimary = AppColors.appBlack,
+    primaryContainer = AppColors.accentMuted,
+    onPrimaryContainer = AppColors.appWhite,
+    background = AppColors.darkBackground,
     onBackground = AppColors.appWhite,
-    onSurface = AppColors.appWhite
+    surface = AppColors.surface,
+    onSurface = AppColors.appWhite,
+    surfaceVariant = AppColors.surfaceElevated,
+    onSurfaceVariant = AppColors.textSecondary,
+    outline = AppColors.border,
+    error = AppColors.statusRed
 )
 
 @Composable
