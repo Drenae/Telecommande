@@ -19,9 +19,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.telecommande.ui.theme.ComponentDimensions
 import com.telecommande.ui.theme.DefaultButtonColors
 import com.telecommande.ui.theme.HomeAppButtonSpecs
@@ -31,14 +31,14 @@ import com.telecommande.ui.theme.HomeDpadButtonSpecs
 @Composable
 fun HomeBaseButton(
     onClick: () -> Unit,
-    @DrawableRes iconRes: Int,
+    icon: ImageVector,
     contentDescription: String,
     modifier: Modifier = Modifier,
     size: Dp = HomeBaseButtonSpecs.DefaultSize,
     defaultBackgroundColorBrush: Brush = DefaultButtonColors.DefaultBackgroundBrush,
     pressedBackgroundColorBrush: Brush = DefaultButtonColors.PressedBackgroundBrush,
     shape: Shape = HomeBaseButtonSpecs.DefaultShape,
-    iconTint: Color = Color.Unspecified,
+    iconTint: Color,
     iconPadding: Dp = HomeBaseButtonSpecs.DefaultIconPadding,
     borderWidth: Dp = HomeBaseButtonSpecs.DefaultBorderWidth,
     borderColor: Color = DefaultButtonColors.DefaultBorder,
@@ -75,7 +75,7 @@ fun HomeBaseButton(
                 .border(width = borderWidth, color = borderColor, shape = shape)
         ) {
             Icon(
-                painter = painterResource(id = iconRes),
+                imageVector = icon,
                 contentDescription = contentDescription,
                 tint = iconTint,
                 modifier = Modifier.size(if (isPressed) pressedIconSize else iconSize)
@@ -87,19 +87,19 @@ fun HomeBaseButton(
 @Composable
 fun HomeDpadButton(
     onClick: () -> Unit,
-    @DrawableRes iconRes: Int,
+    icon: ImageVector,
     contentDescription: String,
     modifier: Modifier = Modifier,
     size: Dp = HomeDpadButtonSpecs.DefaultSize,
-    iconTint: Color = Color.Unspecified,
-    iconPadding: Dp = 0.dp
+    iconTint: Color,
+    iconPadding: Dp
 ) {
     IconButton(
         onClick = onClick,
         modifier = modifier.size(size)
     ) {
         Icon(
-            painter = painterResource(id = iconRes),
+            imageVector = icon,
             contentDescription = contentDescription,
             tint = iconTint,
             modifier = Modifier.size(size - (iconPadding * 2))
