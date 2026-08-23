@@ -59,10 +59,12 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Supprimer son cycle d'initialisation artificiel
 - [x] Simplifier `SettingsViewModel`
 - [x] Unifier connexion / reconnexion dans `RemoteManager`
-- [ ] Examiner et réduire les UseCases `connection`
-- [ ] Examiner et réduire les UseCases `remote`
+- [x] Examiner et réduire les UseCases `connection`
+- [x] Examiner et réduire les UseCases `remote`
 - [ ] Examiner les UseCases `pairing`
-- [ ] Supprimer les UseCases qui ne font que déléguer sans logique métier
+- [x] Supprimer les UseCases `connection` / `remote` purement passe-plats
+- [x] Supprimer le relais `RemoteRepository.connectToActiveTv` devenu inutile
+- [ ] Supprimer les autres UseCases qui ne font que déléguer sans logique métier
 - [ ] Simplifier les repositories quand une couche n'apporte aucune valeur
 - [ ] Nettoyer les bindings Hilt correspondants
 - [ ] Vérifier la séparation `data / domain / ui`
