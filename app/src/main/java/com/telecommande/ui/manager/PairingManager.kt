@@ -52,9 +52,7 @@ class PairingManager @Inject constructor(
 
     private var pairingEventsJob: Job? = null
     private var connectionAttemptJob: Job? = null
-
-    private var targetTvForPairing: DiscoveredTv? = null
-    private var targetIpForConnection: String? = null
+    private var hasActivePairingTarget = false
 
     fun startPairingProcess(tvToPair: DiscoveredTv, scope: CoroutineScope) {
         cancelCurrentProcess()
@@ -69,9 +67,7 @@ class PairingManager @Inject constructor(
         }
         val tvName = tvToPair.friendlyName
 
-        targetTvForPairing = tvToPair
-        targetIpForConnection = ipAddress
-
+        hasActivePairingTarget = true
         _currentStep.value = PairingStep.Initiating(tvName)
         observePairingEvents(ipAddress, tvName, tvToPair, scope)
 
@@ -190,7 +186,7 @@ class PairingManager @Inject constructor(
     }
 
     fun cancelPairingAttempt(scope: CoroutineScope) {
-        val shouldDisconnect = targetIpForConnection != null
+        val shouldDisconnect = hasActivePairingTarget
         cancelCurrentProcess(clearTargetInfo = true)
 
         scope.launch {
@@ -225,8 +221,7 @@ class PairingManager @Inject constructor(
         connectionAttemptJob = null
 
         if (clearTargetInfo) {
-            targetTvForPairing = null
-            targetIpForConnection = null
+            hasActivePairingTarget = false
         }
     }
 
