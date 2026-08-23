@@ -15,7 +15,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -25,7 +24,6 @@ import com.telecommande.ui.home.composables.FooterSection
 import com.telecommande.ui.home.composables.HeaderSection
 import com.telecommande.ui.theme.AppColors
 import com.telecommande.ui.theme.ScreenPaddings
-import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
@@ -35,7 +33,6 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
@@ -96,11 +93,6 @@ fun HomeScreen(
                     onRightClick = viewModel::sendDpadRightCommand,
                     onBackClick = viewModel::sendBackCommand,
                     onHomeClick = viewModel::sendHomeCommand,
-                    onKeyboardClick = {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Fonction clavier non implémentée")
-                        }
-                    },
                     volumeLevel = uiState.volumeLevel,
                     volumeMax = uiState.volumeMax,
                     isMuted = uiState.isMuted,
