@@ -2,7 +2,6 @@ package com.telecommande.core.remote
 
 import com.telecommande.core.event.RemoteEvent
 import com.telecommande.core.exception.PairingException
-import com.telecommande.core.ssl.DummyTrustManager
 import com.telecommande.core.ssl.KeyStoreManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,11 +26,11 @@ import java.security.SecureRandom
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLException
 import javax.net.ssl.SSLSocket
-import javax.net.ssl.TrustManager
 
 class RemoteSession(
     private val host: String,
-    private val port: Int
+    private val port: Int,
+    private val expectedTvKeystoreAlias: String
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var connectionJob: Job? = null
@@ -109,7 +108,7 @@ class RemoteSession(
                 _eventFlow.emit(RemoteEvent.Disconnected)
             } catch (e: GeneralSecurityException) {
                 Timber.e(e, "GeneralSecurityException durant la connexion distante à %s:%d : %s", host, port, e.message)
-                _eventFlow.emit(RemoteEvent.Error("Erreur de sécurité: ${e.message}"))
+                _eventFlow.emit(RemoteEvent.SslError)
                 closeSocketInternal()
             } catch (e: PairingException) {
                 Timber.e(e, "PairingException (inattendue) durant la connexion distante à %s:%d : %s", host, port, e.message)
@@ -130,11 +129,12 @@ class RemoteSession(
 
     private suspend fun initializeSslSocketAndStreams() {
         withContext(Dispatchers.IO) {
-            Timber.d("Initialisation du socket SSL distant pour %s:%d", host, port)
+            Timber.d("Initialisation du socket SSL distant sécurisé pour %s:%d", host, port)
+            val keyStoreManager = KeyStoreManager()
             val sslContext = SSLContext.getInstance("TLS")
             sslContext.init(
-                KeyStoreManager().getKeyManagers(),
-                arrayOf<TrustManager>(DummyTrustManager()),
+                keyStoreManager.getKeyManagers(),
+                keyStoreManager.getPinnedTrustManagers(expectedTvKeystoreAlias),
                 SecureRandom()
             )
 
@@ -160,9 +160,9 @@ class RemoteSession(
                 newSocket.tcpNoDelay = true
                 newSocket.soTimeout = SOCKET_READ_TIMEOUT_MS
 
-                Timber.d("Démarrage du handshake SSL...")
+                Timber.d("Démarrage du handshake SSL avec validation du certificat TV...")
                 newSocket.startHandshake()
-                Timber.i("Handshake SSL distant réussi pour %s:%d.", host, port)
+                Timber.i("Handshake SSL distant sécurisé réussi pour %s:%d.", host, port)
 
                 sslSocket = newSocket
                 outputStream = newSocket.outputStream
