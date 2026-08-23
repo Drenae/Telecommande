@@ -1,30 +1,21 @@
 package com.telecommande.ui.home
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -33,7 +24,6 @@ import com.telecommande.ui.home.composables.ContentSection
 import com.telecommande.ui.home.composables.FooterSection
 import com.telecommande.ui.home.composables.HeaderSection
 import com.telecommande.ui.theme.AppColors
-import com.telecommande.ui.theme.ComponentDimensions
 import com.telecommande.ui.theme.ScreenPaddings
 import kotlinx.coroutines.launch
 
@@ -60,7 +50,7 @@ fun HomeScreen(
     LaunchedEffect(uiState.pairingRequiredEvent) {
         if (uiState.pairingRequiredEvent) {
             snackbarHostState.showSnackbar(
-                message = "Appairage requis pour ${uiState.activeTvName ?: "la TV"}. Redirection vers les paramètres...",
+                message = "Appairage requis pour ${uiState.activeTvName ?: "la TV"}.",
                 duration = SnackbarDuration.Short
             )
             navController.navigate(Screen.Settings.route) {
@@ -71,6 +61,7 @@ fun HomeScreen(
     }
 
     Scaffold(
+        containerColor = AppColors.darkBackground,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Box(
@@ -87,6 +78,7 @@ fun HomeScreen(
                 HeaderSection(
                     onPowerClick = viewModel::sendPowerCommand,
                     isConnected = uiState.isConnected,
+                    isLoading = uiState.isLoading,
                     modifier = Modifier.fillMaxWidth(),
                     onStatusIndicatorClick = {
                         navController.navigate(Screen.Settings.route)
@@ -124,33 +116,6 @@ fun HomeScreen(
                     onLaunchPlex = { viewModel.launchAppByLink("plex://") },
                     onLaunchCrunchyroll = { viewModel.launchAppByLink("crunchyroll://") }
                 )
-            }
-
-            AnimatedVisibility(
-                visible = uiState.isLoading,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.height(ComponentDimensions.MediumSpacerHeight))
-                        Text(
-                            text = if (uiState.activeTvName != null) {
-                                "Connexion à ${uiState.activeTvName}..."
-                            } else {
-                                "Opération en cours..."
-                            },
-                            color = MaterialTheme.colorScheme.onBackground,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                }
             }
         }
     }
