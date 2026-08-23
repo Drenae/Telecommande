@@ -2,6 +2,7 @@ package com.telecommande
 
 import android.app.Application
 import com.telecommande.core.AndroidRemoteContext
+import com.telecommande.core.CoreWarmup
 import dagger.hilt.android.HiltAndroidApp
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import timber.log.Timber
@@ -18,6 +19,7 @@ class MyApplication : Application() {
 
         initializeBouncyCastle()
         AndroidRemoteContext.getInstance(this)
+        CoreWarmup.prewarm()
     }
 
     private fun initializeBouncyCastle() {
