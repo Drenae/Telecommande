@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +46,7 @@ fun HeaderSection(
     modifier: Modifier = Modifier,
     onPowerClick: () -> Unit,
     isConnected: Boolean,
+    isLoading: Boolean,
     onStatusIndicatorClick: () -> Unit
 ) {
     Box(
@@ -72,6 +73,7 @@ fun HeaderSection(
 
         StatusIndicator(
             isConnected = isConnected,
+            isLoading = isLoading,
             onClick = onStatusIndicatorClick,
             modifier = Modifier.align(Alignment.CenterEnd)
         )
@@ -81,19 +83,33 @@ fun HeaderSection(
 @Composable
 fun StatusIndicator(
     isConnected: Boolean,
+    isLoading: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     connectedIconRes: Int = R.drawable.ic_status_on,
     disconnectedIconRes: Int = R.drawable.ic_status_off
 ) {
-    Icon(
-        painter = painterResource(id = if (isConnected) connectedIconRes else disconnectedIconRes),
-        contentDescription = if (isConnected) "Connectée - Gérer les TV" else "Déconnectée - Gérer les TV",
+    Box(
         modifier = modifier
             .size(40.dp)
             .clickable(onClick = onClick),
-        tint = Color.Unspecified
-    )
+        contentAlignment = Alignment.Center
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                strokeWidth = 2.5.dp,
+                color = MaterialTheme.colorScheme.primary
+            )
+        } else {
+            Icon(
+                painter = painterResource(id = if (isConnected) connectedIconRes else disconnectedIconRes),
+                contentDescription = if (isConnected) "Connectée - Gérer les TV" else "Déconnectée - Gérer les TV",
+                modifier = Modifier.size(40.dp),
+                tint = Color.Unspecified
+            )
+        }
+    }
 }
 
 @Composable
@@ -206,24 +222,15 @@ fun ContentSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 ConfigurableHomeButton(
-                    config = HomeButtons.Back.copy(
-                        size = navSize,
-                        iconPadding = 15.dp
-                    ),
+                    config = HomeButtons.Back.copy(size = navSize, iconPadding = 15.dp),
                     onClick = onBackClick
                 )
                 ConfigurableHomeButton(
-                    config = HomeButtons.Home.copy(
-                        size = navSize,
-                        iconPadding = 15.dp
-                    ),
+                    config = HomeButtons.Home.copy(size = navSize, iconPadding = 15.dp),
                     onClick = onHomeClick
                 )
                 ConfigurableHomeButton(
-                    config = HomeButtons.Keyboard.copy(
-                        size = navSize,
-                        iconPadding = 15.dp
-                    ),
+                    config = HomeButtons.Keyboard.copy(size = navSize, iconPadding = 15.dp),
                     onClick = onKeyboardClick
                 )
             }
@@ -336,30 +343,22 @@ fun FooterSection(
             ConfigurableHomeButton(
                 config = HomeButtons.Netflix.copy(appLauncherIconSize = iconSize),
                 onClick = onLaunchNetflix,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(buttonHeight)
+                modifier = Modifier.weight(1f).height(buttonHeight)
             )
             ConfigurableHomeButton(
                 config = HomeButtons.YouTube.copy(appLauncherIconSize = iconSize),
                 onClick = onLaunchYouTube,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(buttonHeight)
+                modifier = Modifier.weight(1f).height(buttonHeight)
             )
             ConfigurableHomeButton(
                 config = HomeButtons.Plex.copy(appLauncherIconSize = iconSize),
                 onClick = onLaunchPlex,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(buttonHeight)
+                modifier = Modifier.weight(1f).height(buttonHeight)
             )
             ConfigurableHomeButton(
                 config = HomeButtons.Crunchyroll.copy(appLauncherIconSize = iconSize),
                 onClick = onLaunchCrunchyroll,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(buttonHeight)
+                modifier = Modifier.weight(1f).height(buttonHeight)
             )
         }
     }
