@@ -36,7 +36,6 @@ import com.telecommande.ui.theme.AppColors
 import com.telecommande.ui.theme.ComponentDimensions
 import com.telecommande.ui.theme.ScreenPaddings
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @Composable
 fun HomeScreen(
@@ -50,25 +49,20 @@ fun HomeScreen(
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short
-                )
-            }
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Short
+            )
             viewModel.clearSnackbarMessage()
         }
     }
 
     LaunchedEffect(uiState.pairingRequiredEvent) {
         if (uiState.pairingRequiredEvent) {
-            Timber.d("HomeScreen: pairingRequiredEvent est true. Affichage de la snackbar et navigation vers SettingsScreen.")
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = "Appairage requis pour ${uiState.activeTvName ?: "la TV"}. Redirection vers les paramètres...",
-                    duration = SnackbarDuration.Short
-                )
-            }
+            snackbarHostState.showSnackbar(
+                message = "Appairage requis pour ${uiState.activeTvName ?: "la TV"}. Redirection vers les paramètres...",
+                duration = SnackbarDuration.Short
+            )
             navController.navigate(Screen.Settings.route) {
                 launchSingleTop = true
             }
@@ -77,7 +71,7 @@ fun HomeScreen(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Box(
             modifier = modifier
@@ -91,8 +85,10 @@ fun HomeScreen(
                     .padding(horizontal = ScreenPaddings.Horizontal)
             ) {
                 HeaderSection(
-                    onPowerClick = { viewModel.sendPowerCommand() },
+                    onPowerClick = viewModel::sendPowerCommand,
                     isConnected = uiState.isConnected,
+                    isLoading = uiState.isLoading,
+                    activeTvName = uiState.activeTvName,
                     modifier = Modifier.fillMaxWidth(),
                     onStatusIndicatorClick = {
                         navController.navigate(Screen.Settings.route)
@@ -100,21 +96,27 @@ fun HomeScreen(
                 )
 
                 ContentSection(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    onOkClick = { viewModel.sendDpadCenterCommand() },
-                    onUpClick = { viewModel.sendDpadUpCommand() },
-                    onDownClick = { viewModel.sendDpadDownCommand() },
-                    onLeftClick = { viewModel.sendDpadLeftCommand() },
-                    onRightClick = { viewModel.sendDpadRightCommand() },
-                    onBackClick = { viewModel.sendBackCommand() },
-                    onHomeClick = { viewModel.sendHomeCommand() },
-                    onKeyboardClick = { scope.launch { snackbarHostState.showSnackbar("Fonction clavier non implémentée") } },
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    onOkClick = viewModel::sendDpadCenterCommand,
+                    onUpClick = viewModel::sendDpadUpCommand,
+                    onDownClick = viewModel::sendDpadDownCommand,
+                    onLeftClick = viewModel::sendDpadLeftCommand,
+                    onRightClick = viewModel::sendDpadRightCommand,
+                    onBackClick = viewModel::sendBackCommand,
+                    onHomeClick = viewModel::sendHomeCommand,
+                    onKeyboardClick = {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Fonction clavier non implémentée")
+                        }
+                    },
                     volumeLevel = uiState.volumeLevel,
                     volumeMax = uiState.volumeMax,
                     isMuted = uiState.isMuted,
-                    onVolumeUpClick = { viewModel.sendVolumeUpCommand() },
-                    onVolumeDownClick = { viewModel.sendVolumeDownCommand() },
-                    onMuteClick = { viewModel.sendMuteCommand() }
+                    onVolumeUpClick = viewModel::sendVolumeUpCommand,
+                    onVolumeDownClick = viewModel::sendVolumeDownCommand,
+                    onMuteClick = viewModel::sendMuteCommand
                 )
 
                 FooterSection(
@@ -141,8 +143,12 @@ fun HomeScreen(
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         Spacer(Modifier.height(ComponentDimensions.MediumSpacerHeight))
                         Text(
-                            text = "Opération en cours...",
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            text = if (uiState.activeTvName != null) {
+                                "Connexion à ${uiState.activeTvName}..."
+                            } else {
+                                "Opération en cours..."
+                            },
+                            color = MaterialTheme.colorScheme.onBackground,
                             style = MaterialTheme.typography.titleMedium
                         )
                     }
