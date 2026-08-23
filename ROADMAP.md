@@ -104,12 +104,13 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Passer Netflix / YouTube / Plex / Crunchyroll sur une grille responsive 2×2
 - [x] Remplacer le voile de connexion plein écran par un indicateur compact
 - [x] Appliquer une palette sombre teal cohérente au thème Material 3
-- [x] Créer et appliquer un set d'icônes premium cohérent avec le thème télécommande
+- [x] Remplacer les icônes vectorielles maison par le set officiel Material Icons Rounded
 - [x] Ajouter les commandes média Recul / Lecture-Pause / Stop / Avance sous le volume
 - [x] Agrandir les commandes média pour améliorer la zone tactile
 - [x] Refaire l'écran de gestion / sélection des TV avec des cartes responsives
 - [x] Refaire les états vides et la recherche de TV
 - [x] Refaire le dialogue d'appairage PIN
+- [x] Autoriser les codes d'appairage alphanumériques (A–Z + 0–9) et afficher le clavier adapté
 - [ ] Vérifier le rendu sur petit / moyen / grand téléphone réel ou émulateur
 - [ ] Ajuster les dimensions après validation visuelle utilisateur
 
