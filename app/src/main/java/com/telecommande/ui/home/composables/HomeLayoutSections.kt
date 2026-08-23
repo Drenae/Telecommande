@@ -54,12 +54,12 @@ fun HeaderSection(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 6.dp)
+            .padding(top = 8.dp, bottom = 4.dp)
     ) {
         ConfigurableHomeButton(
             config = HomeButtons.Power.copy(
-                size = 58.dp,
-                iconPadding = 14.dp
+                size = 60.dp,
+                iconPadding = 13.dp
             ),
             onClick = onPowerClick,
             modifier = Modifier.align(Alignment.CenterStart)
@@ -93,13 +93,13 @@ fun StatusIndicator(
 ) {
     Box(
         modifier = modifier
-            .size(40.dp)
+            .size(42.dp)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         if (isLoading) {
             CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(25.dp),
                 strokeWidth = 2.5.dp,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -107,7 +107,7 @@ fun StatusIndicator(
             Icon(
                 painter = painterResource(id = if (isConnected) connectedIconRes else disconnectedIconRes),
                 contentDescription = if (isConnected) "Connectée - Gérer les TV" else "Déconnectée - Gérer les TV",
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(42.dp),
                 tint = Color.Unspecified
             )
         }
@@ -124,7 +124,6 @@ fun ContentSection(
     onRightClick: () -> Unit,
     onBackClick: () -> Unit,
     onHomeClick: () -> Unit,
-    onKeyboardClick: () -> Unit,
     volumeLevel: Int,
     volumeMax: Int,
     isMuted: Boolean,
@@ -138,19 +137,21 @@ fun ContentSection(
 ) {
     BoxWithConstraints(
         modifier = modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.TopCenter
     ) {
         val compactWidth = maxWidth < 360.dp
-        val dpadSize = (maxWidth * 0.74f).coerceIn(218.dp, 292.dp)
-        val okSize = (dpadSize * 0.36f).coerceIn(82.dp, 108.dp)
-        val arrowSize = (dpadSize * 0.18f).coerceIn(42.dp, 54.dp)
-        val navSize = if (compactWidth) 54.dp else 60.dp
-        val sectionSpacing = if (compactWidth) 10.dp else 16.dp
+        val dpadSize = (maxWidth * 0.84f).coerceIn(246.dp, 330.dp)
+        val okSize = (dpadSize * 0.37f).coerceIn(92.dp, 122.dp)
+        val arrowSize = (dpadSize * 0.19f).coerceIn(48.dp, 62.dp)
+        val navSize = if (compactWidth) 68.dp else 76.dp
+        val sectionSpacing = if (compactWidth) 8.dp else 11.dp
 
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 2.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
             ConstraintLayout(
                 modifier = Modifier
@@ -170,7 +171,7 @@ fun ContentSection(
                 ConfigurableHomeButton(
                     config = HomeButtons.Ok.copy(
                         size = okSize,
-                        iconPadding = okSize * 0.20f
+                        iconPadding = okSize * 0.18f
                     ),
                     onClick = onOkClick,
                     modifier = Modifier.constrainAs(okBtn) {
@@ -184,7 +185,7 @@ fun ContentSection(
                     config = HomeButtons.Up.copy(size = arrowSize),
                     onClick = onUpClick,
                     modifier = Modifier.constrainAs(upBtn) {
-                        top.linkTo(parent.top, margin = 6.dp)
+                        top.linkTo(parent.top, margin = 7.dp)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
                     }
@@ -193,7 +194,7 @@ fun ContentSection(
                     config = HomeButtons.Down.copy(size = arrowSize),
                     onClick = onDownClick,
                     modifier = Modifier.constrainAs(downBtn) {
-                        bottom.linkTo(parent.bottom, margin = 6.dp)
+                        bottom.linkTo(parent.bottom, margin = 7.dp)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
                     }
@@ -204,7 +205,7 @@ fun ContentSection(
                     modifier = Modifier.constrainAs(leftBtn) {
                         top.linkTo(parent.top)
                         bottom.linkTo(parent.bottom)
-                        start.linkTo(parent.start, margin = 6.dp)
+                        start.linkTo(parent.start, margin = 7.dp)
                     }
                 )
                 ConfigurableHomeButton(
@@ -213,7 +214,7 @@ fun ContentSection(
                     modifier = Modifier.constrainAs(rightBtn) {
                         top.linkTo(parent.top)
                         bottom.linkTo(parent.bottom)
-                        end.linkTo(parent.end, margin = 6.dp)
+                        end.linkTo(parent.end, margin = 7.dp)
                     }
                 )
             }
@@ -221,23 +222,20 @@ fun ContentSection(
             Spacer(Modifier.height(sectionSpacing))
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = if (compactWidth) 8.dp else 18.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(
+                    space = if (compactWidth) 52.dp else 68.dp,
+                    alignment = Alignment.CenterHorizontally
+                ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 ConfigurableHomeButton(
-                    config = HomeButtons.Back.copy(size = navSize, iconPadding = 15.dp),
+                    config = HomeButtons.Back.copy(size = navSize, iconPadding = if (compactWidth) 16.dp else 18.dp),
                     onClick = onBackClick
                 )
                 ConfigurableHomeButton(
-                    config = HomeButtons.Home.copy(size = navSize, iconPadding = 15.dp),
+                    config = HomeButtons.Home.copy(size = navSize, iconPadding = if (compactWidth) 16.dp else 18.dp),
                     onClick = onHomeClick
-                )
-                ConfigurableHomeButton(
-                    config = HomeButtons.Keyboard.copy(size = navSize, iconPadding = 15.dp),
-                    onClick = onKeyboardClick
                 )
             }
 
@@ -253,7 +251,7 @@ fun ContentSection(
                 compact = compactWidth
             )
 
-            Spacer(Modifier.height(if (compactWidth) 6.dp else 10.dp))
+            Spacer(Modifier.height(if (compactWidth) 5.dp else 8.dp))
 
             MediaControls(
                 onRewindClick = onRewindClick,
@@ -321,12 +319,12 @@ private fun VolumeControl(
 
             IconButton(
                 onClick = onMuteClick,
-                modifier = Modifier.size(50.dp)
+                modifier = Modifier.size(if (compact) 54.dp else 58.dp)
             ) {
                 Icon(
                     painter = painterResource(id = if (isMuted) R.drawable.ic_remote_mute else R.drawable.ic_remote_volume),
                     contentDescription = if (isMuted) "Réactiver le son" else "Couper le son",
-                    modifier = Modifier.size(34.dp),
+                    modifier = Modifier.size(if (compact) 36.dp else 40.dp),
                     tint = Color.Unspecified
                 )
             }
@@ -342,13 +340,11 @@ private fun MediaControls(
     onFastForwardClick: () -> Unit,
     compact: Boolean
 ) {
-    val buttonSize = if (compact) 48.dp else 54.dp
-    val iconSize = if (compact) 22.dp else 25.dp
+    val buttonSize = if (compact) 58.dp else 66.dp
+    val iconSize = if (compact) 27.dp else 31.dp
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = if (compact) 4.dp else 12.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -367,7 +363,7 @@ private fun MediaButton(
     iconSize: androidx.compose.ui.unit.Dp,
     onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(20.dp)
     Box(
         modifier = Modifier
             .size(size)
@@ -399,34 +395,46 @@ fun FooterSection(
             .padding(top = 8.dp, bottom = 12.dp)
     ) {
         val compact = maxWidth < 360.dp
-        val buttonHeight = if (compact) 50.dp else 54.dp
-        val iconSize = if (compact) 40.dp else 46.dp
-        val spacing = if (compact) 4.dp else 6.dp
+        val buttonHeight = if (compact) 56.dp else 62.dp
+        val iconSize = if (compact) 42.dp else 48.dp
+        val horizontalSpacing = if (compact) 7.dp else 9.dp
+        val verticalSpacing = if (compact) 7.dp else 9.dp
 
-        Row(
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(spacing)
+            verticalArrangement = Arrangement.spacedBy(verticalSpacing)
         ) {
-            ConfigurableHomeButton(
-                config = HomeButtons.Netflix.copy(appLauncherIconSize = iconSize),
-                onClick = onLaunchNetflix,
-                modifier = Modifier.weight(1f).height(buttonHeight)
-            )
-            ConfigurableHomeButton(
-                config = HomeButtons.YouTube.copy(appLauncherIconSize = iconSize),
-                onClick = onLaunchYouTube,
-                modifier = Modifier.weight(1f).height(buttonHeight)
-            )
-            ConfigurableHomeButton(
-                config = HomeButtons.Plex.copy(appLauncherIconSize = iconSize),
-                onClick = onLaunchPlex,
-                modifier = Modifier.weight(1f).height(buttonHeight)
-            )
-            ConfigurableHomeButton(
-                config = HomeButtons.Crunchyroll.copy(appLauncherIconSize = iconSize),
-                onClick = onLaunchCrunchyroll,
-                modifier = Modifier.weight(1f).height(buttonHeight)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
+            ) {
+                ConfigurableHomeButton(
+                    config = HomeButtons.Netflix.copy(appLauncherIconSize = iconSize),
+                    onClick = onLaunchNetflix,
+                    modifier = Modifier.weight(1f).height(buttonHeight)
+                )
+                ConfigurableHomeButton(
+                    config = HomeButtons.YouTube.copy(appLauncherIconSize = iconSize),
+                    onClick = onLaunchYouTube,
+                    modifier = Modifier.weight(1f).height(buttonHeight)
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
+            ) {
+                ConfigurableHomeButton(
+                    config = HomeButtons.Plex.copy(appLauncherIconSize = iconSize),
+                    onClick = onLaunchPlex,
+                    modifier = Modifier.weight(1f).height(buttonHeight)
+                )
+                ConfigurableHomeButton(
+                    config = HomeButtons.Crunchyroll.copy(appLauncherIconSize = iconSize),
+                    onClick = onLaunchCrunchyroll,
+                    modifier = Modifier.weight(1f).height(buttonHeight)
+                )
+            }
         }
     }
 }
