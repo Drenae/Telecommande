@@ -61,6 +61,10 @@ class HomeViewModel @Inject constructor(
     fun sendVolumeUpCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_VOLUME_UP)
     fun sendVolumeDownCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_VOLUME_DOWN)
     fun sendMuteCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_VOLUME_MUTE)
+    fun sendMediaRewindCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_MEDIA_REWIND)
+    fun sendMediaPlayPauseCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_MEDIA_PLAY_PAUSE)
+    fun sendMediaStopCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_MEDIA_STOP)
+    fun sendMediaFastForwardCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_MEDIA_FAST_FORWARD)
 
     private fun sendShortCommand(keyCode: Remotemessage.RemoteKeyCode) {
         remoteManager.sendCommand(keyCode, Remotemessage.RemoteDirection.SHORT, viewModelScope)
