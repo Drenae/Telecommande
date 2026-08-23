@@ -19,25 +19,20 @@ class ResetPairingUseCase @Inject constructor(
             return
         }
 
-        val tvIpAddress = tvToReset.ipAddress
         val activeTv = settingsRepository.getActiveTvInfo()
 
         if (activeTv?.keystoreAlias == keystoreAlias && remoteRepository.isConnected.value) {
-            Timber.d("Réinitialisation de l'appairage pour la TV active et connectée ($tvIpAddress), déconnexion...")
             remoteRepository.disconnectFromTv()
         }
 
-        Timber.d("Suppression du keystore client pour réinitialisation de l'appairage.")
-        val keystoreDeleted = pairingRepository.deleteKeystoreForReset()
-        if (!keystoreDeleted) {
-            Timber.e("Échec de la suppression du keystore pendant la réinitialisation de l'appairage pour $keystoreAlias.")
+        val certificateRemoved = pairingRepository.removePairedTvCertificate(keystoreAlias)
+        if (!certificateRemoved) {
+            Timber.w("Aucun certificat trouvé pour la TV $keystoreAlias lors de la réinitialisation.")
         }
 
         settingsRepository.removePairedTvByKeystoreAlias(keystoreAlias)
-        Timber.d("TV avec alias $keystoreAlias supprimée de la base de données.")
 
         if (activeTv?.keystoreAlias == keystoreAlias) {
-            Timber.d("Nettoyage de la TV active car elle a été réinitialisée.")
             settingsRepository.clearActiveTvInfo()
         }
     }
