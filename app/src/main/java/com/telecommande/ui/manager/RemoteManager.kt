@@ -53,12 +53,19 @@ class RemoteManager @Inject constructor(
     private var remoteEventsJob: Job? = null
     private var connectionStateJob: Job? = null
     private var activeTvJob: Job? = null
+    private var connectionJob: Job? = null
     private var managerScope: CoroutineScope? = null
 
     fun initialize(scope: CoroutineScope) {
         managerScope = scope
         Timber.d("RemoteManager : Initialisation")
-        _state.update { it.copy(isLoading = false, snackbarMessage = null, pairingRequiredOnActiveTv = false) }
+        _state.update {
+            it.copy(
+                isLoading = false,
+                snackbarMessage = null,
+                pairingRequiredOnActiveTv = false
+            )
+        }
         observeActiveTv(scope)
         observeConnectionState(scope)
         observeRemoteEvents(scope)
@@ -72,6 +79,7 @@ class RemoteManager @Inject constructor(
                 Timber.d("RemoteManager : TV active mise à jour : ${tvInfo?.name}")
                 val previousActiveTvIp = activeTvInfo?.ipAddress
                 activeTvInfo = tvInfo
+
                 _state.update {
                     it.copy(
                         activeTvName = tvInfo?.name ?: tvInfo?.ipAddress,
@@ -79,25 +87,50 @@ class RemoteManager @Inject constructor(
                     )
                 }
 
-                if (tvInfo != null) {
-                    if (!_state.value.isConnected || tvInfo.ipAddress != previousActiveTvIp) {
-                        Timber.i("RemoteManager : TV active changée ou pas encore connectée. Tentative de connexion à ${tvInfo.ipAddress}")
+                when {
+                    tvInfo == null -> {
+                        Timber.d("RemoteManager : Aucune TV active définie.")
+                        connectionJob?.cancel()
+                        if (_state.value.isConnected) {
+                            disconnect()
+                        } else {
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    isConnected = false,
+                                    activeTvName = null
+                                )
+                            }
+                        }
+                    }
+
+                    previousActiveTvIp != null && tvInfo.ipAddress != previousActiveTvIp -> {
+                        Timber.i("RemoteManager : Changement de TV active vers ${tvInfo.ipAddress}.")
+                        connectionJob?.cancel()
+                        if (_state.value.isConnected) {
+                            disconnect()
+                        }
                         connect()
-                    } else {
-                        Timber.d("RemoteManager : Déjà connecté à la TV active ${tvInfo.name}.")
-                        _state.update { it.copy(isLoading = false) }
                     }
-                } else {
-                    Timber.d("RemoteManager : Aucune TV active définie.")
-                    if (_state.value.isConnected) {
-                        disconnect()
+
+                    !_state.value.isConnected && !_state.value.isLoading -> {
+                        Timber.i("RemoteManager : TV active non connectée. Connexion à ${tvInfo.ipAddress}.")
+                        connect()
                     }
-                    _state.update { it.copy(isLoading = false, isConnected = false, activeTvName = null) }
+
+                    else -> {
+                        Timber.d("RemoteManager : Connexion déjà active ou en cours pour ${tvInfo.ipAddress}.")
+                    }
                 }
             }
             .catch { e ->
                 Timber.e(e, "RemoteManager : Erreur lors de l'observation de la TV active")
-                _state.update { it.copy(snackbarMessage = "Erreur de chargement des paramètres TV.", isLoading = false) }
+                _state.update {
+                    it.copy(
+                        snackbarMessage = "Erreur de chargement des paramètres TV.",
+                        isLoading = false
+                    )
+                }
             }
             .launchIn(scope)
     }
@@ -105,18 +138,25 @@ class RemoteManager @Inject constructor(
     private fun observeConnectionState(scope: CoroutineScope) {
         connectionStateJob?.cancel()
         connectionStateJob = observeTvConnectionStateUseCase()
+            .distinctUntilChanged()
             .onEach { isConnected ->
                 Timber.d("RemoteManager : État de connexion global changé : $isConnected")
                 _state.update {
                     it.copy(
                         isConnected = isConnected,
-                        isLoading = if (isConnected) false else it.isLoading
+                        isLoading = false
                     )
                 }
             }
             .catch { e ->
                 Timber.e(e, "RemoteManager : Erreur lors de l'observation de l'état de connexion")
-                _state.update { it.copy(snackbarMessage = "Erreur de connexion.", isLoading = false, isConnected = false) }
+                _state.update {
+                    it.copy(
+                        snackbarMessage = "Erreur de connexion.",
+                        isLoading = false,
+                        isConnected = false
+                    )
+                }
             }
             .launchIn(scope)
     }
@@ -130,37 +170,53 @@ class RemoteManager @Inject constructor(
                     when (event) {
                         is TvCoreEvent.SecretRequested -> {
                             Timber.w("RemoteManager : La TV active ${currentState.activeTvName} demande un PIN.")
-                            currentState.copy(pairingRequiredOnActiveTv = true, isConnected = false, isLoading = false)
-                        }
-                        is TvCoreEvent.Connected -> {
-                            currentState.copy(isLoading = false, isConnected = true, pairingRequiredOnActiveTv = if (currentState.pairingRequiredOnActiveTv) false else currentState.pairingRequiredOnActiveTv )
-                        }
-                        is TvCoreEvent.Disconnected -> {
-                            currentState.copy(isLoading = if (currentState.isLoading && !currentState.isConnected) false else currentState.isLoading)
-                        }
-                        is TvCoreEvent.Error -> {
                             currentState.copy(
-                                snackbarMessage = "Erreur TV: ${event.message}",
+                                pairingRequiredOnActiveTv = true,
+                                isConnected = false,
                                 isLoading = false
                             )
                         }
-                        is TvCoreEvent.VolumeUpdated -> {
-                            currentState.copy(
-                                volumeLevel = event.level,
-                                volumeMax = if (event.max > 0) event.max else 100,
-                                isMuted = event.muted
-                            )
-                        }
-                        is TvCoreEvent.AppLinkLaunchSent -> {
-                            currentState.copy(snackbarMessage = "Lancement de l'application ${event.appLink} demandé.")
-                        }
+
+                        is TvCoreEvent.Connected -> currentState.copy(
+                            isLoading = false,
+                            isConnected = true,
+                            pairingRequiredOnActiveTv = false
+                        )
+
+                        is TvCoreEvent.Disconnected -> currentState.copy(
+                            isLoading = false,
+                            isConnected = false
+                        )
+
+                        is TvCoreEvent.Error -> currentState.copy(
+                            snackbarMessage = "Erreur TV: ${event.message}",
+                            isLoading = false,
+                            isConnected = false
+                        )
+
+                        is TvCoreEvent.VolumeUpdated -> currentState.copy(
+                            volumeLevel = event.level,
+                            volumeMax = if (event.max > 0) event.max else 100,
+                            isMuted = event.muted
+                        )
+
+                        is TvCoreEvent.AppLinkLaunchSent -> currentState.copy(
+                            snackbarMessage = "Lancement de l'application ${event.appLink} demandé."
+                        )
+
                         else -> currentState
                     }
                 }
             }
             .catch { e ->
                 Timber.e(e, "RemoteManager : Erreur lors de l'observation des événements distants")
-                _state.update { it.copy(snackbarMessage = "Erreur interne de communication TV.", isLoading = false) }
+                _state.update {
+                    it.copy(
+                        snackbarMessage = "Erreur interne de communication TV.",
+                        isLoading = false,
+                        isConnected = false
+                    )
+                }
             }
             .launchIn(scope)
     }
@@ -168,27 +224,60 @@ class RemoteManager @Inject constructor(
     fun connect() {
         val currentScope = managerScope ?: run {
             Timber.e("RemoteManager : managerScope est nul, impossible de lancer la connexion.")
-            _state.update { it.copy(snackbarMessage = "Erreur interne : scope manquant pour la connexion.", isLoading = false) }
+            _state.update {
+                it.copy(
+                    snackbarMessage = "Erreur interne : scope manquant pour la connexion.",
+                    isLoading = false
+                )
+            }
             return
         }
-        activeTvInfo?.ipAddress?.let { ip ->
-            if (!_state.value.isConnected || _state.value.isLoading) {
-                Timber.i("RemoteManager : Tentative de connexion explicite à $ip")
-                _state.update { it.copy(isLoading = true, snackbarMessage = "Connexion à ${activeTvInfo?.name ?: ip}...") }
-                currentScope.launch {
-                    try {
-                        connectToTvUseCase(ip)
-                    } catch (e: Exception) {
-                        Timber.e(e, "RemoteManager : La tentative de connexion explicite a échoué pour $ip")
-                        _state.update { it.copy(snackbarMessage = "Échec de connexion à ${activeTvInfo?.name ?: ip}.", isLoading = false, isConnected = false) }
-                    }
-                }
-            } else {
-                Timber.d("RemoteManager : Déjà connecté à $ip ou tentative déjà en cours.")
-                if (_state.value.isConnected) _state.update { it.copy(isLoading = false) }
+
+        val tv = activeTvInfo ?: run {
+            _state.update {
+                it.copy(
+                    snackbarMessage = "Aucune TV active sélectionnée pour la connexion.",
+                    isLoading = false,
+                    isConnected = false
+                )
             }
-        } ?: run {
-            _state.update { it.copy(snackbarMessage = "Aucune TV active sélectionnée pour la connexion.", isLoading = false, isConnected = false) }
+            return
+        }
+
+        if (_state.value.isConnected) {
+            Timber.d("RemoteManager : Déjà connecté à ${tv.ipAddress}.")
+            _state.update { it.copy(isLoading = false) }
+            return
+        }
+
+        if (connectionJob?.isActive == true || _state.value.isLoading) {
+            Timber.d("RemoteManager : Une tentative de connexion est déjà en cours pour ${tv.ipAddress}.")
+            return
+        }
+
+        Timber.i("RemoteManager : Tentative de connexion à ${tv.ipAddress}")
+        _state.update {
+            it.copy(
+                isLoading = true,
+                snackbarMessage = "Connexion à ${tv.name ?: tv.ipAddress}..."
+            )
+        }
+
+        connectionJob = currentScope.launch {
+            try {
+                connectToTvUseCase(tv.ipAddress)
+            } catch (e: Exception) {
+                Timber.e(e, "RemoteManager : Échec de connexion à ${tv.ipAddress}")
+                _state.update {
+                    it.copy(
+                        snackbarMessage = "Échec de connexion à ${tv.name ?: tv.ipAddress}.",
+                        isLoading = false,
+                        isConnected = false
+                    )
+                }
+            } finally {
+                connectionJob = null
+            }
         }
     }
 
@@ -197,23 +286,34 @@ class RemoteManager @Inject constructor(
             Timber.e("RemoteManager : managerScope est nul, impossible de lancer la déconnexion.")
             return
         }
+
+        connectionJob?.cancel()
+        connectionJob = null
         Timber.i("RemoteManager : Déconnexion demandée.")
         _state.update { it.copy(isLoading = true) }
+
         currentScope.launch {
             try {
                 disconnectFromTvUseCase()
             } catch (e: Exception) {
                 Timber.e(e, "RemoteManager : Erreur pendant la déconnexion")
-                _state.update { it.copy(snackbarMessage = "Erreur de déconnexion.") }
-            } finally {
-                if (!_state.value.isConnected) {
-                    _state.update { it.copy(isLoading = false) }
+                _state.update {
+                    it.copy(
+                        snackbarMessage = "Erreur de déconnexion.",
+                        isConnected = false
+                    )
                 }
+            } finally {
+                _state.update { it.copy(isLoading = false) }
             }
         }
     }
 
-    fun sendCommand(keyCode: Remotemessage.RemoteKeyCode, action: Remotemessage.RemoteDirection, scope: CoroutineScope) {
+    fun sendCommand(
+        keyCode: Remotemessage.RemoteKeyCode,
+        action: Remotemessage.RemoteDirection,
+        scope: CoroutineScope
+    ) {
         if (!_state.value.isConnected) {
             _state.update { it.copy(snackbarMessage = "Non connecté. Veuillez connecter une TV.") }
             if (activeTvInfo != null) {
@@ -221,6 +321,7 @@ class RemoteManager @Inject constructor(
             }
             return
         }
+
         scope.launch {
             try {
                 sendCommandUseCase(keyCode, action)
@@ -237,10 +338,12 @@ class RemoteManager @Inject constructor(
             _state.update { it.copy(snackbarMessage = "Lien d'application non valide.") }
             return
         }
+
         if (!_state.value.isConnected) {
             _state.update { it.copy(snackbarMessage = "Non connecté pour lancer l'application.") }
             return
         }
+
         scope.launch {
             try {
                 launchAppUseCase(appLink)
@@ -261,9 +364,11 @@ class RemoteManager @Inject constructor(
 
     fun cleanup() {
         Timber.d("RemoteManager : Nettoyage des ressources.")
+        connectionJob?.cancel()
         activeTvJob?.cancel()
         connectionStateJob?.cancel()
         remoteEventsJob?.cancel()
+        connectionJob = null
         managerScope = null
     }
 }
