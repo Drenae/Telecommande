@@ -48,7 +48,6 @@ object HomeButtons {
     val Power = HomeButtonConfig(R.drawable.ic_remote_power, "Power")
     val Back = HomeButtonConfig(R.drawable.ic_remote_back, "Retour")
     val Home = HomeButtonConfig(R.drawable.ic_remote_home, "Accueil")
-    val Keyboard = HomeButtonConfig(R.drawable.ic_remote_keyboard, "Clavier")
 
     val Ok = HomeButtonConfig(
         iconRes = R.drawable.ic_remote_ok,
@@ -70,7 +69,7 @@ object HomeButtons {
         contentDescription = description,
         baseType = HomeButtonType.APP_LAUNCHER,
         iconTint = Color.Unspecified,
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(14.dp),
         defaultBackgroundColorBrush = DefaultButtonColors.DefaultBackgroundBrush,
         pressedBackgroundColorBrush = DefaultButtonColors.PressedBackgroundBrush,
         appLauncherIconSize = iconSize
