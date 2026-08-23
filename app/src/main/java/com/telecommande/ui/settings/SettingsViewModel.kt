@@ -33,16 +33,12 @@ data class SettingsUiState(
     val pairingStep: PairingStep = PairingStep.Idle,
     val pairedTvs: List<PairedTvInfo> = emptyList(),
     val activeTv: PairedTvInfo? = null,
-
     val isLoadingOverall: Boolean = false,
     val snackbarMessage: String? = null,
-
     val showPinEntryDialogForTv: DiscoveredTv? = null,
     val currentPinInput: String = "",
-
     val primaryStatusMessage: String = "",
     val errorDialogContent: String? = null,
-
     val isPinDialogLoading: Boolean = false
 )
 
@@ -60,47 +56,58 @@ class SettingsViewModel @Inject constructor(
     private val _currentPinInput = MutableStateFlow("")
     private val _internalSnackbarMessage = MutableStateFlow<String?>(null)
 
+    private val tvSelectionFlow = combine(
+        getPairedTvsUseCase(),
+        getActiveTvUseCase()
+    ) { pairedTvs, activeTv ->
+        pairedTvs to activeTv
+    }
+
     val uiState: StateFlow<SettingsUiState> = combine(
         discoveryManager.state,
         remoteManager.state,
         pairingManager.currentStep,
-        getPairedTvsUseCase(),
-        getActiveTvUseCase(),
+        tvSelectionFlow,
         _currentPinInput
-    ) { flows ->
-        val discoveryState = flows[0] as DiscoveryState
-        val remoteState = flows[1] as RemoteState
-        val pairingStep = flows[2] as PairingStep
-        val pairedList = flows[3] as List<PairedTvInfo>
-        val activeTvInfo = flows[4] as PairedTvInfo?
-        val pinInput = flows[5] as String
+    ) { discoveryState, remoteState, pairingStep, tvSelection, pinInput ->
+        val (pairedList, activeTvInfo) = tvSelection
 
-        val isLoadingOverall = discoveryState.isDiscovering || remoteState.isLoading ||
-                (pairingStep is PairingStep.Initiating)
+        val isLoadingOverall = discoveryState.isDiscovering ||
+            remoteState.isLoading ||
+            pairingStep is PairingStep.Initiating
 
-        val isPinDialogActuallyLoading = pairingStep is PairingStep.VerifyingPin
-
-        val statusMsgFromDiscovery = if (discoveryState.isDiscovering || discoveryState.statusMessage.isNotBlank()) discoveryState.statusMessage else null
-        val statusMsgFromRemote = when {
-            remoteState.isLoading && remoteState.activeTvName != null -> "Connexion à ${remoteState.activeTvName}..."
-            remoteState.isLoading -> "Connexion en cours..."
-            remoteState.isConnected && remoteState.activeTvName != null -> "Connecté à ${remoteState.activeTvName}"
-            remoteState.isConnected -> "Connecté"
-            activeTvInfo != null && !remoteState.isConnected -> "Déconnecté de ${activeTvInfo.name}"
-            else -> if (remoteState.isConnected) "Connecté" else "Non connecté"
+        val statusMsgFromDiscovery = if (
+            discoveryState.isDiscovering || discoveryState.statusMessage.isNotBlank()
+        ) {
+            discoveryState.statusMessage
+        } else {
+            null
         }
+
+        val statusMsgFromRemote = when {
+            remoteState.isLoading && remoteState.activeTvName != null ->
+                "Connexion à ${remoteState.activeTvName}..."
+            remoteState.isLoading -> "Connexion en cours..."
+            remoteState.isConnected && remoteState.activeTvName != null ->
+                "Connecté à ${remoteState.activeTvName}"
+            remoteState.isConnected -> "Connecté"
+            activeTvInfo != null -> "Déconnecté de ${activeTvInfo.name ?: activeTvInfo.ipAddress}"
+            else -> "Non connecté"
+        }
+
         val statusMsgFromPairing = when (pairingStep) {
             is PairingStep.Initiating -> "Appairage avec ${pairingStep.tvName}..."
-            is PairingStep.PinRequested -> "PIN requis par ${pairingStep.tvForPinEntry.friendlyName}"
-            is PairingStep.VerifyingPin -> "Vérification du PIN pour ${pairingStep.tvName}..."
-            is PairingStep.PairingSuccessful -> "Appairage réussi avec ${pairingStep.pairedTvInfo.name}. Connexion..."
+            is PairingStep.PinRequested ->
+                "PIN requis par ${pairingStep.tvForPinEntry.friendlyName}"
+            is PairingStep.VerifyingPin ->
+                "Vérification du PIN pour ${pairingStep.tvName}..."
+            is PairingStep.PairingSuccessful ->
+                "Appairage réussi avec ${pairingStep.pairedTvInfo.name}. Connexion..."
             is PairingStep.Error -> pairingStep.message
             else -> null
         }
 
-        val calculatedPrimaryStatusMessage = statusMsgFromPairing ?: statusMsgFromDiscovery ?: statusMsgFromRemote
-
-        val calculatedErrorDialogContent = when {
+        val errorDialogContent = when {
             discoveryState.errorMessage != null -> discoveryState.errorMessage
             pairingStep is PairingStep.Error -> pairingStep.message
             else -> null
@@ -114,11 +121,11 @@ class SettingsViewModel @Inject constructor(
             activeTv = activeTvInfo,
             isLoadingOverall = isLoadingOverall,
             snackbarMessage = _internalSnackbarMessage.value,
-            showPinEntryDialogForTv = if (pairingStep is PairingStep.PinRequested) pairingStep.tvForPinEntry else null,
+            showPinEntryDialogForTv = (pairingStep as? PairingStep.PinRequested)?.tvForPinEntry,
             currentPinInput = pinInput,
-            primaryStatusMessage = calculatedPrimaryStatusMessage,
-            errorDialogContent = calculatedErrorDialogContent,
-            isPinDialogLoading = isPinDialogActuallyLoading
+            primaryStatusMessage = statusMsgFromPairing ?: statusMsgFromDiscovery ?: statusMsgFromRemote,
+            errorDialogContent = errorDialogContent,
+            isPinDialogLoading = pairingStep is PairingStep.VerifyingPin
         )
     }.catch { e ->
         Timber.e(e, "Erreur lors de la combinaison des flux pour SettingsUiState")
@@ -183,8 +190,9 @@ class SettingsViewModel @Inject constructor(
         pairingManager.acknowledgeError()
         val currentPairingState = uiState.value.pairingStep
         if (currentPairingState is PairingStep.Error && currentPairingState.shouldConsiderReset) {
-            val tvName = currentPairingState.tvName
-            Timber.i("L'utilisateur a acquitté une erreur d'appairage avec une suggestion de réinitialisation pour $tvName.")
+            Timber.i(
+                "L'utilisateur a acquitté une erreur d'appairage avec une suggestion de réinitialisation pour ${currentPairingState.tvName}."
+            )
         }
     }
 
@@ -203,9 +211,11 @@ class SettingsViewModel @Inject constructor(
 
     fun setTvAsActive(tvInfo: PairedTvInfo) {
         if (uiState.value.activeTv?.ipAddress == tvInfo.ipAddress && uiState.value.remoteState.isConnected) {
-            _internalSnackbarMessage.value = "${tvInfo.name ?: tvInfo.ipAddress} est déjà active et connectée."
+            _internalSnackbarMessage.value =
+                "${tvInfo.name ?: tvInfo.ipAddress} est déjà active et connectée."
             return
         }
+
         _internalSnackbarMessage.value = "Sélection de ${tvInfo.name ?: tvInfo.ipAddress}..."
         viewModelScope.launch {
             try {

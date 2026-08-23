@@ -99,7 +99,9 @@ class PairingSession {
                     logReceivedMessage("Ack du secret d'appairage: ${pairingSecretAck.toString().take(200)}")
 
                     val peerCertificates = sslSocket?.session?.peerCertificates
-                    val serverCertificate = if (peerCertificates?.isNotEmpty() == true && peerCertificates[0] is X509Certificate) {
+                    val serverCertificate = if (
+                        peerCertificates?.isNotEmpty() == true && peerCertificates[0] is X509Certificate
+                    ) {
                         peerCertificates[0] as X509Certificate
                     } else {
                         Timber.w("Certificat du serveur non trouvé ou pas du type X509 après l'appairage.")
@@ -110,7 +112,6 @@ class PairingSession {
                     _eventFlow.emit(PairingEvent.Paired(serverCertificate))
                     _eventFlow.emit(PairingEvent.SessionEnded)
                 } ?: throw IOException("OutputStream non initialisé.")
-
             } catch (e: PairingException) {
                 Timber.e(e, "Erreur d'appairage: %s", e.message)
                 _eventFlow.emit(PairingEvent.Error("Erreur d'appairage: ${e.message}"))
@@ -138,7 +139,11 @@ class PairingSession {
         withContext(Dispatchers.IO) {
             Timber.d("Initialisation du socket SSL pour %s:%d", host, port)
             val sslContext = SSLContext.getInstance("TLS")
-            sslContext.init(KeyStoreManager().getKeyManagers(), arrayOf<TrustManager>(DummyTrustManager()), SecureRandom())
+            sslContext.init(
+                KeyStoreManager().getKeyManagers(),
+                arrayOf<TrustManager>(DummyTrustManager()),
+                SecureRandom()
+            )
             val sslSocketFactory = sslContext.socketFactory
             val newSocket = sslSocketFactory.createSocket(host, port) as SSLSocket
             sslSocket = newSocket
@@ -153,7 +158,9 @@ class PairingSession {
         if (currentInputStream == null) {
             Timber.e("InputStream est null, impossible de démarrer PairingPacketParser.")
             coroutineScope.launch {
-                _eventFlow.emit(PairingEvent.Error("Erreur interne: InputStream non disponible pour l'analyseur."))
+                _eventFlow.emit(
+                    PairingEvent.Error("Erreur interne: InputStream non disponible pour l'analyseur.")
+                )
             }
             return
         }
@@ -173,14 +180,14 @@ class PairingSession {
                     _eventFlow.emit(PairingEvent.Error("Erreur interne d'analyseur: ${e.message}"))
                 }
             } finally {
-                if (!incomingMessagesChannel.isClosedForSend) {
-                    incomingMessagesChannel.close()
-                }
+                incomingMessagesChannel.close()
             }
         }
     }
 
-    private suspend fun waitForMessageOrFail(timeoutMillis: Long = 30000): Pairingmessage.PairingMessage {
+    private suspend fun waitForMessageOrFail(
+        timeoutMillis: Long = 30000
+    ): Pairingmessage.PairingMessage {
         val pairingMessage = withTimeoutOrNull(timeoutMillis) {
             incomingMessagesChannel.receive()
         } ?: throw PairingException("Timeout en attente d'un message du serveur.")
