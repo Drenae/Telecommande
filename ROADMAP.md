@@ -71,7 +71,7 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Remplacer les providers Hilt manuels par des bindings `@Binds`
 - [x] Vérifier la séparation `data / domain / ui`
 
-## Phase 6 — Nettoyage général 🟡 EN COURS
+## Phase 6 — Nettoyage général ✅
 
 - [x] Supprimer une première vague de code mort et d'état inutilisé
 - [x] Réduire les logs de debug évidents dans l'UI et la découverte
@@ -88,13 +88,18 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Supprimer les dépendances historiques `jmdns` / `slf4j` devenues inutiles avec `NsdManager`
 - [x] Nettoyer le version catalog des alias Android View / bibliothèques non référencés
 - [x] Auditer la structure `data / di / domain / navigation / ui / util` et conserver cette séparation
-- [ ] Réduire les logs de debug restants du core sans masquer les erreurs réseau / SSL utiles
+- [x] Conserver uniquement les logs réseau / SSL utiles au diagnostic pour le reste du nettoyage
 
-## Phase 7 — UI / UX ⏳
+## Phase 7 — UI / UX 🟡 EN COURS
 
-- [ ] Revoir l'écran principal de télécommande
+- [x] Démarrer la refonte de l'écran principal de télécommande
+- [x] Remplacer le simple voyant par un bloc d'état TV informatif et cliquable
+- [x] Afficher le nom de la TV active et l'état `Connectée / Déconnectée / Connexion...`
+- [x] Améliorer le message de chargement lors de la connexion
+- [ ] Revoir l'organisation visuelle des contrôles principaux
+- [ ] Revoir l'ergonomie du volume
+- [ ] Revoir les boutons de lancement d'applications
 - [ ] Revoir l'écran paramètres / TV
-- [ ] Améliorer le feedback connexion / déconnexion
 - [ ] Améliorer le flux d'appairage et PIN
 - [ ] Revoir navigation et états vides / erreurs
 - [ ] Harmoniser le design Compose / Material 3
