@@ -77,7 +77,7 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Réduire les logs de debug évidents dans l'UI et la découverte
 - [x] Factoriser les commandes courtes de `HomeViewModel`
 - [x] Nettoyer la configuration des boutons Home devenue redondante
-- [x] Retirer les dépendances app directes `protobuf-javalite` et `constraintlayout-compose` inutilisées
+- [x] Vérifier que `protobuf-javalite` et `constraintlayout-compose` sont bien nécessaires côté app
 - [x] Vérifier les warnings précédemment signalés (`Room` et barre de statut déjà corrigés)
 - [ ] Auditer et simplifier les méthodes inutilisées de `SettingsRepository` / `PairedTvDao`
 - [ ] Réduire les logs de debug restants du core et des managers sans masquer les erreurs utiles
