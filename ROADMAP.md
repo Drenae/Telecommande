@@ -92,18 +92,22 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 
 ## Phase 7 — UI / UX 🟡 EN COURS
 
-- [x] Démarrer la refonte de l'écran principal de télécommande
-- [x] Remplacer le simple voyant par un bloc d'état TV informatif et cliquable
-- [x] Afficher le nom de la TV active et l'état `Connectée / Déconnectée / Connexion...`
-- [x] Améliorer le message de chargement lors de la connexion
-- [ ] Revoir l'organisation visuelle des contrôles principaux
-- [ ] Revoir l'ergonomie du volume
-- [ ] Revoir les boutons de lancement d'applications
-- [ ] Revoir l'écran paramètres / TV
-- [ ] Améliorer le flux d'appairage et PIN
-- [ ] Revoir navigation et états vides / erreurs
-- [ ] Harmoniser le design Compose / Material 3
-- [ ] Revoir ergonomie des boutons et commandes
+- [x] Valider une maquette de refonte avant implémentation
+- [x] Conserver le bouton d'état compact dans le header
+- [x] Ajouter un titre central sans encombrer le header
+- [x] Adapter dynamiquement le D-pad à la largeur disponible
+- [x] Revoir l'espacement et la taille des boutons Retour / Accueil / Clavier
+- [x] Conserver le slider de volume et l'affichage du niveau exact
+- [x] Ne pas ajouter de commandes de chaîne inutiles
+- [x] Regrouper Netflix / YouTube / Plex / Crunchyroll sur une barre compacte responsive
+- [x] Remplacer le voile de connexion plein écran par un indicateur compact
+- [x] Appliquer une palette sombre teal cohérente au thème Material 3
+- [x] Refaire l'écran de gestion / sélection des TV avec des cartes responsives
+- [x] Refaire les états vides et la recherche de TV
+- [x] Refaire le dialogue d'appairage PIN
+- [ ] Implémenter réellement la fonction clavier actuellement en placeholder
+- [ ] Vérifier le rendu sur petit / moyen / grand téléphone réel ou émulateur
+- [ ] Ajuster les dimensions après validation visuelle utilisateur
 
 ## Phase 8 — Finalisation ⏳
 
