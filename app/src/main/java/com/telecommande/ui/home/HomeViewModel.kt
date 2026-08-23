@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import timber.log.Timber
 import javax.inject.Inject
 
 data class HomeUiState(
@@ -48,25 +47,24 @@ class HomeViewModel @Inject constructor(
         )
 
     init {
-        Timber.d("HomeViewModel : Initialisation avec Hilt")
         remoteManager.initialize(viewModelScope)
     }
 
-    fun connectToActiveTv() {
-        remoteManager.connect()
-    }
+    fun sendPowerCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_POWER)
+    fun sendDpadCenterCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_CENTER)
+    fun sendDpadUpCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_UP)
+    fun sendDpadDownCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_DOWN)
+    fun sendDpadLeftCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_LEFT)
+    fun sendDpadRightCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_RIGHT)
+    fun sendBackCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_BACK)
+    fun sendHomeCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_HOME)
+    fun sendVolumeUpCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_VOLUME_UP)
+    fun sendVolumeDownCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_VOLUME_DOWN)
+    fun sendMuteCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_VOLUME_MUTE)
 
-    fun sendPowerCommand() = remoteManager.sendCommand(Remotemessage.RemoteKeyCode.KEYCODE_POWER, Remotemessage.RemoteDirection.SHORT, viewModelScope)
-    fun sendDpadCenterCommand() = remoteManager.sendCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_CENTER, Remotemessage.RemoteDirection.SHORT, viewModelScope)
-    fun sendDpadUpCommand() = remoteManager.sendCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_UP, Remotemessage.RemoteDirection.SHORT, viewModelScope)
-    fun sendDpadDownCommand() = remoteManager.sendCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_DOWN, Remotemessage.RemoteDirection.SHORT, viewModelScope)
-    fun sendDpadLeftCommand() = remoteManager.sendCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_LEFT, Remotemessage.RemoteDirection.SHORT, viewModelScope)
-    fun sendDpadRightCommand() = remoteManager.sendCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_RIGHT, Remotemessage.RemoteDirection.SHORT, viewModelScope)
-    fun sendBackCommand() = remoteManager.sendCommand(Remotemessage.RemoteKeyCode.KEYCODE_BACK, Remotemessage.RemoteDirection.SHORT, viewModelScope)
-    fun sendHomeCommand() = remoteManager.sendCommand(Remotemessage.RemoteKeyCode.KEYCODE_HOME, Remotemessage.RemoteDirection.SHORT, viewModelScope)
-    fun sendVolumeUpCommand() = remoteManager.sendCommand(Remotemessage.RemoteKeyCode.KEYCODE_VOLUME_UP, Remotemessage.RemoteDirection.SHORT, viewModelScope)
-    fun sendVolumeDownCommand() = remoteManager.sendCommand(Remotemessage.RemoteKeyCode.KEYCODE_VOLUME_DOWN, Remotemessage.RemoteDirection.SHORT, viewModelScope)
-    fun sendMuteCommand() = remoteManager.sendCommand(Remotemessage.RemoteKeyCode.KEYCODE_VOLUME_MUTE, Remotemessage.RemoteDirection.SHORT, viewModelScope)
+    private fun sendShortCommand(keyCode: Remotemessage.RemoteKeyCode) {
+        remoteManager.sendCommand(keyCode, Remotemessage.RemoteDirection.SHORT, viewModelScope)
+    }
 
     fun launchAppByLink(appLink: String) {
         remoteManager.launchApp(appLink, viewModelScope)
@@ -83,6 +81,5 @@ class HomeViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         remoteManager.cleanup()
-        Timber.d("HomeViewModel : onCleared")
     }
 }
