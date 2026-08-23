@@ -31,6 +31,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.telecommande.core.discovery.DiscoveredTv
@@ -76,24 +77,30 @@ fun PinEntryDialog(
         },
         text = {
             Column(horizontalAlignment = Alignment.Start) {
-                Text("Saisissez le code PIN affiché sur votre TV.")
+                Text("Saisissez le code affiché sur votre TV (lettres et chiffres).")
                 Spacer(modifier = Modifier.height(TvManagementSpecs.PinDialogVerticalSpacer))
                 OutlinedTextField(
                     value = pinValue,
-                    onValueChange = {
-                        pinValue = it
-                        onPinChange(it)
+                    onValueChange = { rawValue ->
+                        val normalizedValue = rawValue
+                            .filter { it.isLetterOrDigit() }
+                            .uppercase()
+                        pinValue = normalizedValue
+                        onPinChange(normalizedValue)
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
-                    label = { Text("Code PIN") },
+                    label = { Text("Code d'appairage") },
                     keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.NumberPassword,
+                        keyboardType = KeyboardType.Ascii,
+                        capitalization = KeyboardCapitalization.Characters,
+                        autoCorrectEnabled = false,
                         imeAction = ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(onDone = {
                         if (!isLoading && pinValue.isNotBlank()) {
+                            keyboardController?.hide()
                             onConfirm()
                         }
                     }),
@@ -104,7 +111,10 @@ fun PinEntryDialog(
         },
         confirmButton = {
             Button(
-                onClick = onConfirm,
+                onClick = {
+                    keyboardController?.hide()
+                    onConfirm()
+                },
                 enabled = !isLoading && pinValue.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AppColors.accent,
