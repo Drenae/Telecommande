@@ -12,7 +12,6 @@ import java.security.KeyStoreException
 import java.security.cert.Certificate
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
-import java.util.Enumeration
 import java.util.Locale
 import java.util.UUID
 import javax.net.ssl.KeyManager
@@ -23,9 +22,9 @@ import javax.net.ssl.X509TrustManager
 
 internal class KeyStoreManager {
 
-    private val dynamicTrustManager: DynamicTrustManager
-    private val keyStore: KeyStore
     private val androidRemoteContext: AndroidRemoteContext = AndroidRemoteContext.getInstance()
+    private val keyStore: KeyStore = getOrLoadSharedKeyStore()
+    private val dynamicTrustManager = DynamicTrustManager(keyStore)
 
     companion object {
         private const val ANDROID_KEYSTORE_TYPE = "AndroidKeyStore"
@@ -33,12 +32,14 @@ internal class KeyStoreManager {
         private const val REMOTE_IDENTITY_ALIAS_PATTERN = "androidtv-remote-%s"
         private const val SERVER_IDENTITY_ALIAS = "androidtv-local"
 
+        private val sharedLock = Any()
+
+        @Volatile
+        private var sharedKeyStore: KeyStore? = null
+
         private fun createAlias(identifier: String): String {
             return REMOTE_IDENTITY_ALIAS_PATTERN.format(identifier)
         }
-
-        private val certificateName: String
-            get() = getCertificateNameForUID(UUID.randomUUID().toString())
 
         private fun getCertificateNameForUID(uid: String): String {
             return "CN=androidtv/$uid"
@@ -50,320 +51,232 @@ internal class KeyStoreManager {
     }
 
     private class DynamicTrustManager(keyStore: KeyStore) : X509TrustManager {
-        private lateinit var trustManager: X509TrustManager
+        @Volatile
+        private var trustManager: X509TrustManager = createTrustManager(keyStore)
 
-        init {
-            reloadTrustManager(keyStore)
-        }
-
-        override fun getAcceptedIssuers(): Array<X509Certificate> {
-            return trustManager.acceptedIssuers ?: emptyArray()
-        }
+        override fun getAcceptedIssuers(): Array<X509Certificate> =
+            trustManager.acceptedIssuers ?: emptyArray()
 
         override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {
-            try {
-                trustManager.checkClientTrusted(chain, authType)
-                Timber.v("DynamicTrustManager: Client certifié pour authType: %s", authType)
-            } catch (e: CertificateException) {
-                Timber.w(e, "DynamicTrustManager: Échec de la certification client pour authType: %s", authType)
-                throw e
-            }
+            trustManager.checkClientTrusted(chain, authType)
         }
 
         override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
-            try {
-                trustManager.checkServerTrusted(chain, authType)
-                Timber.v("DynamicTrustManager: Serveur certifié pour authType: %s", authType)
-            } catch (e: CertificateException) {
-                Timber.w(e, "DynamicTrustManager: Échec de la certification serveur pour authType: %s", authType)
-                throw e
-            }
+            trustManager.checkServerTrusted(chain, authType)
         }
 
         fun reloadTrustManager(keyStoreToTrust: KeyStore) {
-            Timber.d("Rechargement du TrustManager avec le nouveau KeyStore.")
-            try {
-                val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-                trustManagerFactory.init(keyStoreToTrust)
-                val foundTm = trustManagerFactory.trustManagers.filterIsInstance<X509TrustManager>().firstOrNull()
-                if (foundTm != null) {
-                    this.trustManager = foundTm
-                    Timber.i("TrustManager rechargé avec succès.")
-                } else {
-                    Timber.e("Aucun X509TrustManager trouvé après le rechargement.")
-                    throw IllegalStateException("Aucun X509TrustManager trouvé")
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Échec du rechargement du TrustManager.")
+            trustManager = createTrustManager(keyStoreToTrust)
+        }
 
+        companion object {
+            private fun createTrustManager(keyStore: KeyStore): X509TrustManager {
+                val factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+                factory.init(keyStore)
+                return factory.trustManagers
+                    .filterIsInstance<X509TrustManager>()
+                    .firstOrNull()
+                    ?: throw IllegalStateException("Aucun X509TrustManager disponible")
             }
         }
     }
 
-    init {
-        Timber.d("Initialisation de KeyStoreManager.")
-        val loadedKeyStore = loadOrCreateKeyStore()
-        this.keyStore = loadedKeyStore
-        this.dynamicTrustManager = DynamicTrustManager(loadedKeyStore)
-    }
+    private fun getOrLoadSharedKeyStore(): KeyStore {
+        sharedKeyStore?.let { return it }
 
-    private fun clearKeyStoreEntries() {
-        Timber.d("Effacement de toutes les entrées du KeyStore.")
-        try {
-            val aliases: Enumeration<String> = this.keyStore.aliases()
-            while (aliases.hasMoreElements()) {
-                val alias = aliases.nextElement()
-                this.keyStore.deleteEntry(alias)
-                Timber.v("Entrée supprimée: %s", alias)
-            }
-        } catch (e: KeyStoreException) {
-            Timber.e(e, "Erreur KeyStore lors de l'effacement des entrées.")
-        }
-        persistKeyStore()
-    }
-
-    private fun createAndSetIdentity(keyStoreInstance: KeyStore, alias: String = SERVER_IDENTITY_ALIAS, uidForCertName: String = UUID.randomUUID().toString()) {
-        Timber.d("Création et configuration de l'identité pour l'alias: %s, UID: %s", alias, uidForCertName)
-        val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
-        keyPairGenerator.initialize(2048)
-        val keyPair = keyPairGenerator.generateKeyPair()
-        val certificate = SslUtil.generateX509V3Certificate(keyPair, getCertificateNameForUID(uidForCertName))
-
-        try {
-            keyStoreInstance.setKeyEntry(alias, keyPair.private, null, arrayOf(certificate))
-        } catch (e: IllegalArgumentException) {
-            Timber.w(e, "IllegalArgumentException lors de setKeyEntry, tentative avec Locale Anglais.")
-            val originalLocale = Locale.getDefault()
-            setSystemLocale(Locale.ENGLISH)
-            try {
-                keyStoreInstance.setKeyEntry(alias, keyPair.private, null, arrayOf(certificate))
-            } finally {
-                setSystemLocale(originalLocale)
-            }
-        }
-        Timber.i("Identité créée et configurée pour l'alias: %s", alias)
-    }
-
-    private fun setSystemLocale(locale: Locale) {
-        try {
-            Locale.setDefault(locale)
-            Timber.d("Locale système configurée sur: %s", locale.toLanguageTag())
-        } catch (e: SecurityException) {
-            Timber.e(e, "SecurityException lors de la configuration de la locale système.")
-        } catch (e: Exception) {
-            Timber.w(e, "Exception lors de la configuration de la locale système.")
-        }
-    }
-
-    private fun createNewIdentityKeyStore(): KeyStore {
-        Timber.d("Création d'un nouveau KeyStore d'identité.")
-        val ksInstance: KeyStore
-        if (!useAndroidKeyStore()) {
-            ksInstance = KeyStore.getInstance(KeyStore.getDefaultType())
-            try {
-                ksInstance.load(null, androidRemoteContext.keyStorePass)
-            } catch (e: IOException) {
-                Timber.e(e, "Impossible de créer un KeyStore vide (type par défaut).")
-                throw GeneralSecurityException("Impossible de créer un KeyStore vide", e)
-            }
-        } else {
-            ksInstance = KeyStore.getInstance(ANDROID_KEYSTORE_TYPE)
-            try {
-                ksInstance.load(null, null)
-            } catch (e: IOException) {
-                Timber.e(e, "Impossible de créer un KeyStore vide (type AndroidKeyStore).")
-                throw GeneralSecurityException("Impossible de créer un KeyStore vide", e)
-            }
-        }
-        createAndSetIdentity(ksInstance)
-        return ksInstance
-    }
-
-    private fun hasServerIdentity(keyStoreInstance: KeyStore): Boolean {
-        return try {
-            val hasAlias = keyStoreInstance.containsAlias(SERVER_IDENTITY_ALIAS)
-            Timber.v("Le KeyStore contient l'alias serveur (%s): %s", SERVER_IDENTITY_ALIAS, hasAlias)
-            hasAlias
-        } catch (e: KeyStoreException) {
-            Timber.w(e, "Erreur KeyStore lors de la vérification de l'alias serveur.")
-            false
+        synchronized(sharedLock) {
+            sharedKeyStore?.let { return it }
+            val loaded = loadOrCreateKeyStore()
+            sharedKeyStore = loaded
+            return loaded
         }
     }
 
     private fun loadOrCreateKeyStore(): KeyStore {
-        Timber.d("Chargement ou création du KeyStore.")
         try {
-            val ks: KeyStore
-            if (!useAndroidKeyStore()) {
-                ks = KeyStore.getInstance(KeyStore.getDefaultType())
-                val keyStoreFile = androidRemoteContext.keyStoreFile
-                if (keyStoreFile.exists() && keyStoreFile.length() > 0) {
-                    Timber.i("Chargement du KeyStore depuis le fichier: %s", keyStoreFile.absolutePath)
-                    FileInputStream(keyStoreFile).use { inputStream ->
-                        ks.load(inputStream, androidRemoteContext.keyStorePass)
-                    }
-                } else {
-                    Timber.i("Aucun fichier KeyStore existant ou fichier vide, initialisation d'un nouveau KeyStore.")
-                    ks.load(null, androidRemoteContext.keyStorePass)
+            val keyStore = if (useAndroidKeyStore()) {
+                KeyStore.getInstance(ANDROID_KEYSTORE_TYPE).apply {
+                    load(null, null)
                 }
             } else {
-                Timber.i("Utilisation du type de KeyStore Android.")
-                ks = KeyStore.getInstance(ANDROID_KEYSTORE_TYPE)
-                ks.load(null, null)
+                KeyStore.getInstance(KeyStore.getDefaultType()).apply {
+                    val file = androidRemoteContext.keyStoreFile
+                    if (file.exists() && file.length() > 0) {
+                        FileInputStream(file).use { input ->
+                            load(input, androidRemoteContext.keyStorePass)
+                        }
+                    } else {
+                        load(null, androidRemoteContext.keyStorePass)
+                    }
+                }
             }
 
-            if (!hasServerIdentity(ks)) {
-                Timber.w("L'identité serveur est manquante dans le KeyStore chargé, création d'une nouvelle identité.")
-                createAndSetIdentity(ks)
-                persistKeyStore(ks)
+            if (!hasServerIdentity(keyStore)) {
+                createAndSetIdentity(keyStore)
+                persistKeyStore(keyStore)
             }
-            Timber.i("KeyStore chargé avec succès.")
-            return ks
+
+            Timber.d("KeyStore ready")
+            return keyStore
         } catch (e: Exception) {
-            Timber.e(e, "Échec critique lors du chargement ou de l'initialisation du KeyStore. Tentative de création d'un nouveau KeyStore.")
-            try {
-                val newKs = createNewIdentityKeyStore()
-                persistKeyStore(newKs)
-                return newKs
-            } catch (ge: GeneralSecurityException) {
-                Timber.e(ge, "Échec de la création d'un nouveau KeyStore d'identité après un échec de chargement.")
-                throw IllegalStateException("Impossible de créer ou charger le KeyStore d'identité.", ge)
-            }
+            Timber.e(e, "Impossible de charger le KeyStore, recréation")
+            val fresh = createNewIdentityKeyStore()
+            persistKeyStore(fresh)
+            return fresh
         }
     }
 
-    private fun persistKeyStore(keyStoreToPersist: KeyStore = this.keyStore) {
-        if (!useAndroidKeyStore()) {
-            Timber.d("Persistance du KeyStore dans le fichier: %s", androidRemoteContext.keyStoreFile.absolutePath)
-            try {
-                FileOutputStream(androidRemoteContext.keyStoreFile).use { outputStream ->
-                    keyStoreToPersist.store(outputStream, androidRemoteContext.keyStorePass)
-                }
-                Timber.i("KeyStore persisté avec succès.")
-            } catch (e: Exception) {
-                Timber.e(e, "Échec de la persistance du KeyStore.")
-                when (e) {
-                    is IOException, is GeneralSecurityException -> throw IllegalStateException("Impossible de persister le KeyStore", e)
-                    else -> throw e
-                }
+    private fun createNewIdentityKeyStore(): KeyStore {
+        val keyStore = if (useAndroidKeyStore()) {
+            KeyStore.getInstance(ANDROID_KEYSTORE_TYPE).apply {
+                load(null, null)
             }
         } else {
-            Timber.d("Utilisation du KeyStore Android, persistance explicite non requise/supportée de cette manière.")
+            KeyStore.getInstance(KeyStore.getDefaultType()).apply {
+                load(null, androidRemoteContext.keyStorePass)
+            }
+        }
+        createAndSetIdentity(keyStore)
+        return keyStore
+    }
+
+    private fun createAndSetIdentity(
+        keyStoreInstance: KeyStore,
+        alias: String = SERVER_IDENTITY_ALIAS,
+        uidForCertName: String = UUID.randomUUID().toString()
+    ) {
+        val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
+        keyPairGenerator.initialize(2048)
+        val keyPair = keyPairGenerator.generateKeyPair()
+        val certificate = SslUtil.generateX509V3Certificate(
+            keyPair,
+            getCertificateNameForUID(uidForCertName)
+        )
+
+        try {
+            keyStoreInstance.setKeyEntry(alias, keyPair.private, null, arrayOf(certificate))
+        } catch (e: IllegalArgumentException) {
+            val originalLocale = Locale.getDefault()
+            Locale.setDefault(Locale.ENGLISH)
+            try {
+                keyStoreInstance.setKeyEntry(alias, keyPair.private, null, arrayOf(certificate))
+            } finally {
+                Locale.setDefault(originalLocale)
+            }
         }
     }
 
-    private fun useAndroidKeyStore(): Boolean {
-        Timber.v("Vérification de l'utilisation d'AndroidKeyStore: false")
-        return false
+    private fun hasServerIdentity(keyStoreInstance: KeyStore): Boolean {
+        return try {
+            keyStoreInstance.containsAlias(SERVER_IDENTITY_ALIAS)
+        } catch (e: KeyStoreException) {
+            Timber.w(e, "Impossible de vérifier l'identité locale du KeyStore")
+            false
+        }
     }
+
+    private fun persistKeyStore(keyStoreToPersist: KeyStore = keyStore) {
+        if (useAndroidKeyStore()) return
+
+        try {
+            FileOutputStream(androidRemoteContext.keyStoreFile).use { output ->
+                keyStoreToPersist.store(output, androidRemoteContext.keyStorePass)
+            }
+        } catch (e: Exception) {
+            throw IllegalStateException("Impossible de persister le KeyStore", e)
+        }
+    }
+
+    private fun useAndroidKeyStore(): Boolean = false
 
     fun clearAllAndReinitialize() {
-        Timber.i("Effacement complet et réinitialisation du KeyStore.")
-        clearKeyStoreEntries()
-        try {
-            createAndSetIdentity(this.keyStore)
-        } catch (e: GeneralSecurityException) {
-            Timber.e(e, "Erreur lors de la création de l'identité après effacement.")
+        synchronized(sharedLock) {
+            try {
+                val aliases = keyStore.aliases().toList()
+                aliases.forEach { keyStore.deleteEntry(it) }
+                createAndSetIdentity(keyStore)
+                persistKeyStore()
+                dynamicTrustManager.reloadTrustManager(keyStore)
+            } catch (e: Exception) {
+                Timber.e(e, "Échec de la réinitialisation du KeyStore")
+                throw IllegalStateException("Impossible de réinitialiser le KeyStore", e)
+            }
         }
-        persistKeyStore()
     }
 
     fun getKeyManagers(): Array<KeyManager> {
-        Timber.d("Récupération des KeyManagers.")
-        return try {
-            val keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
-            keyManagerFactory.init(this.keyStore, "".toCharArray())
-            keyManagerFactory.keyManagers
-        } catch (e: GeneralSecurityException) {
-            Timber.e(e, "Erreur lors de la récupération des KeyManagers.")
-            throw e
-        }
+        val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+        factory.init(keyStore, "".toCharArray())
+        return factory.keyManagers
     }
 
-    fun getTrustManagers(): Array<TrustManager> {
-        Timber.d("Récupération des TrustManagers.")
-        return try {
-            arrayOf(this.dynamicTrustManager)
-        } catch (e: Exception) {
-            Timber.e(e, "Erreur lors de la récupération des TrustManagers (DynamicTrustManager).")
-            throw GeneralSecurityException("Impossible de récupérer le DynamicTrustManager", e)
-        }
-    }
+    fun getTrustManagers(): Array<TrustManager> = arrayOf(dynamicTrustManager)
 
-    fun hasServerIdentityAlias(): Boolean {
-        return hasServerIdentity(this.keyStore)
-    }
+    fun hasServerIdentityAlias(): Boolean = hasServerIdentity(keyStore)
 
     fun initializeLocalIdentity(uidForCertName: String = UUID.randomUUID().toString()) {
-        Timber.i("Initialisation de l'identité locale avec UID: %s", uidForCertName)
-        try {
-            createAndSetIdentity(this.keyStore, LOCAL_IDENTITY_ALIAS, uidForCertName)
-            persistKeyStore()
-        } catch (e: GeneralSecurityException) {
-            Timber.e(e, "Erreur lors de l'initialisation de l'identité locale.")
-            throw IllegalStateException("Impossible de créer l'identité locale du KeyStore", e)
+        synchronized(sharedLock) {
+            try {
+                createAndSetIdentity(keyStore, LOCAL_IDENTITY_ALIAS, uidForCertName)
+                persistKeyStore()
+                dynamicTrustManager.reloadTrustManager(keyStore)
+            } catch (e: GeneralSecurityException) {
+                throw IllegalStateException("Impossible de créer l'identité locale du KeyStore", e)
+            }
         }
     }
 
     fun removeRemoteCertificate(identifierForAlias: String): Certificate? {
-        Timber.d("Tentative de suppression du certificat distant pour l'identifiant: %s", identifierForAlias)
-        return try {
-            val aliasToRemove = createAlias(identifierForAlias)
-            if (!this.keyStore.containsAlias(aliasToRemove)) {
-                Timber.w("Certificat non trouvé pour suppression, alias: %s", aliasToRemove)
+        synchronized(sharedLock) {
+            return try {
+                val alias = createAlias(identifierForAlias)
+                if (!keyStore.containsAlias(alias)) {
+                    null
+                } else {
+                    val certificate = keyStore.getCertificate(alias)
+                    keyStore.deleteEntry(alias)
+                    persistKeyStore()
+                    dynamicTrustManager.reloadTrustManager(keyStore)
+                    certificate
+                }
+            } catch (e: KeyStoreException) {
+                Timber.e(e, "Erreur lors de la suppression du certificat distant")
                 null
-            } else {
-                val certificate = this.keyStore.getCertificate(aliasToRemove)
-                this.keyStore.deleteEntry(aliasToRemove)
-                persistKeyStore()
-                Timber.i("Certificat supprimé pour l'alias: %s", aliasToRemove)
-                certificate
             }
-        } catch (e: KeyStoreException) {
-            Timber.e(e, "Erreur KeyStore lors de la suppression du certificat pour l'identifiant: %s", identifierForAlias)
-            null
         }
     }
 
     fun storeRemoteCertificate(certificate: Certificate, identifierForAlias: String) {
-        Timber.i("Stockage du certificat distant pour l'identifiant: %s", identifierForAlias)
-        try {
-            val aliasToStore = createAlias(identifierForAlias)
-            val subjectDNOfNewCert = getSubjectDN(certificate)
-            Timber.d("Alias pour le nouveau certificat: %s, Sujet DN: %s", aliasToStore, subjectDNOfNewCert)
+        synchronized(sharedLock) {
+            try {
+                val aliasToStore = createAlias(identifierForAlias)
+                val newSubject = getSubjectDN(certificate)
 
-            if (this.keyStore.containsAlias(aliasToStore)) {
-                Timber.d("Alias existant trouvé (%s), suppression de l'entrée précédente.", aliasToStore)
-                this.keyStore.deleteEntry(aliasToStore)
-            }
+                if (keyStore.containsAlias(aliasToStore)) {
+                    keyStore.deleteEntry(aliasToStore)
+                }
 
-            if (subjectDNOfNewCert != null) {
-                val aliases = this.keyStore.aliases()
-                val entriesToDelete = mutableListOf<String>()
-                while (aliases.hasMoreElements()) {
-                    val currentAlias = aliases.nextElement()
-                    if (currentAlias == aliasToStore) continue
-
-                    val currentCert = this.keyStore.getCertificate(currentAlias)
-                    if (currentCert != null) {
-                        val subjectDNOfCurrentCert = getSubjectDN(currentCert)
-                        if (subjectDNOfNewCert == subjectDNOfCurrentCert) {
-                            Timber.d("Ancien certificat trouvé avec le même sujet DN (%s) sous l'alias %s. Marquage pour suppression.", subjectDNOfCurrentCert, currentAlias)
-                            entriesToDelete.add(currentAlias)
+                if (newSubject != null) {
+                    val duplicates = mutableListOf<String>()
+                    val aliases = keyStore.aliases()
+                    while (aliases.hasMoreElements()) {
+                        val alias = aliases.nextElement()
+                        if (alias == aliasToStore) continue
+                        val current = keyStore.getCertificate(alias) ?: continue
+                        if (getSubjectDN(current) == newSubject) {
+                            duplicates += alias
                         }
                     }
+                    duplicates.forEach { keyStore.deleteEntry(it) }
                 }
-                entriesToDelete.forEach { entryAlias ->
-                    Timber.d("Suppression de l'entrée dupliquée pour le sujet DN: %s", entryAlias)
-                    this.keyStore.deleteEntry(entryAlias)
-                }
+
+                keyStore.setCertificateEntry(aliasToStore, certificate)
+                persistKeyStore()
+                dynamicTrustManager.reloadTrustManager(keyStore)
+            } catch (e: KeyStoreException) {
+                Timber.e(e, "Erreur lors du stockage du certificat distant")
+                throw e
             }
-            this.keyStore.setCertificateEntry(aliasToStore, certificate)
-            Timber.i("Certificat stocké sous l'alias: %s", aliasToStore)
-            persistKeyStore()
-            this.dynamicTrustManager.reloadTrustManager(this.keyStore)
-        } catch (e: KeyStoreException) {
-            Timber.e(e, "Erreur KeyStore lors du stockage du certificat pour l'identifiant: %s", identifierForAlias)
         }
     }
 }
