@@ -40,17 +40,16 @@ class PairingRepositoryImpl @Inject constructor(
         .filterNotNull()
         .onEach { Timber.d("PairingRepo: Emitting Filtered TvCoreEvent: %s", it.javaClass.simpleName) }
 
-    override suspend fun connectForPairing(hostAddress: String) {
-        Timber.d("PairingRepo: Appel de androidRemoteTv.connect() avec l'adresse: %s", hostAddress)
+    override suspend fun connectForPairing(hostAddress: String, tvKeystoreAlias: String?) {
+        Timber.d("PairingRepo: connexion vers %s (alias connu: %s)", hostAddress, tvKeystoreAlias != null)
         try {
-            androidRemoteTv.connect(hostAddress)
+            androidRemoteTv.connect(hostAddress, tvKeystoreAlias)
         } catch (e: Exception) {
             Timber.e(e, "PairingRepo: Exception during connect to %s: %s", hostAddress, e.message)
         }
     }
 
     override suspend fun sendSecret(pin: String) {
-        Timber.d("PairingRepo: Appel de androidRemoteTv.sendSecret() avec le PIN.")
         try {
             androidRemoteTv.sendSecret(pin)
         } catch (e: Exception) {
@@ -60,9 +59,7 @@ class PairingRepositoryImpl @Inject constructor(
 
     override fun isKeystorePairedInitially(): Boolean {
         val keystoreFile: File? = androidRemoteContext.keyStoreFile
-        val isPaired = keystoreFile?.exists() == true && keystoreFile.length() > 0
-        Timber.d("PairingRepo: isKeystorePairedInitially: %s", isPaired)
-        return isPaired
+        return keystoreFile?.exists() == true && keystoreFile.length() > 0
     }
 
     override suspend fun deleteKeystoreForReset(): Boolean {
@@ -70,20 +67,12 @@ class PairingRepositoryImpl @Inject constructor(
             val keystoreFile = androidRemoteContext.keyStoreFile
             if (keystoreFile.exists()) {
                 try {
-                    Timber.d("PairingRepo: Tentative de suppression du keystore.")
-                    val deleted = keystoreFile.delete()
-                    if (deleted) {
-                        Timber.i("PairingRepo: Keystore supprimé avec succès.")
-                    } else {
-                        Timber.e("PairingRepo: Échec de la suppression du keystore.")
-                    }
-                    deleted
+                    keystoreFile.delete()
                 } catch (e: SecurityException) {
                     Timber.e(e, "PairingRepo: Erreur de sécurité lors de la suppression du keystore: %s", e.message)
                     false
                 }
             } else {
-                Timber.i("PairingRepo: Keystore non trouvé, suppression non nécessaire.")
                 true
             }
         }
