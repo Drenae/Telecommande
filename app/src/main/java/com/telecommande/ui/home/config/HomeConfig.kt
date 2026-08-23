@@ -45,61 +45,35 @@ data class HomeButtonConfig(
 )
 
 object HomeButtons {
-    val Power = HomeButtonConfig(R.drawable.ic_power, "Power")
-    val Back = HomeButtonConfig(R.drawable.ic_back, "Retour")
-    val Home = HomeButtonConfig(R.drawable.ic_home, "Accueil")
-    val Keyboard = HomeButtonConfig(R.drawable.ic_keyboard, "Keyboard")
-    val Mute = HomeButtonConfig(R.drawable.ic_mute, "Mute")
+    val Power = HomeButtonConfig(R.drawable.ic_remote_power, "Power")
+    val Back = HomeButtonConfig(R.drawable.ic_remote_back, "Retour")
+    val Home = HomeButtonConfig(R.drawable.ic_remote_home, "Accueil")
+    val Keyboard = HomeButtonConfig(R.drawable.ic_remote_keyboard, "Clavier")
 
     val Ok = HomeButtonConfig(
-        iconRes = R.drawable.ic_dpad_ok,
+        iconRes = R.drawable.ic_remote_ok,
         contentDescription = "OK",
         size = AppSpecificButtonSizes.OkButtonSize
     )
-    val Up = HomeButtonConfig(R.drawable.ic_dpad_up, "Up", baseType = HomeButtonType.DPAD_REMOTE)
-    val Down = HomeButtonConfig(R.drawable.ic_dpad_down, "Down", baseType = HomeButtonType.DPAD_REMOTE)
-    val Left = HomeButtonConfig(R.drawable.ic_dpad_left, "Left", baseType = HomeButtonType.DPAD_REMOTE)
-    val Right = HomeButtonConfig(R.drawable.ic_dpad_right, "Right", baseType = HomeButtonType.DPAD_REMOTE)
+    val Up = HomeButtonConfig(R.drawable.ic_remote_up, "Haut", baseType = HomeButtonType.DPAD_REMOTE)
+    val Down = HomeButtonConfig(R.drawable.ic_remote_down, "Bas", baseType = HomeButtonType.DPAD_REMOTE)
+    val Left = HomeButtonConfig(R.drawable.ic_remote_left, "Gauche", baseType = HomeButtonType.DPAD_REMOTE)
+    val Right = HomeButtonConfig(R.drawable.ic_remote_right, "Droite", baseType = HomeButtonType.DPAD_REMOTE)
 
-    val Netflix = HomeButtonConfig(
-        iconRes = R.drawable.ic_app_netflix,
-        contentDescription = "Lancer Netflix",
+    val Netflix = appButton(R.drawable.ic_app_netflix, "Lancer Netflix", 80.dp)
+    val YouTube = appButton(R.drawable.ic_app_youtube, "Lancer YouTube", 100.dp)
+    val Plex = appButton(R.drawable.ic_app_plex, "Lancer Plex", 60.dp)
+    val Crunchyroll = appButton(R.drawable.ic_app_crunchy, "Lancer Crunchyroll", 120.dp)
+
+    private fun appButton(@DrawableRes iconRes: Int, description: String, iconSize: Dp) = HomeButtonConfig(
+        iconRes = iconRes,
+        contentDescription = description,
         baseType = HomeButtonType.APP_LAUNCHER,
         iconTint = Color.Unspecified,
         shape = RoundedCornerShape(10.dp),
         defaultBackgroundColorBrush = DefaultButtonColors.DefaultBackgroundBrush,
         pressedBackgroundColorBrush = DefaultButtonColors.PressedBackgroundBrush,
-        appLauncherIconSize = 80.dp
-    )
-    val YouTube = HomeButtonConfig(
-        iconRes = R.drawable.ic_app_youtube,
-        contentDescription = "Lancer YouTube",
-        baseType = HomeButtonType.APP_LAUNCHER,
-        iconTint = Color.Unspecified,
-        shape = RoundedCornerShape(10.dp),
-        defaultBackgroundColorBrush = DefaultButtonColors.DefaultBackgroundBrush,
-        pressedBackgroundColorBrush = DefaultButtonColors.PressedBackgroundBrush,
-        appLauncherIconSize = 100.dp
-    )
-    val Plex = HomeButtonConfig(
-        iconRes = R.drawable.ic_app_plex,
-        contentDescription = "Lancer Plex",
-        baseType = HomeButtonType.APP_LAUNCHER,
-        iconTint = Color.Unspecified,
-        shape = RoundedCornerShape(10.dp),
-        defaultBackgroundColorBrush = DefaultButtonColors.DefaultBackgroundBrush,
-        pressedBackgroundColorBrush = DefaultButtonColors.PressedBackgroundBrush,
-        appLauncherIconSize = 60.dp
-    )
-    val Crunchyroll = HomeButtonConfig(
-        iconRes = R.drawable.ic_app_crunchy,
-        contentDescription = "Lancer Crunchyroll",
-        baseType = HomeButtonType.APP_LAUNCHER,
-        iconTint = Color.Unspecified,
-        shape = RoundedCornerShape(10.dp),
-        defaultBackgroundColorBrush = DefaultButtonColors.DefaultBackgroundBrush,
-        pressedBackgroundColorBrush = DefaultButtonColors.PressedBackgroundBrush,
-        appLauncherIconSize = 120.dp
+        appLauncherIconSize = iconSize
     )
 }
 
