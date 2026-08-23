@@ -134,7 +134,6 @@ class SettingsViewModel @Inject constructor(
     )
 
     init {
-        discoveryManager.initialize(viewModelScope)
         remoteManager.initialize(viewModelScope)
 
         pairingManager.transientError
