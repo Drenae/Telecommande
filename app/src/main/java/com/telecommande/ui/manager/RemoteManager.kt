@@ -2,10 +2,10 @@ package com.telecommande.ui.manager
 
 import com.telecommande.core.remote.Remotemessage
 import com.telecommande.data.model.PairedTvInfo
+import com.telecommande.data.repository.SettingsRepository
 import com.telecommande.data.repository.TvCoreEvent
 import com.telecommande.data.repository.pairing.PairingRepository
 import com.telecommande.data.repository.remote.RemoteRepository
-import com.telecommande.domain.usecase.pairing.GetActiveTvUseCase
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -34,7 +34,7 @@ data class RemoteState(
 
 @ViewModelScoped
 class RemoteManager @Inject constructor(
-    private val getActiveTvUseCase: GetActiveTvUseCase,
+    private val settingsRepository: SettingsRepository,
     private val pairingRepository: PairingRepository,
     private val remoteRepository: RemoteRepository
 ) {
@@ -64,7 +64,7 @@ class RemoteManager @Inject constructor(
 
     private fun observeActiveTv(scope: CoroutineScope) {
         activeTvJob?.cancel()
-        activeTvJob = getActiveTvUseCase()
+        activeTvJob = settingsRepository.activeTvInfoFlow
             .distinctUntilChanged()
             .onEach { tvInfo ->
                 val previousTv = activeTvInfo
