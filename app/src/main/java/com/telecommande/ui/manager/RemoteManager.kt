@@ -133,7 +133,6 @@ class RemoteManager @Inject constructor(
     private fun observeConnectionState(scope: CoroutineScope) {
         connectionStateJob?.cancel()
         connectionStateJob = observeTvConnectionStateUseCase()
-            .distinctUntilChanged()
             .onEach { connected ->
                 Timber.d("RemoteManager : État de connexion global changé : $connected")
                 _state.update {
