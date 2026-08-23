@@ -20,6 +20,8 @@ import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.net.InetSocketAddress
+import java.net.Socket
 import java.security.GeneralSecurityException
 import java.security.SecureRandom
 import javax.net.ssl.SSLContext
@@ -42,7 +44,10 @@ class RemoteSession(
     private var outputStream: OutputStream? = null
     private var inputStream: InputStream? = null
 
-    private val _eventFlow = MutableSharedFlow<RemoteEvent>(replay = 1)
+    private val _eventFlow = MutableSharedFlow<RemoteEvent>(
+        replay = 0,
+        extraBufferCapacity = 16
+    )
     val eventFlow = _eventFlow.asSharedFlow()
 
     private var retryCount: Int = 0
@@ -61,7 +66,10 @@ class RemoteSession(
                 startRemotePacketParser()
                 Timber.d("Socket SSL et parseur initialisés pour la session distante.")
 
-                val firstMessage = waitForMessageOrFail("Attente du premier message de configuration distante")
+                val firstMessage = waitForMessageOrFail(
+                    "Attente du premier message de configuration distante",
+                    HANDSHAKE_MESSAGE_TIMEOUT_MS
+                )
                 Timber.i("Premier message distant reçu: %s", firstMessage.toString().take(200))
 
                 outputStream?.let { out ->
@@ -73,13 +81,18 @@ class RemoteSession(
                         "1"
                     )
                     out.write(remoteConfigure)
+                    out.flush()
                     Timber.d("Message RemoteConfigure envoyé.")
 
-                    val configureAck = waitForMessageOrFail("Attente de l'ack de RemoteConfigure")
+                    val configureAck = waitForMessageOrFail(
+                        "Attente de l'ack de RemoteConfigure",
+                        HANDSHAKE_MESSAGE_TIMEOUT_MS
+                    )
                     Timber.i("Ack de RemoteConfigure reçu: %s", configureAck.toString().take(200))
 
                     val remoteActive = remoteMessageManager.createRemoteActive(622)
                     out.write(remoteActive)
+                    out.flush()
                     Timber.d("Message RemoteActive envoyé.")
 
                 } ?: throw IOException("OutputStream non initialisé avant la configuration distante.")
@@ -119,28 +132,49 @@ class RemoteSession(
         withContext(Dispatchers.IO) {
             Timber.d("Initialisation du socket SSL distant pour %s:%d", host, port)
             val sslContext = SSLContext.getInstance("TLS")
-            sslContext.init(KeyStoreManager().getKeyManagers(), arrayOf<TrustManager>(DummyTrustManager()), SecureRandom())
-            val sslSocketFactory = sslContext.socketFactory
-            val newSocket = sslSocketFactory.createSocket(host, port) as SSLSocket
+            sslContext.init(
+                KeyStoreManager().getKeyManagers(),
+                arrayOf<TrustManager>(DummyTrustManager()),
+                SecureRandom()
+            )
 
-            newSocket.needClientAuth = true
-            newSocket.useClientMode = true
-            newSocket.keepAlive = true
-            newSocket.tcpNoDelay = true
+            val plainSocket = Socket()
+            try {
+                plainSocket.keepAlive = true
+                plainSocket.tcpNoDelay = true
+                plainSocket.connect(
+                    InetSocketAddress(host, port),
+                    TCP_CONNECT_TIMEOUT_MS
+                )
 
-            Timber.d("Démarrage du handshake SSL...")
-            newSocket.startHandshake()
-            Timber.i("Handshake SSL distant réussi pour %s:%d.", host, port)
+                val newSocket = sslContext.socketFactory.createSocket(
+                    plainSocket,
+                    host,
+                    port,
+                    true
+                ) as SSLSocket
 
-            sslSocket = newSocket
-            outputStream = newSocket.outputStream
-            inputStream = newSocket.inputStream
+                newSocket.needClientAuth = true
+                newSocket.useClientMode = true
+                newSocket.keepAlive = true
+                newSocket.tcpNoDelay = true
+                newSocket.soTimeout = SOCKET_READ_TIMEOUT_MS
 
-            if (outputStream == null) {
-                Timber.e("Échec de l'obtention de l'outputStream même si le socket SSL distant n'est pas nul.")
-                throw IOException("Échec de l'initialisation de l'outputStream distant.")
+                Timber.d("Démarrage du handshake SSL...")
+                newSocket.startHandshake()
+                Timber.i("Handshake SSL distant réussi pour %s:%d.", host, port)
+
+                sslSocket = newSocket
+                outputStream = newSocket.outputStream
+                inputStream = newSocket.inputStream
+                Timber.d("Socket SSL distant et flux initialisés.")
+            } catch (e: Exception) {
+                try {
+                    plainSocket.close()
+                } catch (_: IOException) {
+                }
+                throw e
             }
-            Timber.d("Socket SSL distant et flux initialisés.")
         }
     }
 
@@ -188,7 +222,10 @@ class RemoteSession(
         }
     }
 
-    private suspend fun waitForMessageOrFail(contextMessage: String, timeoutMillis: Long = 30000): Remotemessage.RemoteMessage {
+    private suspend fun waitForMessageOrFail(
+        contextMessage: String,
+        timeoutMillis: Long = HANDSHAKE_MESSAGE_TIMEOUT_MS
+    ): Remotemessage.RemoteMessage {
         Timber.v("Attente d'un message distant depuis le canal (%s)...", contextMessage)
         return withTimeoutOrNull(timeoutMillis) {
             incomingMessagesChannel.receive()
@@ -215,6 +252,7 @@ class RemoteSession(
         try {
             withContext(Dispatchers.IO) {
                 currentOutStream.write(remoteMessageManager.createKeyCommand(remoteKeyCode, remoteDirection))
+                currentOutStream.flush()
                 Timber.d("Commande envoyée: %s, %s", remoteKeyCode, remoteDirection)
             }
         } catch (e: IOException) {
@@ -243,6 +281,7 @@ class RemoteSession(
             withContext(Dispatchers.IO) {
                 Timber.i("Envoi de la requête de lancement d'application pour : %s", appLink)
                 currentOutStream.write(remoteMessageManager.createAppLinkLaunchRequest(appLink))
+                currentOutStream.flush()
                 Timber.d("Requête RemoteAppLinkLaunchRequest envoyée pour: %s", appLink)
             }
         } catch (e: IOException) {
@@ -290,6 +329,12 @@ class RemoteSession(
 
     fun isConnected(): Boolean {
         return sslSocket?.isConnected == true && sslSocket?.isClosed == false && outputStream != null
+    }
+
+    private companion object {
+        const val TCP_CONNECT_TIMEOUT_MS = 5_000
+        const val SOCKET_READ_TIMEOUT_MS = 10_000
+        const val HANDSHAKE_MESSAGE_TIMEOUT_MS = 10_000L
     }
 }
 
