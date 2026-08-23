@@ -4,11 +4,11 @@ import com.telecommande.core.AndroidRemoteContext
 import timber.log.Timber
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.IOException
 import java.security.GeneralSecurityException
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.KeyStoreException
+import java.security.MessageDigest
 import java.security.cert.Certificate
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
@@ -77,6 +77,25 @@ internal class KeyStoreManager {
                     .filterIsInstance<X509TrustManager>()
                     .firstOrNull()
                     ?: throw IllegalStateException("Aucun X509TrustManager disponible")
+            }
+        }
+    }
+
+    private class PinnedRemoteTrustManager(
+        private val expectedCertificate: X509Certificate
+    ) : X509TrustManager {
+        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf(expectedCertificate)
+
+        override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {
+            throw CertificateException("Validation de certificat client non supportée ici")
+        }
+
+        override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
+            val presented = chain.firstOrNull()
+                ?: throw CertificateException("Aucun certificat serveur présenté")
+
+            if (!MessageDigest.isEqual(expectedCertificate.encoded, presented.encoded)) {
+                throw CertificateException("Le certificat présenté ne correspond pas à la TV appairée")
             }
         }
     }
@@ -211,6 +230,27 @@ internal class KeyStoreManager {
     }
 
     fun getTrustManagers(): Array<TrustManager> = arrayOf(dynamicTrustManager)
+
+    fun getPinnedTrustManagers(identifierForAlias: String): Array<TrustManager> {
+        val certificate = getRemoteCertificate(identifierForAlias)
+            ?: throw GeneralSecurityException("Aucun certificat enregistré pour la TV sélectionnée")
+        return arrayOf(PinnedRemoteTrustManager(certificate))
+    }
+
+    fun hasRemoteCertificate(identifierForAlias: String): Boolean {
+        return getRemoteCertificate(identifierForAlias) != null
+    }
+
+    private fun getRemoteCertificate(identifierForAlias: String): X509Certificate? {
+        return synchronized(sharedLock) {
+            try {
+                keyStore.getCertificate(createAlias(identifierForAlias)) as? X509Certificate
+            } catch (e: KeyStoreException) {
+                Timber.e(e, "Erreur lors de la lecture du certificat distant")
+                null
+            }
+        }
+    }
 
     fun hasServerIdentityAlias(): Boolean = hasServerIdentity(keyStore)
 
