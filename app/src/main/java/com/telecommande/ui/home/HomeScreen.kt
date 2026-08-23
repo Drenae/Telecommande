@@ -87,8 +87,6 @@ fun HomeScreen(
                 HeaderSection(
                     onPowerClick = viewModel::sendPowerCommand,
                     isConnected = uiState.isConnected,
-                    isLoading = uiState.isLoading,
-                    activeTvName = uiState.activeTvName,
                     modifier = Modifier.fillMaxWidth(),
                     onStatusIndicatorClick = {
                         navController.navigate(Screen.Settings.route)
