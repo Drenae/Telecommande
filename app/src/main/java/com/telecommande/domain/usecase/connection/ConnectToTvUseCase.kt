@@ -6,7 +6,7 @@ import javax.inject.Inject
 class ConnectToTvUseCase @Inject constructor(
     private val pairingRepository: PairingRepository
 ) {
-    suspend operator fun invoke(hostAddress: String) {
-        pairingRepository.connectForPairing(hostAddress)
+    suspend operator fun invoke(hostAddress: String, tvKeystoreAlias: String? = null) {
+        pairingRepository.connectForPairing(hostAddress, tvKeystoreAlias)
     }
 }
