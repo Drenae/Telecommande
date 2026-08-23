@@ -9,16 +9,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 object DefaultButtonColors {
-    val DefaultBackgroundStart = Color(0xFF2C2C2E)
-    val DefaultBackgroundEnd = Color(0xFF161616)
-    val PressedBackgroundStart = Color(0xFF1F1F1F)
-    val PressedBackgroundEnd = Color(0xFF282828)
-    val DefaultBorder = Color(0xFF161616)
+    val DefaultBackgroundStart = AppColors.surfaceElevated
+    val DefaultBackgroundEnd = AppColors.surface
+    val PressedBackgroundStart = AppColors.surfacePressed
+    val PressedBackgroundEnd = AppColors.surfaceElevated
+    val DefaultBorder = AppColors.border
 
-    val DefaultShadowLight = Color(0x66FFFFFF)
+    val DefaultShadowLight = Color.Transparent
     val DefaultShadowDark = Color(0x66000000)
-    val PressedShadowLight = Color(0x66000000)
-    val PressedShadowDark = Color(0x33FFFFFF)
+    val PressedShadowLight = Color.Transparent
+    val PressedShadowDark = Color(0x33000000)
 
     val DefaultBackgroundBrush = Brush.linearGradient(
         colors = listOf(DefaultBackgroundStart, DefaultBackgroundEnd)
@@ -29,9 +29,9 @@ object DefaultButtonColors {
 }
 
 object AppSliderColors {
-    val thumbColor = Color.White
-    val activeTrackColor = DefaultButtonColors.DefaultBackgroundStart
-    val inactiveTrackColor = DefaultButtonColors.DefaultBackgroundEnd.copy(alpha = 0.4f)
+    val thumbColor = AppColors.appWhite
+    val activeTrackColor = AppColors.accent
+    val inactiveTrackColor = AppColors.surfacePressed
     val activeTickColor = Color.Transparent
     val inactiveTickColor = Color.Transparent
 }
@@ -41,8 +41,8 @@ object HomeBaseButtonSpecs {
     val DefaultIconPadding: Dp = 16.dp
     val PressedIconReduction: Dp = 2.dp
     val DefaultBorderWidth: Dp = 1.dp
-    val DefaultElevation: Dp = 8.dp
-    val PressedElevation: Dp = 2.dp
+    val DefaultElevation: Dp = 5.dp
+    val PressedElevation: Dp = 1.dp
     val DefaultShape: Shape = CircleShape
 }
 
@@ -51,7 +51,7 @@ object HomeDpadButtonSpecs {
 }
 
 object HomeAppButtonSpecs {
-    val DefaultShape: Shape = RoundedCornerShape(8.dp)
+    val DefaultShape: Shape = RoundedCornerShape(12.dp)
     val DefaultBackgroundBrush: Brush = DefaultButtonColors.DefaultBackgroundBrush
     val PressedBackgroundBrush: Brush = DefaultButtonColors.PressedBackgroundBrush
     val DefaultIconSize: Dp = ComponentDimensions.AppLauncherIconSize
@@ -65,17 +65,19 @@ object DpadSectionSpecs {
     val ContainerSize: Dp = 280.dp
     val ContainerShape: Shape = CircleShape
     val BorderWidth: Dp = 1.dp
-    val BorderColor: Color = DefaultButtonColors.DefaultBorder
-    val BackgroundBrush: Brush = DefaultButtonColors.DefaultBackgroundBrush
+    val BorderColor: Color = AppColors.border
+    val BackgroundBrush: Brush = Brush.radialGradient(
+        colors = listOf(AppColors.surfaceElevated, AppColors.surface)
+    )
     val ArrowButtonMargin: Dp = 1.dp
 }
 
 object ScreenPaddings {
-    val Horizontal: Dp = 20.dp
+    val Horizontal: Dp = 18.dp
 }
 
 object ComponentDimensions {
-    val StatusIndicatorSize: Dp = 44.dp
+    val StatusIndicatorSize: Dp = 40.dp
 
     val NavButtonOffsetNegativeY: Dp = (-32).dp
 
@@ -86,19 +88,19 @@ object ComponentDimensions {
     val MediumSpacerHeight: Dp = 16.dp
     val LargeSpacerHeight: Dp = 50.dp
 
-    val FooterPaddingVertical: Dp = 16.dp
-    val AppLauncherGridSpacing: Dp = 8.dp
+    val FooterPaddingVertical: Dp = 12.dp
+    val AppLauncherGridSpacing: Dp = 6.dp
     val AppLauncherIconSize: Dp = 32.dp
-    val AppLauncherButtonHeight: Dp = 60.dp
+    val AppLauncherButtonHeight: Dp = 54.dp
 }
 
 object TvManagementSpecs {
-    val ListItemVerticalPadding: Dp = 4.dp
-    val ListItemHorizontalPadding: Dp = 8.dp
+    val ListItemVerticalPadding: Dp = 5.dp
+    val ListItemHorizontalPadding: Dp = 16.dp
     val ListItemInternalPadding: Dp = 16.dp
-    val ListItemSpacerWidth: Dp = 16.dp
-    val PairedTvStatusIconSize: Dp = 24.dp
-    val PairedTvForgetButtonSpacer: Dp = 8.dp
+    val ListItemSpacerWidth: Dp = 14.dp
+    val PairedTvStatusIconSize: Dp = 22.dp
+    val PairedTvForgetButtonSpacer: Dp = 4.dp
 
     val PinDialogVerticalSpacer: Dp = 16.dp
     val PinDialogOverallPadding: Dp = 16.dp
