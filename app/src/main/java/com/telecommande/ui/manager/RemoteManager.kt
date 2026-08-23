@@ -89,7 +89,6 @@ class RemoteManager @Inject constructor(
 
                 when {
                     tvInfo == null -> {
-                        Timber.d("RemoteManager : Aucune TV active définie.")
                         connectionJob?.cancel()
                         connectionJob = null
                         if (_state.value.isConnected || _state.value.isLoading) {
@@ -113,9 +112,7 @@ class RemoteManager @Inject constructor(
                         connect()
                     }
 
-                    else -> Timber.d(
-                        "RemoteManager : Connexion déjà active ou en cours pour ${tvInfo.ipAddress}."
-                    )
+                    else -> Unit
                 }
             }
             .catch { e ->
@@ -134,7 +131,6 @@ class RemoteManager @Inject constructor(
         connectionStateJob?.cancel()
         connectionStateJob = observeTvConnectionStateUseCase()
             .onEach { connected ->
-                Timber.d("RemoteManager : État de connexion global changé : $connected")
                 _state.update {
                     it.copy(
                         isConnected = connected,
@@ -159,7 +155,6 @@ class RemoteManager @Inject constructor(
         remoteEventsJob?.cancel()
         remoteEventsJob = observeRemoteControlEventsUseCase()
             .onEach { event ->
-                Timber.d("RemoteManager : Événement distant reçu : $event")
                 _state.update { current ->
                     when (event) {
                         is TvCoreEvent.SecretRequested -> current.copy(
@@ -215,7 +210,6 @@ class RemoteManager @Inject constructor(
     private fun reconnectTo(tv: PairedTvInfo) {
         val scope = managerScope ?: return
 
-        Timber.i("RemoteManager : Changement de TV active vers ${tv.ipAddress}.")
         connectionJob?.cancel()
         connectionJob = scope.launch {
             _state.update {
@@ -229,7 +223,7 @@ class RemoteManager @Inject constructor(
                 if (_state.value.isConnected) {
                     disconnectFromTvUseCase()
                 }
-                connectToTvUseCase(tv.ipAddress)
+                connectToTvUseCase(tv.ipAddress, tv.keystoreAlias)
             } catch (e: Exception) {
                 Timber.e(e, "RemoteManager : Échec de reconnexion à ${tv.ipAddress}")
                 _state.update {
@@ -267,18 +261,10 @@ class RemoteManager @Inject constructor(
             return
         }
 
-        if (_state.value.isConnected) {
-            Timber.d("RemoteManager : Déjà connecté à ${tv.ipAddress}.")
-            return
-        }
-
-        if (connectionJob?.isActive == true || _state.value.isLoading) {
-            Timber.d("RemoteManager : Une tentative de connexion est déjà en cours pour ${tv.ipAddress}.")
-            return
-        }
+        if (_state.value.isConnected) return
+        if (connectionJob?.isActive == true || _state.value.isLoading) return
 
         connectionJob = scope.launch {
-            Timber.i("RemoteManager : Tentative de connexion à ${tv.ipAddress}")
             _state.update {
                 it.copy(
                     isLoading = true,
@@ -287,7 +273,7 @@ class RemoteManager @Inject constructor(
             }
 
             try {
-                connectToTvUseCase(tv.ipAddress)
+                connectToTvUseCase(tv.ipAddress, tv.keystoreAlias)
             } catch (e: Exception) {
                 Timber.e(e, "RemoteManager : Échec de connexion à ${tv.ipAddress}")
                 _state.update {
@@ -377,7 +363,6 @@ class RemoteManager @Inject constructor(
     }
 
     fun cleanup() {
-        Timber.d("RemoteManager : Nettoyage des ressources.")
         connectionJob?.cancel()
         activeTvJob?.cancel()
         connectionStateJob?.cancel()
