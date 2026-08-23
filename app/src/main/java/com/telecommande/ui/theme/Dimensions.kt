@@ -76,13 +76,6 @@ object ScreenPaddings {
 
 object ComponentDimensions {
     val StatusIndicatorSize: Dp = 44.dp
-    val StatusIndicatorDotSize: Dp = 28.dp
-    val StatusCardCornerRadius: Dp = 18.dp
-    val StatusCardHorizontalPadding: Dp = 14.dp
-    val StatusCardVerticalPadding: Dp = 10.dp
-    val StatusCardContentSpacing: Dp = 10.dp
-    val HeaderTopPadding: Dp = 12.dp
-    val HeaderSpacing: Dp = 12.dp
 
     val NavButtonOffsetNegativeY: Dp = (-32).dp
 
