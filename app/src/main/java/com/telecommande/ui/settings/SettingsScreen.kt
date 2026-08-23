@@ -51,7 +51,6 @@ import com.telecommande.ui.settings.composables.PairedTvItem
 import com.telecommande.ui.settings.composables.PinEntryDialog
 import com.telecommande.ui.theme.TvManagementSpecs
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,16 +72,6 @@ fun SettingsScreen(
                 )
             }
             viewModel.clearViewModelSnackbar()
-        }
-    }
-
-    LaunchedEffect(uiState.primaryStatusMessage) {
-        if (uiState.primaryStatusMessage.isNotBlank() &&
-            (uiState.pairingStep is PairingStep.Idle || uiState.pairingStep is PairingStep.PairingSuccessful) &&
-            uiState.discoveryState.statusMessage.isBlank() &&
-            (uiState.remoteState.snackbarMessage == null || uiState.primaryStatusMessage != uiState.remoteState.snackbarMessage)
-        ) {
-            Timber.d("PrimaryStatusMessage pour UI (peut-être pour un Text en bas): ${uiState.primaryStatusMessage}")
         }
     }
 
@@ -142,7 +131,7 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (uiState.isLoadingOverall && !(uiState.pairingStep is PairingStep.PinRequested)) {
+            if (uiState.isLoadingOverall && uiState.pairingStep !is PairingStep.PinRequested) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
 
@@ -167,14 +156,20 @@ fun SettingsScreen(
                                 if (!isActive || !isConnectedToThisTv) {
                                     viewModel.setTvAsActive(tvInfo)
                                 } else {
-                                    scope.launch { snackbarHostState.showSnackbar("${tvInfo.name ?: tvInfo.ipAddress} est déjà active et connectée.") }
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            "${tvInfo.name ?: tvInfo.ipAddress} est déjà active et connectée."
+                                        )
+                                    }
                                 }
                             },
                             onForgetClick = { viewModel.forgetTv(tvInfo) }
                         )
                     }
                 }
-                HorizontalDivider(modifier = Modifier.padding(vertical = TvManagementSpecs.DividerVerticalPadding))
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = TvManagementSpecs.DividerVerticalPadding)
+                )
             } else {
                 Text(
                     "Aucune TV appairée. Lancez une recherche pour en trouver.",
@@ -184,7 +179,9 @@ fun SettingsScreen(
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium
                 )
-                HorizontalDivider(modifier = Modifier.padding(vertical = TvManagementSpecs.DividerVerticalPadding))
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = TvManagementSpecs.DividerVerticalPadding)
+                )
             }
 
             Text(
@@ -210,7 +207,11 @@ fun SettingsScreen(
                         Text("Recherche en cours...")
                     }
                 }
-            } else if (!uiState.discoveryState.isDiscovering && uiState.discoveryState.discoveredTvs.isEmpty() && uiState.pairedTvs.isEmpty()) {
+            } else if (
+                !uiState.discoveryState.isDiscovering &&
+                uiState.discoveryState.discoveredTvs.isEmpty() &&
+                uiState.pairedTvs.isEmpty()
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -224,13 +225,19 @@ fun SettingsScreen(
                         modifier = Modifier.padding(bottom = TvManagementSpecs.EmptyStateIconBottomPadding)
                     )
                     Text("Aucune TV détectée.")
-                    Text("Assurez-vous que votre TV est allumée et sur le même réseau Wi-Fi.", textAlign = TextAlign.Center)
+                    Text(
+                        "Assurez-vous que votre TV est allumée et sur le même réseau Wi-Fi.",
+                        textAlign = TextAlign.Center
+                    )
                     Spacer(modifier = Modifier.height(TvManagementSpecs.LoadingScreenSpacerHeight))
                     Button(onClick = { viewModel.toggleDiscovery() }) {
                         Text("Relancer la recherche")
                     }
                 }
-            } else if (uiState.discoveryState.discoveredTvs.isEmpty() && !uiState.discoveryState.isDiscovering) {
+            } else if (
+                uiState.discoveryState.discoveredTvs.isEmpty() &&
+                !uiState.discoveryState.isDiscovering
+            ) {
                 Text(
                     "Aucune nouvelle TV trouvée. Essayez de relancer la recherche.",
                     modifier = Modifier
@@ -245,7 +252,10 @@ fun SettingsScreen(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(horizontal = TvManagementSpecs.LazyColumnHorizontalPadding)
             ) {
-                items(uiState.discoveryState.discoveredTvs, key = { it.ipAddress ?: it.serviceName }) { tv ->
+                items(
+                    uiState.discoveryState.discoveredTvs,
+                    key = { it.ipAddress ?: it.serviceName }
+                ) { tv ->
                     if (uiState.pairedTvs.none { pairedTv -> pairedTv.ipAddress == tv.ipAddress }) {
                         DiscoveredTvItem(
                             tv = tv,
@@ -253,7 +263,11 @@ fun SettingsScreen(
                                 if (tv.ipAddress != null) {
                                     viewModel.onDeviceSelected(tv)
                                 } else {
-                                    Toast.makeText(context, "Adresse IP non disponible pour cette TV.", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Adresse IP non disponible pour cette TV.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                         )
@@ -275,7 +289,9 @@ fun SettingsScreen(
             if (uiState.primaryStatusMessage.isNotBlank()) {
                 Text(
                     text = uiState.primaryStatusMessage,
-                    modifier = Modifier.fillMaxWidth().padding(TvManagementSpecs.ScreenSectionTitlePadding),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(TvManagementSpecs.ScreenSectionTitlePadding),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodySmall
                 )
