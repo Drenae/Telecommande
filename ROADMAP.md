@@ -73,12 +73,16 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 
 ## Phase 6 — Nettoyage général 🟡 EN COURS
 
-- [ ] Supprimer le code mort restant
-- [ ] Réduire les logs de debug inutiles
-- [ ] Nettoyer les imports / noms / duplications
-- [ ] Vérifier les API Android / Kotlin dépréciées restantes
-- [ ] Revoir les dépendances Gradle restantes
-- [ ] Vérifier les permissions Android restantes
+- [x] Supprimer une première vague de code mort et d'état inutilisé
+- [x] Réduire les logs de debug évidents dans l'UI et la découverte
+- [x] Factoriser les commandes courtes de `HomeViewModel`
+- [x] Nettoyer la configuration des boutons Home devenue redondante
+- [x] Retirer les dépendances app directes `protobuf-javalite` et `constraintlayout-compose` inutilisées
+- [x] Vérifier les warnings précédemment signalés (`Room` et barre de statut déjà corrigés)
+- [ ] Auditer et simplifier les méthodes inutilisées de `SettingsRepository` / `PairedTvDao`
+- [ ] Réduire les logs de debug restants du core et des managers sans masquer les erreurs utiles
+- [ ] Vérifier les dépendances Gradle restantes et le version catalog
+- [ ] Vérifier les permissions Android et la configuration réseau / sauvegarde
 - [ ] Nettoyer les packages et la structure finale
 
 ## Phase 7 — UI / UX ⏳
