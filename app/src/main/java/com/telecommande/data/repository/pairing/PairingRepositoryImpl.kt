@@ -9,15 +9,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import com.telecommande.core.event.AndroidTvEvent as CoreAndroidTvEvent
 
 class PairingRepositoryImpl @Inject constructor(
-    private val application: Application,
+    application: Application,
     private val androidRemoteTv: AndroidRemoteTv
 ) : PairingRepository {
 
@@ -25,7 +23,6 @@ class PairingRepositoryImpl @Inject constructor(
 
     override val tvCoreEvents: Flow<TvCoreEvent> = androidRemoteTv.eventFlow
         .map { coreEvent ->
-            Timber.d("PairingRepo: Raw CoreAndroidTvEvent: %s", coreEvent)
             when (coreEvent) {
                 is CoreAndroidTvEvent.SessionCreated -> TvCoreEvent.SessionCreated
                 is CoreAndroidTvEvent.SecretRequested -> TvCoreEvent.SecretRequested
@@ -39,22 +36,13 @@ class PairingRepositoryImpl @Inject constructor(
             }
         }
         .filterNotNull()
-        .onEach { Timber.d("PairingRepo: Emitting Filtered TvCoreEvent: %s", it.javaClass.simpleName) }
 
     override suspend fun connectForPairing(hostAddress: String, tvKeystoreAlias: String?) {
-        try {
-            androidRemoteTv.connect(hostAddress, tvKeystoreAlias)
-        } catch (e: Exception) {
-            Timber.e(e, "PairingRepo: Exception during connect to %s: %s", hostAddress, e.message)
-        }
+        androidRemoteTv.connect(hostAddress, tvKeystoreAlias)
     }
 
     override suspend fun sendSecret(pin: String) {
-        try {
-            androidRemoteTv.sendSecret(pin)
-        } catch (e: Exception) {
-            Timber.e(e, "PairingRepo: Exception during sendSecret: %s", e.message)
-        }
+        androidRemoteTv.sendSecret(pin)
     }
 
     override fun isKeystorePairedInitially(): Boolean {
