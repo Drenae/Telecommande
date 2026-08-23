@@ -96,18 +96,20 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Conserver le bouton d'état compact dans le header
 - [x] Ajouter un titre central sans encombrer le header
 - [x] Adapter dynamiquement le D-pad à la largeur disponible
-- [x] Revoir l'espacement et la taille des boutons Retour / Accueil / Clavier
+- [x] Agrandir et remonter le D-pad pour améliorer le confort tactile
+- [x] Agrandir les boutons Retour / Accueil
+- [x] Supprimer le bouton Clavier et son placeholder
 - [x] Conserver le slider de volume et l'affichage du niveau exact
 - [x] Ne pas ajouter de commandes de chaîne inutiles
-- [x] Regrouper Netflix / YouTube / Plex / Crunchyroll sur une barre compacte responsive
+- [x] Passer Netflix / YouTube / Plex / Crunchyroll sur une grille responsive 2×2
 - [x] Remplacer le voile de connexion plein écran par un indicateur compact
 - [x] Appliquer une palette sombre teal cohérente au thème Material 3
-- [x] Créer et appliquer un nouveau set d'icônes vectorielles cohérent avec le design
+- [x] Créer et appliquer un set d'icônes premium cohérent avec le thème télécommande
 - [x] Ajouter les commandes média Recul / Lecture-Pause / Stop / Avance sous le volume
+- [x] Agrandir les commandes média pour améliorer la zone tactile
 - [x] Refaire l'écran de gestion / sélection des TV avec des cartes responsives
 - [x] Refaire les états vides et la recherche de TV
 - [x] Refaire le dialogue d'appairage PIN
-- [ ] Implémenter réellement la fonction clavier actuellement en placeholder
 - [ ] Vérifier le rendu sur petit / moyen / grand téléphone réel ou émulateur
 - [ ] Ajuster les dimensions après validation visuelle utilisateur
 
