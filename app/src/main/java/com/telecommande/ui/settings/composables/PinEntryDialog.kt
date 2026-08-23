@@ -95,7 +95,6 @@ fun PinEntryDialog(
                     keyboardOptions = KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Ascii,
                         capitalization = KeyboardCapitalization.Characters,
-                        autoCorrectEnabled = false,
                         imeAction = ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(onDone = {
