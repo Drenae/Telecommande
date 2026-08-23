@@ -4,10 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.telecommande.core.discovery.DiscoveredTv
 import com.telecommande.data.model.PairedTvInfo
-import com.telecommande.domain.usecase.pairing.GetActiveTvUseCase
-import com.telecommande.domain.usecase.pairing.GetPairedTvsUseCase
+import com.telecommande.data.repository.SettingsRepository
 import com.telecommande.domain.usecase.pairing.ResetPairingUseCase
-import com.telecommande.domain.usecase.pairing.SetActiveTvUseCase
 import com.telecommande.ui.manager.DiscoveryManager
 import com.telecommande.ui.manager.DiscoveryState
 import com.telecommande.ui.manager.PairingManager
@@ -47,9 +45,7 @@ class SettingsViewModel @Inject constructor(
     private val discoveryManager: DiscoveryManager,
     private val remoteManager: RemoteManager,
     private val pairingManager: PairingManager,
-    private val getPairedTvsUseCase: GetPairedTvsUseCase,
-    private val getActiveTvUseCase: GetActiveTvUseCase,
-    private val setActiveTvUseCase: SetActiveTvUseCase,
+    private val settingsRepository: SettingsRepository,
     private val resetPairingUseCase: ResetPairingUseCase
 ) : ViewModel() {
 
@@ -57,8 +53,8 @@ class SettingsViewModel @Inject constructor(
     private val _internalSnackbarMessage = MutableStateFlow<String?>(null)
 
     private val tvSelectionFlow = combine(
-        getPairedTvsUseCase(),
-        getActiveTvUseCase()
+        settingsRepository.pairedTvsFlow,
+        settingsRepository.activeTvInfoFlow
     ) { pairedTvs, activeTv ->
         pairedTvs to activeTv
     }
@@ -210,7 +206,7 @@ class SettingsViewModel @Inject constructor(
         _internalSnackbarMessage.value = "Sélection de ${tvInfo.name ?: tvInfo.ipAddress}..."
         viewModelScope.launch {
             try {
-                setActiveTvUseCase(tvInfo)
+                settingsRepository.saveActiveTvInfo(tvInfo)
             } catch (e: Exception) {
                 Timber.e(e, "Erreur lors de la définition de la TV active ${tvInfo.name}")
                 _internalSnackbarMessage.value = "Erreur de sélection: ${e.message}"
