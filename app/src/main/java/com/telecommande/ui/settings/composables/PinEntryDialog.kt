@@ -1,14 +1,20 @@
 package com.telecommande.ui.settings.composables
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,9 +29,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import com.telecommande.core.discovery.DiscoveredTv
+import com.telecommande.ui.theme.AppColors
 import com.telecommande.ui.theme.TvManagementSpecs
 
 @Composable
@@ -48,10 +57,26 @@ fun PinEntryDialog(
 
     AlertDialog(
         onDismissRequest = { if (!isLoading) onDismiss() },
-        title = { Text("PIN requis pour ${tvToPair.friendlyName ?: tvToPair.ipAddress}") },
+        shape = RoundedCornerShape(22.dp),
+        containerColor = AppColors.surfaceElevated,
+        titleContentColor = AppColors.appWhite,
+        textContentColor = AppColors.textSecondary,
+        title = {
+            Column {
+                Text(
+                    text = "Appairer la TV",
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = tvToPair.friendlyName ?: tvToPair.ipAddress ?: "TV Android",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = AppColors.accent
+                )
+            }
+        },
         text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Veuillez entrer le code PIN affiché sur votre TV.")
+            Column(horizontalAlignment = Alignment.Start) {
+                Text("Saisissez le code PIN affiché sur votre TV.")
                 Spacer(modifier = Modifier.height(TvManagementSpecs.PinDialogVerticalSpacer))
                 OutlinedTextField(
                     value = pinValue,
@@ -80,9 +105,25 @@ fun PinEntryDialog(
         confirmButton = {
             Button(
                 onClick = onConfirm,
-                enabled = !isLoading && pinValue.isNotBlank()
+                enabled = !isLoading && pinValue.isNotBlank(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AppColors.accent,
+                    contentColor = AppColors.appBlack
+                )
             ) {
-                Text("Confirmer")
+                if (isLoading) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = AppColors.appBlack
+                        )
+                        Spacer(Modifier.size(8.dp))
+                        Text("Vérification")
+                    }
+                } else {
+                    Text("Confirmer")
+                }
             }
         },
         dismissButton = {
