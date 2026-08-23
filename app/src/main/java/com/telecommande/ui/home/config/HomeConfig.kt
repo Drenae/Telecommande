@@ -40,9 +40,7 @@ data class HomeButtonConfig(
     val borderColor: Color? = null,
     val defaultElevation: Dp? = null,
     val pressedElevation: Dp? = null,
-    val shadowColorLight: Color? = null,
     val shadowColorDark: Color? = null,
-    val pressedShadowColorLight: Color? = null,
     val pressedShadowColorDark: Color? = null
 )
 
@@ -53,7 +51,11 @@ object HomeButtons {
     val Keyboard = HomeButtonConfig(R.drawable.ic_keyboard, "Keyboard")
     val Mute = HomeButtonConfig(R.drawable.ic_mute, "Mute")
 
-    val Ok = HomeButtonConfig(iconRes = R.drawable.ic_dpad_ok, contentDescription = "OK", size = AppSpecificButtonSizes.OkButtonSize)
+    val Ok = HomeButtonConfig(
+        iconRes = R.drawable.ic_dpad_ok,
+        contentDescription = "OK",
+        size = AppSpecificButtonSizes.OkButtonSize
+    )
     val Up = HomeButtonConfig(R.drawable.ic_dpad_up, "Up", baseType = HomeButtonType.DPAD_REMOTE)
     val Down = HomeButtonConfig(R.drawable.ic_dpad_down, "Down", baseType = HomeButtonType.DPAD_REMOTE)
     val Left = HomeButtonConfig(R.drawable.ic_dpad_left, "Left", baseType = HomeButtonType.DPAD_REMOTE)
@@ -123,11 +125,10 @@ fun ConfigurableHomeButton(
             borderColor = config.borderColor ?: DefaultButtonColors.DefaultBorder,
             defaultElevation = config.defaultElevation ?: HomeBaseButtonSpecs.DefaultElevation,
             pressedElevation = config.pressedElevation ?: HomeBaseButtonSpecs.PressedElevation,
-            shadowColorLight = config.shadowColorLight ?: DefaultButtonColors.DefaultShadowLight,
             shadowColorDark = config.shadowColorDark ?: DefaultButtonColors.DefaultShadowDark,
-            pressedShadowColorLight = config.pressedShadowColorLight ?: DefaultButtonColors.PressedShadowLight,
             pressedShadowColorDark = config.pressedShadowColorDark ?: DefaultButtonColors.PressedShadowDark
         )
+
         HomeButtonType.DPAD_REMOTE -> HomeDpadButton(
             onClick = onClick,
             iconRes = config.iconRes,
@@ -137,6 +138,7 @@ fun ConfigurableHomeButton(
             iconTint = config.iconTint,
             iconPadding = config.iconPadding ?: 0.dp
         )
+
         HomeButtonType.APP_LAUNCHER -> HomeAppButton(
             onClick = onClick,
             iconRes = config.iconRes,
