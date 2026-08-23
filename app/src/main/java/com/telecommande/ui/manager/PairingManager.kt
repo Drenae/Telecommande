@@ -2,14 +2,10 @@ package com.telecommande.ui.manager
 
 import com.telecommande.core.discovery.DiscoveredTv
 import com.telecommande.data.model.PairedTvInfo
+import com.telecommande.data.repository.SettingsRepository
 import com.telecommande.data.repository.TvCoreEvent
 import com.telecommande.data.repository.pairing.PairingRepository
 import com.telecommande.data.repository.remote.RemoteRepository
-import com.telecommande.domain.usecase.pairing.AddPairedTvUseCase
-import com.telecommande.domain.usecase.pairing.IsKeystorePairedUseCase
-import com.telecommande.domain.usecase.pairing.ObservePairingEventsUseCase
-import com.telecommande.domain.usecase.pairing.SetActiveTvUseCase
-import com.telecommande.domain.usecase.pairing.SubmitPinUseCase
 import com.telecommande.util.containsAnyOf
 import com.telecommande.util.getMacAddressFromAttributesOrNull
 import dagger.hilt.android.scopes.ViewModelScoped
@@ -46,11 +42,7 @@ sealed class PairingStep {
 class PairingManager @Inject constructor(
     private val pairingRepository: PairingRepository,
     private val remoteRepository: RemoteRepository,
-    private val observePairingEventsUseCase: ObservePairingEventsUseCase,
-    private val submitPinUseCase: SubmitPinUseCase,
-    private val addPairedTvUseCase: AddPairedTvUseCase,
-    private val setActiveTvUseCase: SetActiveTvUseCase,
-    private val isKeystorePairedUseCase: IsKeystorePairedUseCase
+    private val settingsRepository: SettingsRepository
 ) {
     private val _currentStep = MutableStateFlow<PairingStep>(PairingStep.Idle)
     val currentStep: StateFlow<PairingStep> = _currentStep.asStateFlow()
@@ -104,7 +96,7 @@ class PairingManager @Inject constructor(
         scope: CoroutineScope
     ) {
         pairingEventsJob?.cancel()
-        pairingEventsJob = observePairingEventsUseCase()
+        pairingEventsJob = pairingRepository.tvCoreEvents
             .distinctUntilChanged()
             .onEach { event ->
                 val eventIsPotentiallyForThisTarget = when (event) {
@@ -116,17 +108,13 @@ class PairingManager @Inject constructor(
                     else -> false
                 }
 
-                if (!eventIsPotentiallyForThisTarget) {
-                    return@onEach
-                }
+                if (!eventIsPotentiallyForThisTarget) return@onEach
 
                 when (event) {
                     is TvCoreEvent.SessionCreated -> Unit
-
                     is TvCoreEvent.SecretRequested -> {
                         _currentStep.value = PairingStep.PinRequested(currentDiscoveredTv)
                     }
-
                     is TvCoreEvent.Paired -> {
                         if (event.host != currentIp) return@onEach
 
@@ -138,21 +126,20 @@ class PairingManager @Inject constructor(
                         )
 
                         scope.launch {
-                            addPairedTvUseCase(newPairedTv)
-                            setActiveTvUseCase(newPairedTv)
+                            settingsRepository.addPairedTv(newPairedTv)
+                            settingsRepository.saveActiveTvInfo(newPairedTv)
                         }
 
                         _currentStep.value = PairingStep.PairingSuccessful(newPairedTv)
                         cancelCurrentProcess(clearTargetInfo = true)
                     }
-
                     is TvCoreEvent.Error -> {
                         val errorMessage = event.message ?: "Erreur d'appairage inconnue"
                         val isSslOrKeystoreIssue = errorMessage.containsAnyOf(
                             listOf("SSL", "certificate", "EACCES", "trust anchor"),
                             ignoreCase = true
                         )
-                        val considerReset = isSslOrKeystoreIssue && isKeystorePairedUseCase()
+                        val considerReset = isSslOrKeystoreIssue && pairingRepository.isKeystorePairedInitially()
 
                         _currentStep.value = PairingStep.Error(
                             errorMessage,
@@ -161,7 +148,6 @@ class PairingManager @Inject constructor(
                         )
                         cleanupAfterError()
                     }
-
                     is TvCoreEvent.ConnectingToRemote -> Unit
                     else -> Unit
                 }
@@ -191,7 +177,7 @@ class PairingManager @Inject constructor(
 
         scope.launch {
             try {
-                submitPinUseCase(pin)
+                pairingRepository.sendSecret(pin)
             } catch (e: Exception) {
                 Timber.e(e, "PairingManager : Erreur lors de la soumission du PIN")
                 _currentStep.value = PairingStep.Error(
