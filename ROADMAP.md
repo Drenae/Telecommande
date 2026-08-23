@@ -53,7 +53,7 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [ ] Ajouter des tests ciblés sur les repositories / managers
 - [ ] Ajouter des scénarios d'erreur réseau / certificat
 
-## Phase 5 — Nettoyage de l'architecture app 🟡 EN COURS
+## Phase 5 — Nettoyage de l'architecture app ✅
 
 - [x] Simplifier `PairingManager`
 - [x] Supprimer son cycle d'initialisation artificiel
@@ -62,15 +62,16 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Examiner et réduire les UseCases `connection`
 - [x] Examiner et réduire les UseCases `remote`
 - [x] Examiner et réduire les UseCases `pairing`
-- [x] Supprimer les UseCases `connection` / `remote` purement passe-plats
-- [x] Supprimer les UseCases `pairing` purement passe-plats
+- [x] Examiner et réduire les UseCases `discovery`
+- [x] Supprimer les UseCases purement passe-plats
 - [x] Conserver `ResetPairingUseCase` car il orchestre plusieurs repositories
 - [x] Supprimer le relais `RemoteRepository.connectToActiveTv` devenu inutile
-- [ ] Simplifier les repositories quand une couche n'apporte aucune valeur
-- [ ] Nettoyer les bindings Hilt correspondants
-- [ ] Vérifier la séparation `data / domain / ui`
+- [x] Auditer les repositories et conserver ceux qui portent une vraie responsabilité
+- [x] Faire remonter correctement les erreurs du `PairingRepository`
+- [x] Remplacer les providers Hilt manuels par des bindings `@Binds`
+- [x] Vérifier la séparation `data / domain / ui`
 
-## Phase 6 — Nettoyage général ⏳
+## Phase 6 — Nettoyage général 🟡 EN COURS
 
 - [ ] Supprimer le code mort restant
 - [ ] Réduire les logs de debug inutiles
