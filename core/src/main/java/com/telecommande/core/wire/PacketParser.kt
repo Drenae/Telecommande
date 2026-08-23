@@ -37,12 +37,10 @@ abstract class PacketParser(private val inputStream: InputStream) {
                     }
 
                     if (packetLength == 0) {
-                        Timber.d("Longueur de paquet reçue 0. Traitement comme message vide.")
                         messageBufferReceived(ByteArray(0))
                         continue
                     }
 
-                    Timber.v("Attente d'un paquet de taille : %d", packetLength)
                     val buffer = ByteArray(packetLength)
                     totalBytesReadForPacket = 0
 
@@ -56,11 +54,9 @@ abstract class PacketParser(private val inputStream: InputStream) {
                             throw IOException("Flux fermé inopinément lors de la lecture des données du paquet.")
                         }
                         totalBytesReadForPacket += bytesReadThisCycle
-                        Timber.v("%d octets lus ce cycle, total lu %d/%d", bytesReadThisCycle, totalBytesReadForPacket, packetLength)
                     }
 
                     if (!currentCoroutineContext().isActive) {
-                        Timber.i("Annulation demandée pendant la lecture du corps du paquet. Rejet du paquet partiel.")
                         continue
                     }
 
