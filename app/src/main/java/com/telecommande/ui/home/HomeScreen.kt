@@ -106,7 +106,11 @@ fun HomeScreen(
                     isMuted = uiState.isMuted,
                     onVolumeUpClick = viewModel::sendVolumeUpCommand,
                     onVolumeDownClick = viewModel::sendVolumeDownCommand,
-                    onMuteClick = viewModel::sendMuteCommand
+                    onMuteClick = viewModel::sendMuteCommand,
+                    onRewindClick = viewModel::sendMediaRewindCommand,
+                    onPlayPauseClick = viewModel::sendMediaPlayPauseCommand,
+                    onStopClick = viewModel::sendMediaStopCommand,
+                    onFastForwardClick = viewModel::sendMediaFastForwardCommand
                 )
 
                 FooterSection(
