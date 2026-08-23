@@ -3,6 +3,7 @@ package com.telecommande.data.repository.pairing
 import android.app.Application
 import com.telecommande.core.AndroidRemoteContext
 import com.telecommande.core.AndroidRemoteTv
+import com.telecommande.core.ssl.TvCertificateStore
 import com.telecommande.data.repository.TvCoreEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -41,7 +42,6 @@ class PairingRepositoryImpl @Inject constructor(
         .onEach { Timber.d("PairingRepo: Emitting Filtered TvCoreEvent: %s", it.javaClass.simpleName) }
 
     override suspend fun connectForPairing(hostAddress: String, tvKeystoreAlias: String?) {
-        Timber.d("PairingRepo: connexion vers %s (alias connu: %s)", hostAddress, tvKeystoreAlias != null)
         try {
             androidRemoteTv.connect(hostAddress, tvKeystoreAlias)
         } catch (e: Exception) {
@@ -62,19 +62,9 @@ class PairingRepositoryImpl @Inject constructor(
         return keystoreFile?.exists() == true && keystoreFile.length() > 0
     }
 
-    override suspend fun deleteKeystoreForReset(): Boolean {
+    override suspend fun removePairedTvCertificate(keystoreAlias: String): Boolean {
         return withContext(Dispatchers.IO) {
-            val keystoreFile = androidRemoteContext.keyStoreFile
-            if (keystoreFile.exists()) {
-                try {
-                    keystoreFile.delete()
-                } catch (e: SecurityException) {
-                    Timber.e(e, "PairingRepo: Erreur de sécurité lors de la suppression du keystore: %s", e.message)
-                    false
-                }
-            } else {
-                true
-            }
+            TvCertificateStore.removePairedTvCertificate(keystoreAlias)
         }
     }
 }
