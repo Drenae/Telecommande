@@ -17,7 +17,6 @@ class RemoteRepositoryImpl @Inject constructor(
 
     override val tvCoreEvents: Flow<TvCoreEvent> = androidRemoteTv.eventFlow
         .map { coreEvent ->
-            Timber.d("RemoteRepo: Raw CoreAndroidTvEvent: %s", coreEvent)
             when (coreEvent) {
                 is CoreAndroidTvEvent.Connected -> TvCoreEvent.Connected
                 is CoreAndroidTvEvent.Disconnected -> TvCoreEvent.Disconnected
@@ -38,13 +37,7 @@ class RemoteRepositoryImpl @Inject constructor(
 
     override val isConnected: StateFlow<Boolean> = androidRemoteTv.isConnected
 
-    override suspend fun connectToActiveTv(hostAddress: String) {
-        Timber.d("RemoteRepo: Appel de androidRemoteTv.connect() avec l'adresse: %s", hostAddress)
-        androidRemoteTv.connect(hostAddress)
-    }
-
     override suspend fun disconnectFromTv() {
-        Timber.d("RemoteRepo: Appel de androidRemoteTv.disconnect()")
         androidRemoteTv.disconnect()
     }
 
@@ -57,7 +50,6 @@ class RemoteRepositoryImpl @Inject constructor(
             return
         }
 
-        Timber.d("RemoteRepo: Appel de androidRemoteTv.sendCommand() pour %s.", keyCode.name)
         androidRemoteTv.sendCommand(keyCode, action)
     }
 
@@ -67,7 +59,6 @@ class RemoteRepositoryImpl @Inject constructor(
             return
         }
 
-        Timber.d("RemoteRepo: Appel de androidRemoteTv.launchApplication() pour %s.", appLink)
         androidRemoteTv.launchApplication(appLink)
     }
 }
