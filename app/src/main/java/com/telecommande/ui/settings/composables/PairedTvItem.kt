@@ -1,8 +1,9 @@
 package com.telecommande.ui.settings.composables
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,10 +11,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.LinkOff
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -24,11 +25,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.telecommande.data.model.PairedTvInfo
-import com.telecommande.ui.theme.TvManagementSpecs
+import com.telecommande.ui.theme.AppColors
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PairedTvItem(
     tvInfo: PairedTvInfo,
@@ -38,78 +39,79 @@ fun PairedTvItem(
     onForgetClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val statusColor = when {
+        isConnectedToThisTv -> AppColors.statusGreen
+        isActive -> AppColors.statusAmber
+        else -> AppColors.textSecondary
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .combinedClickable(
-                onClick = onConnectClick,
-            )
-            .padding(
-                vertical = TvManagementSpecs.ListItemVerticalPadding,
-                horizontal = TvManagementSpecs.ListItemHorizontalPadding
-            ),
+            .padding(vertical = 5.dp)
+            .clickable(onClick = onConnectClick),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (isActive) AppColors.accent.copy(alpha = 0.55f) else AppColors.border
+        ),
         colors = CardDefaults.cardColors(
-            containerColor = if (isActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+            containerColor = if (isActive) AppColors.accentMuted.copy(alpha = 0.55f) else AppColors.surface
         )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(TvManagementSpecs.ListItemInternalPadding),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(start = 16.dp, top = 14.dp, bottom = 14.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Tv,
-                    contentDescription = "Paired TV",
-                    tint = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+            Icon(
+                imageVector = Icons.Default.Tv,
+                contentDescription = null,
+                tint = if (isActive) AppColors.accent else AppColors.textSecondary,
+                modifier = Modifier.size(28.dp)
+            )
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = tvInfo.name ?: "TV appairée",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = AppColors.appWhite
                 )
-                Spacer(modifier = Modifier.width(TvManagementSpecs.ListItemSpacerWidth))
-                Column {
-                    Text(
-                        text = tvInfo.name ?: "TV Appairée",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = tvInfo.ipAddress,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                    if (isActive) {
+                Text(
+                    text = tvInfo.ipAddress,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AppColors.textSecondary
+                )
+                if (isActive) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(statusColor, CircleShape)
+                        )
+                        Spacer(Modifier.width(6.dp))
                         Text(
-                            text = if (isConnectedToThisTv) "Connecté" else "Défini comme actif",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isConnectedToThisTv) Color.Green.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.9f)
+                            text = if (isConnectedToThisTv) "Connectée" else "TV active",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = statusColor
                         )
                     }
                 }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (isActive && isConnectedToThisTv) {
-                    Icon(
-                        imageVector = Icons.Default.Link,
-                        contentDescription = "Connected",
-                        tint = Color.Green,
-                        modifier = Modifier.size(TvManagementSpecs.PairedTvStatusIconSize)
-                    )
-                } else if (isActive) {
-                    Icon(
-                        imageVector = Icons.Default.LinkOff,
-                        contentDescription = "Active but not connected",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                        modifier = Modifier.size(TvManagementSpecs.PairedTvStatusIconSize)
-                    )
-                }
-                Spacer(modifier = Modifier.width(TvManagementSpecs.PairedTvForgetButtonSpacer))
-                IconButton(onClick = onForgetClick) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Forget TV",
-                        tint = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.error
-                    )
-                }
+
+            IconButton(onClick = onForgetClick) {
+                Icon(
+                    imageVector = Icons.Default.DeleteOutline,
+                    contentDescription = "Oublier ${tvInfo.name ?: "la TV"}",
+                    tint = AppColors.statusRed.copy(alpha = 0.85f)
+                )
             }
         }
     }
