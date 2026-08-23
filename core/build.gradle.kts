@@ -26,10 +26,12 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
@@ -51,18 +53,16 @@ protobuf {
 }
 
 dependencies {
-    implementation (libs.protobuf.javalite)
-    implementation (libs.jmdns)
-    implementation (libs.slf4j.api)
-    implementation (libs.slf4j.nop)
-    implementation (libs.androidx.annotation)
+    implementation(libs.protobuf.javalite)
+    implementation(libs.jmdns)
+    implementation(libs.slf4j.api)
+    implementation(libs.slf4j.nop)
+    implementation(libs.androidx.annotation)
     implementation(libs.bcpkix.jdk18on)
     implementation(libs.bcprov.jdk18on)
     implementation(libs.timber)
-
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

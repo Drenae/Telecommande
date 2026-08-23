@@ -34,7 +34,7 @@ class PairingSession {
     private var pairingJob: Job? = null
     private var packetParserJob: Job? = null
 
-    private val pairingMessageManager: PairingMessageManager = PairingMessageManager()
+    private val pairingMessageManager = PairingMessageManager()
     private val incomingMessagesChannel = Channel<Pairingmessage.PairingMessage>(Channel.BUFFERED)
     private val secretChannel = Channel<String>(Channel.RENDEZVOUS)
 
@@ -59,12 +59,10 @@ class PairingSession {
                 _eventFlow.emit(PairingEvent.Log("Initialisation de la connexion SSL pour l'appairage."))
                 initializeSslSocket(host, port)
                 _eventFlow.emit(PairingEvent.SessionCreated)
-                Timber.d("Session d'appairage créée, démarrage de l'analyseur de paquets.")
 
                 startPacketParser()
 
                 outputStream?.let { out ->
-                    Timber.d("Envoi du message d'appairage initial...")
                     val pairingMessageBytes = pairingMessageManager.createPairingMessage(
                         androidRemoteContext.clientName,
                         androidRemoteContext.serviceName
@@ -74,14 +72,12 @@ class PairingSession {
                     val pairingMessageResponse = waitForMessageOrFail()
                     logReceivedMessage("Réponse au message d'appairage: ${pairingMessageResponse.toString().take(200)}")
 
-                    Timber.d("Envoi des options d'appairage...")
                     val pairingOptionBytes = pairingMessageManager.createPairingOption()
                     out.write(pairingOptionBytes)
                     logSendMessage("Option d'appairage")
                     val pairingOptionAck = waitForMessageOrFail()
                     logReceivedMessage("Ack de l'option d'appairage: ${pairingOptionAck.toString().take(200)}")
 
-                    Timber.d("Envoi du message de configuration...")
                     val configMessageBytes = pairingMessageManager.createConfigMessage()
                     out.write(configMessageBytes)
                     logSendMessage("Message de configuration")
@@ -94,14 +90,11 @@ class PairingSession {
                     val secretCode = withTimeoutOrNull(60000) {
                         secretChannel.receive()
                     } ?: throw PairingException("Timeout en attente du secret utilisateur.")
-                    Timber.d("Secret reçu: %s", "****")
 
                     val pairingSecretMessageProto = processSecret(secretCode)
-
-                    Timber.d("Envoi du message secret au serveur...")
                     val secretMessageBytes = pairingMessageManager.createSecretMessage(pairingSecretMessageProto)
                     out.write(secretMessageBytes)
-                    logSendMessage("Message secret (préparé et envoyé)")
+                    logSendMessage("Message secret")
                     val pairingSecretAck = waitForMessageOrFail()
                     logReceivedMessage("Ack du secret d'appairage: ${pairingSecretAck.toString().take(200)}")
 
@@ -159,22 +152,20 @@ class PairingSession {
         val currentInputStream = inputStream
         if (currentInputStream == null) {
             Timber.e("InputStream est null, impossible de démarrer PairingPacketParser.")
-            coroutineScope.launch { _eventFlow.emit(PairingEvent.Error("Erreur interne: InputStream non disponible pour l'analyseur.")) }
+            coroutineScope.launch {
+                _eventFlow.emit(PairingEvent.Error("Erreur interne: InputStream non disponible pour l'analyseur."))
+            }
             return
         }
 
         packetParserJob?.cancel()
         packetParserJob = coroutineScope.launch {
-            Timber.d("Démarrage de PairingPacketParser sur le thread %s", Thread.currentThread().name)
             try {
-                val pairingPacketParser = PairingPacketParser(currentInputStream, incomingMessagesChannel)
-                pairingPacketParser.parsePackets()
+                PairingPacketParser(currentInputStream, incomingMessagesChannel).parsePackets()
             } catch (e: IOException) {
                 if (isActive) {
                     Timber.e(e, "IOException dans PairingPacketParser")
                     _eventFlow.emit(PairingEvent.Error("Erreur de lecture réseau: ${e.message}"))
-                } else {
-                    Timber.d("IOException dans PairingPacketParser après annulation, ignorée.")
                 }
             } catch (e: Exception) {
                 if (isActive) {
@@ -182,7 +173,6 @@ class PairingSession {
                     _eventFlow.emit(PairingEvent.Error("Erreur interne d'analyseur: ${e.message}"))
                 }
             } finally {
-                Timber.d("Coroutine de PairingPacketParser.parsePackets terminée.")
                 if (!incomingMessagesChannel.isClosedForSend) {
                     incomingMessagesChannel.close()
                 }
@@ -190,29 +180,21 @@ class PairingSession {
         }
     }
 
-
     private suspend fun waitForMessageOrFail(timeoutMillis: Long = 30000): Pairingmessage.PairingMessage {
-        Timber.v("Attente d'un message depuis le canal entrant...")
         val pairingMessage = withTimeoutOrNull(timeoutMillis) {
             incomingMessagesChannel.receive()
         } ?: throw PairingException("Timeout en attente d'un message du serveur.")
 
         if (pairingMessage.status != Pairingmessage.PairingMessage.Status.STATUS_OK) {
-            val errorMessage = "Erreur dans le message d'appairage reçu: ${pairingMessage.status} - ${pairingMessage.toString().take(200)}"
-            Timber.w(errorMessage)
-            _eventFlow.emit(PairingEvent.Error(errorMessage))
             throw PairingException("Message reçu avec un statut non OK: ${pairingMessage.status}.")
         }
-        Timber.v("Message reçu du canal et statut OK.")
         return pairingMessage
     }
 
     suspend fun provideSecret(secret: String) {
-        Timber.d("Tentative de fournir le secret via le canal.")
         try {
             withTimeoutOrNull(5000) {
                 secretChannel.send(secret)
-                Timber.i("Secret envoyé au processus d'appairage.")
             } ?: Timber.w("Timeout lors de l'envoi du secret au canal.")
         } catch (e: Exception) {
             Timber.e(e, "Erreur lors de l'envoi du secret via le canal")
@@ -222,77 +204,52 @@ class PairingSession {
 
     private suspend fun processSecret(codeP: String): Pairingmessage.PairingMessage {
         return withContext(Dispatchers.Default) {
-            var localCode = codeP
-            Timber.d("Traitement du secret original: '%s'", "****")
-
-            if (localCode.length < 2) {
-                Timber.e("Code secret trop court pour appliquer substring(2): '%s'", "****")
-                _eventFlow.emit(PairingEvent.Error("Code secret fourni trop court."))
+            if (codeP.length < 2) {
                 throw PairingException("Code secret fourni trop court.")
             }
-            localCode = localCode.substring(2)
-            Timber.d("Code après substring(2): '%s'", "****")
 
+            val localCode = codeP.substring(2)
             val currentSslSocket = sslSocket
             if (currentSslSocket == null || !currentSslSocket.isConnected || currentSslSocket.isClosed) {
-                Timber.e("Impossible de traiter le secret: socket SSL non connecté ou fermé.")
-                _eventFlow.emit(PairingEvent.Error("Connexion perdue avant le traitement du secret."))
                 throw PairingException("Socket SSL non disponible pour le traitement du secret.")
             }
 
             val localCert = Utils.getLocalCert(currentSslSocket.session)
             val peerCert = Utils.getPeerCert(currentSslSocket.session)
-
             if (localCert == null || peerCert == null) {
-                Timber.e("Impossible d'obtenir les certificats locaux ou distants de la session SSL.")
-                _eventFlow.emit(PairingEvent.Error("Erreur interne: certificats SSL manquants."))
                 throw PairingException("Certificats SSL manquants.")
             }
 
-            val pairingChallengeResponse = PairingChallengeResponse(localCert, peerCert)
-            val secretBytes: ByteArray
-            try {
-                if (localCode.isEmpty()) {
-                    Timber.e("Code vide après substring(2), impossible de convertir en octets.")
-                    _eventFlow.emit(PairingEvent.Error("Code secret traité vide."))
-                    throw PairingException("Code secret traité vide.")
-                }
-                secretBytes = Utils.hexStringToBytes(localCode)
+            if (localCode.isEmpty()) {
+                throw PairingException("Code secret traité vide.")
+            }
+
+            val secretBytes = try {
+                Utils.hexStringToBytes(localCode)
             } catch (e: IllegalArgumentException) {
-                Timber.e(e, "Chaîne hexadécimale invalide après substring: '%s'", "****")
-                _eventFlow.emit(PairingEvent.Error("Format de code secret invalide après traitement: ${e.message}"))
                 throw PairingException("Format de code secret invalide: ${e.message}", e)
             }
 
-            Timber.i("Octets secrets à traiter (après substring(2) et hexToBytes): %s", Utils.bytesToHexString(secretBytes))
-
+            val pairingChallengeResponse = PairingChallengeResponse(localCert, peerCert)
             try {
                 pairingChallengeResponse.checkGamma(secretBytes)
-                Timber.i("checkGamma réussi pour le secret: %s", Utils.bytesToHexString(secretBytes))
-
-                val pairingChallengeResponseAlpha = pairingChallengeResponse.getAlpha(secretBytes)
-                Timber.i("Alpha dérivé: %s", Utils.bytesToHexString(pairingChallengeResponseAlpha))
-
-                pairingMessageManager.createSecretMessageProto(pairingChallengeResponseAlpha)
+                val alpha = pairingChallengeResponse.getAlpha(secretBytes)
+                pairingMessageManager.createSecretMessageProto(alpha)
             } catch (e: PairingException) {
-                Timber.e(e, "PairingException durant le traitement du secret (checkGamma ou getAlpha): %s", e.message)
-                _eventFlow.emit(PairingEvent.Error("Erreur durant le traitement du secret: ${e.message}"))
                 throw e
             } catch (e: IllegalArgumentException) {
-                Timber.e(e, "IllegalArgumentException durant le traitement du secret (probablement de extractNonce): %s", e.message)
-                _eventFlow.emit(PairingEvent.Error("Format de données secret invalide: ${e.message}"))
                 throw PairingException("Format de données secret invalide: ${e.message}", e)
             }
         }
     }
 
     private suspend fun logSendMessage(message: String) {
-        Timber.i("Message envoyé : %s", message)
+        Timber.d("Message envoyé : %s", message)
         _eventFlow.emit(PairingEvent.Log("Envoyé: $message"))
     }
 
     private suspend fun logReceivedMessage(messageSummary: String) {
-        Timber.i("Message Reçu : %s", messageSummary)
+        Timber.d("Message reçu : %s", messageSummary)
         _eventFlow.emit(PairingEvent.Log("Reçu: $messageSummary"))
     }
 
@@ -302,11 +259,10 @@ class PairingSession {
         coroutineScope.launch(Dispatchers.IO) {
             sslSocket?.let {
                 if (!it.isClosed) {
-                    Timber.d("Fermeture du SSLSocket de PairingSession.")
                     try {
                         it.close()
                     } catch (e: IOException) {
-                        Timber.e(e, "IOException lors de la fermeture du SSLSocket de PairingSession: %s", e.message)
+                        Timber.w(e, "IOException lors de la fermeture du SSLSocket de PairingSession")
                     }
                 }
             }
@@ -315,9 +271,6 @@ class PairingSession {
             inputStream = null
             incomingMessagesChannel.close()
             secretChannel.close()
-            Timber.d("SSLSocket de PairingSession fermé et ressources nettoyées.")
-        }.invokeOnCompletion {
         }
     }
 }
-
