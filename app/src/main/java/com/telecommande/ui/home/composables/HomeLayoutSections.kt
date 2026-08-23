@@ -12,11 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -29,18 +26,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.telecommande.R
 import com.telecommande.ui.home.config.ConfigurableHomeButton
 import com.telecommande.ui.home.config.HomeButtons
-import com.telecommande.ui.theme.AppColors
 import com.telecommande.ui.theme.AppSliderColors
 import com.telecommande.ui.theme.ComponentDimensions
-import com.telecommande.ui.theme.DefaultButtonColors
 import com.telecommande.ui.theme.DpadSectionSpecs
 import com.telecommande.ui.theme.HomeBaseButtonSpecs
 import kotlin.math.roundToInt
@@ -50,110 +43,40 @@ fun HeaderSection(
     modifier: Modifier = Modifier,
     onPowerClick: () -> Unit,
     isConnected: Boolean,
-    isLoading: Boolean,
-    activeTvName: String?,
     onStatusIndicatorClick: () -> Unit
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = ComponentDimensions.HeaderTopPadding),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(ComponentDimensions.HeaderSpacing)
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         ConfigurableHomeButton(
             config = HomeButtons.Power,
             onClick = onPowerClick
         )
-
-        ConnectionStatusCard(
+        StatusIndicator(
             isConnected = isConnected,
-            isLoading = isLoading,
-            activeTvName = activeTvName,
-            onClick = onStatusIndicatorClick,
-            modifier = Modifier.weight(1f)
+            onClick = onStatusIndicatorClick
         )
     }
 }
 
 @Composable
-private fun ConnectionStatusCard(
+fun StatusIndicator(
     isConnected: Boolean,
-    isLoading: Boolean,
-    activeTvName: String?,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    connectedIconRes: Int = R.drawable.ic_status_on,
+    disconnectedIconRes: Int = R.drawable.ic_status_off
 ) {
-    val statusText = when {
-        isLoading -> "Connexion..."
-        isConnected -> "Connectée"
-        activeTvName != null -> "Déconnectée"
-        else -> "Aucune TV"
-    }
-    val statusColor = when {
-        isLoading -> MaterialTheme.colorScheme.primary
-        isConnected -> AppColors.statusGreen
-        else -> AppColors.statusRed
-    }
-
-    Row(
+    Icon(
+        painter = painterResource(id = if (isConnected) connectedIconRes else disconnectedIconRes),
+        contentDescription = if (isConnected) "Connectée - Gérer les TV" else "Déconnectée - Gérer les TV",
         modifier = modifier
-            .background(
-                brush = DefaultButtonColors.DefaultBackgroundBrush,
-                shape = RoundedCornerShape(ComponentDimensions.StatusCardCornerRadius)
-            )
-            .border(
-                width = 1.dp,
-                color = DefaultButtonColors.DefaultBorder,
-                shape = RoundedCornerShape(ComponentDimensions.StatusCardCornerRadius)
-            )
-            .clickable(onClick = onClick)
-            .padding(
-                horizontal = ComponentDimensions.StatusCardHorizontalPadding,
-                vertical = ComponentDimensions.StatusCardVerticalPadding
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(ComponentDimensions.StatusCardContentSpacing)
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(ComponentDimensions.StatusIndicatorDotSize),
-                strokeWidth = 2.dp,
-                color = statusColor
-            )
-        } else {
-            Icon(
-                painter = painterResource(
-                    id = if (isConnected) R.drawable.ic_status_on else R.drawable.ic_status_off
-                ),
-                contentDescription = null,
-                modifier = Modifier.size(ComponentDimensions.StatusIndicatorDotSize),
-                tint = Color.Unspecified
-            )
-        }
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = activeTvName ?: "Télécommande",
-                color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = statusText,
-                color = statusColor,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-
-        Text(
-            text = "Gérer",
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.labelMedium
-        )
-    }
+            .size(ComponentDimensions.StatusIndicatorSize)
+            .clickable(onClick = onClick),
+        tint = Color.Unspecified
+    )
 }
 
 @Composable
