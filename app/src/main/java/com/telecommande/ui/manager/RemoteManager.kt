@@ -3,13 +3,9 @@ package com.telecommande.ui.manager
 import com.telecommande.core.remote.Remotemessage
 import com.telecommande.data.model.PairedTvInfo
 import com.telecommande.data.repository.TvCoreEvent
-import com.telecommande.domain.usecase.connection.ConnectToTvUseCase
-import com.telecommande.domain.usecase.connection.DisconnectFromTvUseCase
-import com.telecommande.domain.usecase.connection.ObserveTvConnectionStateUseCase
+import com.telecommande.data.repository.pairing.PairingRepository
+import com.telecommande.data.repository.remote.RemoteRepository
 import com.telecommande.domain.usecase.pairing.GetActiveTvUseCase
-import com.telecommande.domain.usecase.remote.LaunchAppUseCase
-import com.telecommande.domain.usecase.remote.ObserveRemoteControlEventsUseCase
-import com.telecommande.domain.usecase.remote.SendCommandUseCase
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -39,12 +35,8 @@ data class RemoteState(
 @ViewModelScoped
 class RemoteManager @Inject constructor(
     private val getActiveTvUseCase: GetActiveTvUseCase,
-    private val connectToTvUseCase: ConnectToTvUseCase,
-    private val observeTvConnectionStateUseCase: ObserveTvConnectionStateUseCase,
-    private val observeRemoteControlEventsUseCase: ObserveRemoteControlEventsUseCase,
-    private val disconnectFromTvUseCase: DisconnectFromTvUseCase,
-    private val sendCommandUseCase: SendCommandUseCase,
-    private val launchAppUseCase: LaunchAppUseCase
+    private val pairingRepository: PairingRepository,
+    private val remoteRepository: RemoteRepository
 ) {
     private val _state = MutableStateFlow(RemoteState())
     val state: StateFlow<RemoteState> = _state.asStateFlow()
@@ -125,7 +117,7 @@ class RemoteManager @Inject constructor(
 
     private fun observeConnectionState(scope: CoroutineScope) {
         connectionStateJob?.cancel()
-        connectionStateJob = observeTvConnectionStateUseCase()
+        connectionStateJob = remoteRepository.isConnected
             .onEach { connected ->
                 _state.update {
                     it.copy(
@@ -149,7 +141,7 @@ class RemoteManager @Inject constructor(
 
     private fun observeRemoteEvents(scope: CoroutineScope) {
         remoteEventsJob?.cancel()
-        remoteEventsJob = observeRemoteControlEventsUseCase()
+        remoteEventsJob = remoteRepository.tvCoreEvents
             .onEach { event ->
                 _state.update { current ->
                     when (event) {
@@ -223,9 +215,9 @@ class RemoteManager @Inject constructor(
 
             try {
                 if (disconnectFirst && _state.value.isConnected) {
-                    disconnectFromTvUseCase()
+                    remoteRepository.disconnectFromTv()
                 }
-                connectToTvUseCase(tv.ipAddress, tv.keystoreAlias)
+                pairingRepository.connectForPairing(tv.ipAddress, tv.keystoreAlias)
             } catch (e: Exception) {
                 Timber.e(e, "RemoteManager : Échec de connexion à ${tv.ipAddress}")
                 _state.update {
@@ -264,7 +256,7 @@ class RemoteManager @Inject constructor(
 
         scope.launch {
             try {
-                disconnectFromTvUseCase()
+                remoteRepository.disconnectFromTv()
             } catch (e: Exception) {
                 Timber.e(e, "RemoteManager : Erreur pendant la déconnexion")
                 _state.update {
@@ -292,7 +284,7 @@ class RemoteManager @Inject constructor(
 
         scope.launch {
             try {
-                sendCommandUseCase(keyCode, action)
+                remoteRepository.sendCommand(keyCode, action)
             } catch (e: Exception) {
                 Timber.e(e, "RemoteManager : Erreur lors de l'envoi de ${keyCode.name}")
                 _state.update { it.copy(snackbarMessage = "Erreur d'envoi: ${e.message}") }
@@ -312,7 +304,7 @@ class RemoteManager @Inject constructor(
 
         scope.launch {
             try {
-                launchAppUseCase(appLink)
+                remoteRepository.launchApplication(appLink)
             } catch (e: Exception) {
                 Timber.e(e, "RemoteManager : Erreur lors du lancement de l'application $appLink")
                 _state.update { it.copy(snackbarMessage = "Erreur de lancement: ${e.message}") }
