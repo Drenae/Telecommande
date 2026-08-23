@@ -1,5 +1,6 @@
 package com.telecommande.ui.home.composables
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -128,7 +130,11 @@ fun ContentSection(
     isMuted: Boolean,
     onVolumeUpClick: () -> Unit,
     onVolumeDownClick: () -> Unit,
-    onMuteClick: () -> Unit
+    onMuteClick: () -> Unit,
+    onRewindClick: () -> Unit,
+    onPlayPauseClick: () -> Unit,
+    onStopClick: () -> Unit,
+    onFastForwardClick: () -> Unit
 ) {
     BoxWithConstraints(
         modifier = modifier.fillMaxWidth(),
@@ -139,7 +145,7 @@ fun ContentSection(
         val okSize = (dpadSize * 0.36f).coerceIn(82.dp, 108.dp)
         val arrowSize = (dpadSize * 0.18f).coerceIn(42.dp, 54.dp)
         val navSize = if (compactWidth) 54.dp else 60.dp
-        val sectionSpacing = if (compactWidth) 12.dp else 18.dp
+        val sectionSpacing = if (compactWidth) 10.dp else 16.dp
 
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -246,6 +252,16 @@ fun ContentSection(
                 onMuteClick = onMuteClick,
                 compact = compactWidth
             )
+
+            Spacer(Modifier.height(if (compactWidth) 6.dp else 10.dp))
+
+            MediaControls(
+                onRewindClick = onRewindClick,
+                onPlayPauseClick = onPlayPauseClick,
+                onStopClick = onStopClick,
+                onFastForwardClick = onFastForwardClick,
+                compact = compactWidth
+            )
         }
     }
 }
@@ -308,13 +324,64 @@ private fun VolumeControl(
                 modifier = Modifier.size(50.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = if (isMuted) R.drawable.ic_mute else R.drawable.ic_volume),
+                    painter = painterResource(id = if (isMuted) R.drawable.ic_remote_mute else R.drawable.ic_remote_volume),
                     contentDescription = if (isMuted) "Réactiver le son" else "Couper le son",
                     modifier = Modifier.size(34.dp),
                     tint = Color.Unspecified
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun MediaControls(
+    onRewindClick: () -> Unit,
+    onPlayPauseClick: () -> Unit,
+    onStopClick: () -> Unit,
+    onFastForwardClick: () -> Unit,
+    compact: Boolean
+) {
+    val buttonSize = if (compact) 48.dp else 54.dp
+    val iconSize = if (compact) 22.dp else 25.dp
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = if (compact) 4.dp else 12.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        MediaButton(R.drawable.ic_media_rewind, "Recul", buttonSize, iconSize, onRewindClick)
+        MediaButton(R.drawable.ic_media_play_pause, "Lecture / Pause", buttonSize, iconSize, onPlayPauseClick)
+        MediaButton(R.drawable.ic_media_stop, "Stop", buttonSize, iconSize, onStopClick)
+        MediaButton(R.drawable.ic_media_fast_forward, "Avance", buttonSize, iconSize, onFastForwardClick)
+    }
+}
+
+@Composable
+private fun MediaButton(
+    @DrawableRes iconRes: Int,
+    contentDescription: String,
+    size: androidx.compose.ui.unit.Dp,
+    iconSize: androidx.compose.ui.unit.Dp,
+    onClick: () -> Unit
+) {
+    val shape = RoundedCornerShape(18.dp)
+    Box(
+        modifier = Modifier
+            .size(size)
+            .background(DefaultButtonColors.DefaultBackgroundBrush, shape)
+            .border(1.dp, DefaultButtonColors.DefaultBorder, shape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(iconRes),
+            contentDescription = contentDescription,
+            modifier = Modifier.size(iconSize),
+            tint = Color.Unspecified
+        )
     }
 }
 
