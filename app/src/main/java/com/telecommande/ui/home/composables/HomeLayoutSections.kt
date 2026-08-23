@@ -1,6 +1,5 @@
 package com.telecommande.ui.home.composables
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,6 +14,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.FastRewind
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material.icons.rounded.VolumeOff
+import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -38,6 +45,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import com.telecommande.R
 import com.telecommande.ui.home.config.ConfigurableHomeButton
 import com.telecommande.ui.home.config.HomeButtons
+import com.telecommande.ui.theme.AppColors
 import com.telecommande.ui.theme.AppSliderColors
 import com.telecommande.ui.theme.DefaultButtonColors
 import com.telecommande.ui.theme.DpadSectionSpecs
@@ -322,10 +330,10 @@ private fun VolumeControl(
                 modifier = Modifier.size(if (compact) 54.dp else 58.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = if (isMuted) R.drawable.ic_remote_mute else R.drawable.ic_remote_volume),
+                    imageVector = if (isMuted) Icons.Rounded.VolumeOff else Icons.Rounded.VolumeUp,
                     contentDescription = if (isMuted) "Réactiver le son" else "Couper le son",
-                    modifier = Modifier.size(if (compact) 36.dp else 40.dp),
-                    tint = Color.Unspecified
+                    modifier = Modifier.size(if (compact) 32.dp else 36.dp),
+                    tint = AppColors.accent
                 )
             }
         }
@@ -348,16 +356,16 @@ private fun MediaControls(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        MediaButton(R.drawable.ic_media_rewind, "Recul", buttonSize, iconSize, onRewindClick)
-        MediaButton(R.drawable.ic_media_play_pause, "Lecture / Pause", buttonSize, iconSize, onPlayPauseClick)
-        MediaButton(R.drawable.ic_media_stop, "Stop", buttonSize, iconSize, onStopClick)
-        MediaButton(R.drawable.ic_media_fast_forward, "Avance", buttonSize, iconSize, onFastForwardClick)
+        MediaButton(Icons.Rounded.FastRewind, "Recul", buttonSize, iconSize, onRewindClick)
+        MediaButton(Icons.Rounded.PlayArrow, "Lecture / Pause", buttonSize, iconSize, onPlayPauseClick)
+        MediaButton(Icons.Rounded.Stop, "Stop", buttonSize, iconSize, onStopClick)
+        MediaButton(Icons.Rounded.FastForward, "Avance", buttonSize, iconSize, onFastForwardClick)
     }
 }
 
 @Composable
 private fun MediaButton(
-    @DrawableRes iconRes: Int,
+    icon: ImageVector,
     contentDescription: String,
     size: androidx.compose.ui.unit.Dp,
     iconSize: androidx.compose.ui.unit.Dp,
@@ -373,10 +381,10 @@ private fun MediaButton(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painter = painterResource(iconRes),
+            imageVector = icon,
             contentDescription = contentDescription,
             modifier = Modifier.size(iconSize),
-            tint = Color.Unspecified
+            tint = AppColors.appWhite
         )
     }
 }
