@@ -54,9 +54,6 @@ protobuf {
 
 dependencies {
     implementation(libs.protobuf.javalite)
-    implementation(libs.jmdns)
-    implementation(libs.slf4j.api)
-    implementation(libs.slf4j.nop)
     implementation(libs.androidx.annotation)
     implementation(libs.bcpkix.jdk18on)
     implementation(libs.bcprov.jdk18on)
