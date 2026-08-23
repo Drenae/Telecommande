@@ -7,7 +7,6 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
@@ -25,15 +24,12 @@ class RemotePacketParser(
 
     override suspend fun messageBufferReceived(buf: ByteArray) {
         if (!currentCoroutineContext().isActive) {
-            Timber.d("Contexte de coroutine distant inactif, ne pas traiter le tampon de message reçu.")
             return
         }
         if (buf.isEmpty()) {
             Timber.w("Tampon de message distant reçu vide, ignoré.")
             return
         }
-
-        Timber.v("Tampon de message distant brut reçu (longueur : %d)", buf.size)
 
         val remoteMessage: Remotemessage.RemoteMessage = try {
             Remotemessage.RemoteMessage.parseFrom(buf)
@@ -44,17 +40,15 @@ class RemotePacketParser(
             return
         }
 
-        Timber.v("RemoteMessage distant analysé : %s", remoteMessage.toString().take(300))
-
         try {
             when {
                 remoteMessage.hasRemotePingRequest() -> {
-                    Timber.d("Requête Ping distante reçue : val1=%d", remoteMessage.remotePingRequest.val1)
+                    // Heartbeat normal du protocole Android TV Remote. Il arrive environ
+                    // toutes les 5 secondes : on répond immédiatement mais on ne le logue
+                    // pas afin de garder Logcat lisible.
                     val pingResponse = remoteMessageManager.createPingResponse(remoteMessage.remotePingRequest.val1)
-                    withContext(currentCoroutineContext()) {
-                        outputStream.write(pingResponse)
-                    }
-                    Timber.d("Réponse Ping distante envoyée.")
+                    outputStream.write(pingResponse)
+                    outputStream.flush()
                 }
                 remoteMessage.hasRemoteStart() -> {
                     Timber.i("Message RemoteStart reçu.")
@@ -62,8 +56,6 @@ class RemotePacketParser(
                         hasNotifiedConnected = true
                         eventFlow.emit(RemoteEvent.Connected)
                         Timber.i("Connexion à distance établie (notifiée via RemoteStart).")
-                    } else {
-                        Timber.d("RemoteStart reçu mais déjà notifié comme connecté.")
                     }
                     sendToChannel(remoteMessage)
                 }
@@ -86,12 +78,11 @@ class RemotePacketParser(
                     )
                 }
                 else -> {
-                    Timber.v("Mise en file d'attente du RemoteMessage (type non spécifiquement géré ici)")
                     sendToChannel(remoteMessage)
                 }
             }
         } catch (e: IOException) {
-            Timber.e(e, "IOException lors du traitement du message distant ou de l'envoi de la réponse Ping: %s", e.message)
+            Timber.e(e, "IOException lors du traitement du message distant: %s", e.message)
             if (currentCoroutineContext().isActive) {
                 eventFlow.emit(RemoteEvent.Error("Erreur réseau distante: ${e.message}"))
                 eventFlow.emit(RemoteEvent.Disconnected)
@@ -112,6 +103,5 @@ class RemotePacketParser(
             return
         }
         messagesChannel.send(message)
-        Timber.v("Message distant envoyé au canal de la session.")
     }
 }
