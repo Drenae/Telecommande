@@ -3,8 +3,8 @@ package com.telecommande.ui.manager
 import com.telecommande.core.discovery.DiscoveredTv
 import com.telecommande.data.model.PairedTvInfo
 import com.telecommande.data.repository.TvCoreEvent
-import com.telecommande.domain.usecase.connection.ConnectToTvUseCase
-import com.telecommande.domain.usecase.connection.DisconnectFromTvUseCase
+import com.telecommande.data.repository.pairing.PairingRepository
+import com.telecommande.data.repository.remote.RemoteRepository
 import com.telecommande.domain.usecase.pairing.AddPairedTvUseCase
 import com.telecommande.domain.usecase.pairing.IsKeystorePairedUseCase
 import com.telecommande.domain.usecase.pairing.ObservePairingEventsUseCase
@@ -44,12 +44,12 @@ sealed class PairingStep {
 
 @ViewModelScoped
 class PairingManager @Inject constructor(
+    private val pairingRepository: PairingRepository,
+    private val remoteRepository: RemoteRepository,
     private val observePairingEventsUseCase: ObservePairingEventsUseCase,
-    private val connectToTvUseCase: ConnectToTvUseCase,
     private val submitPinUseCase: SubmitPinUseCase,
     private val addPairedTvUseCase: AddPairedTvUseCase,
     private val setActiveTvUseCase: SetActiveTvUseCase,
-    private val disconnectFromTvUseCase: DisconnectFromTvUseCase,
     private val isKeystorePairedUseCase: IsKeystorePairedUseCase
 ) {
     private val _currentStep = MutableStateFlow<PairingStep>(PairingStep.Idle)
@@ -85,7 +85,7 @@ class PairingManager @Inject constructor(
 
         connectionAttemptJob = scope.launch {
             try {
-                connectToTvUseCase(ipAddress)
+                pairingRepository.connectForPairing(ipAddress)
             } catch (e: Exception) {
                 Timber.e(e, "PairingManager : Échec de l'initiation de l'appairage $ipAddress")
                 _currentStep.value = PairingStep.Error(
@@ -210,7 +210,7 @@ class PairingManager @Inject constructor(
         scope.launch {
             if (shouldDisconnect) {
                 try {
-                    disconnectFromTvUseCase()
+                    remoteRepository.disconnectFromTv()
                 } catch (e: Exception) {
                     Timber.w(e, "PairingManager : Erreur pendant l'annulation de l'appairage")
                 }
