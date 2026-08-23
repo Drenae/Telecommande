@@ -138,10 +138,8 @@ class SettingsViewModel @Inject constructor(
     )
 
     init {
-        Timber.d("SettingsViewModel : Initialisation avec Hilt")
         discoveryManager.initialize(viewModelScope)
         remoteManager.initialize(viewModelScope)
-        pairingManager.initialize(viewModelScope)
 
         pairingManager.transientError
             .onEach { errorMsg ->
@@ -161,10 +159,8 @@ class SettingsViewModel @Inject constructor(
     fun onDeviceSelected(tv: DiscoveredTv) {
         val existingPaired = uiState.value.pairedTvs.find { it.ipAddress == tv.ipAddress }
         if (existingPaired != null) {
-            Timber.d("TV ${tv.friendlyName} déjà appairée. Définition comme active.")
             setTvAsActive(existingPaired)
         } else {
-            Timber.d("Lancement du processus d'appairage pour ${tv.friendlyName}.")
             pairingManager.startPairingProcess(tv, viewModelScope)
         }
     }
@@ -176,8 +172,6 @@ class SettingsViewModel @Inject constructor(
     fun onSubmitPin() {
         if (uiState.value.pairingStep is PairingStep.PinRequested) {
             pairingManager.submitPin(_currentPinInput.value, viewModelScope)
-        } else {
-            Timber.w("Tentative de soumission de PIN alors que non requis.")
         }
     }
 
@@ -188,12 +182,6 @@ class SettingsViewModel @Inject constructor(
 
     fun acknowledgePairingError() {
         pairingManager.acknowledgeError()
-        val currentPairingState = uiState.value.pairingStep
-        if (currentPairingState is PairingStep.Error && currentPairingState.shouldConsiderReset) {
-            Timber.i(
-                "L'utilisateur a acquitté une erreur d'appairage avec une suggestion de réinitialisation pour ${currentPairingState.tvName}."
-            )
-        }
     }
 
     fun forgetTv(tvInfo: PairedTvInfo) {
@@ -210,7 +198,10 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setTvAsActive(tvInfo: PairedTvInfo) {
-        if (uiState.value.activeTv?.ipAddress == tvInfo.ipAddress && uiState.value.remoteState.isConnected) {
+        if (
+            uiState.value.activeTv?.ipAddress == tvInfo.ipAddress &&
+            uiState.value.remoteState.isConnected
+        ) {
             _internalSnackbarMessage.value =
                 "${tvInfo.name ?: tvInfo.ipAddress} est déjà active et connectée."
             return
@@ -248,6 +239,5 @@ class SettingsViewModel @Inject constructor(
         discoveryManager.cleanup()
         remoteManager.cleanup()
         pairingManager.cleanup()
-        Timber.d("SettingsViewModel : onCleared")
     }
 }
