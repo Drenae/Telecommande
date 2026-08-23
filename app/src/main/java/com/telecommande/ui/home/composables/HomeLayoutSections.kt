@@ -12,11 +12,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.VolumeOff
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -29,17 +29,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.telecommande.R
 import com.telecommande.ui.home.config.ConfigurableHomeButton
 import com.telecommande.ui.home.config.HomeButtons
+import com.telecommande.ui.theme.AppColors
 import com.telecommande.ui.theme.AppSliderColors
 import com.telecommande.ui.theme.ComponentDimensions
+import com.telecommande.ui.theme.DefaultButtonColors
 import com.telecommande.ui.theme.DpadSectionSpecs
 import com.telecommande.ui.theme.HomeBaseButtonSpecs
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 @Composable
@@ -47,40 +50,110 @@ fun HeaderSection(
     modifier: Modifier = Modifier,
     onPowerClick: () -> Unit,
     isConnected: Boolean,
+    isLoading: Boolean,
+    activeTvName: String?,
     onStatusIndicatorClick: () -> Unit
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = ComponentDimensions.HeaderTopPadding),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.spacedBy(ComponentDimensions.HeaderSpacing)
     ) {
         ConfigurableHomeButton(
             config = HomeButtons.Power,
             onClick = onPowerClick
         )
-        StatusIndicator(
+
+        ConnectionStatusCard(
             isConnected = isConnected,
-            onClick = onStatusIndicatorClick
+            isLoading = isLoading,
+            activeTvName = activeTvName,
+            onClick = onStatusIndicatorClick,
+            modifier = Modifier.weight(1f)
         )
     }
 }
 
 @Composable
-fun StatusIndicator(
+private fun ConnectionStatusCard(
     isConnected: Boolean,
+    isLoading: Boolean,
+    activeTvName: String?,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    connectedIconRes: Int = R.drawable.ic_status_on,
-    disconnectedIconRes: Int = R.drawable.ic_status_off
+    modifier: Modifier = Modifier
 ) {
-    Icon(
-        painter = painterResource(id = if (isConnected) connectedIconRes else disconnectedIconRes),
-        contentDescription = if (isConnected) "Connected - Gérer les TV" else "Disconnected - Gérer les TV",
+    val statusText = when {
+        isLoading -> "Connexion..."
+        isConnected -> "Connectée"
+        activeTvName != null -> "Déconnectée"
+        else -> "Aucune TV"
+    }
+    val statusColor = when {
+        isLoading -> MaterialTheme.colorScheme.primary
+        isConnected -> AppColors.statusGreen
+        else -> AppColors.statusRed
+    }
+
+    Row(
         modifier = modifier
-            .size(ComponentDimensions.StatusIndicatorSize)
-            .clickable(onClick = onClick),
-        tint = Color.Unspecified
-    )
+            .background(
+                brush = DefaultButtonColors.DefaultBackgroundBrush,
+                shape = RoundedCornerShape(ComponentDimensions.StatusCardCornerRadius)
+            )
+            .border(
+                width = 1.dp,
+                color = DefaultButtonColors.DefaultBorder,
+                shape = RoundedCornerShape(ComponentDimensions.StatusCardCornerRadius)
+            )
+            .clickable(onClick = onClick)
+            .padding(
+                horizontal = ComponentDimensions.StatusCardHorizontalPadding,
+                vertical = ComponentDimensions.StatusCardVerticalPadding
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(ComponentDimensions.StatusCardContentSpacing)
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(ComponentDimensions.StatusIndicatorDotSize),
+                strokeWidth = 2.dp,
+                color = statusColor
+            )
+        } else {
+            Icon(
+                painter = painterResource(
+                    id = if (isConnected) R.drawable.ic_status_on else R.drawable.ic_status_off
+                ),
+                contentDescription = null,
+                modifier = Modifier.size(ComponentDimensions.StatusIndicatorDotSize),
+                tint = Color.Unspecified
+            )
+        }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = activeTvName ?: "Télécommande",
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = statusText,
+                color = statusColor,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
+        Text(
+            text = "Gérer",
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.labelMedium
+        )
+    }
 }
 
 @Composable
@@ -216,9 +289,7 @@ fun ContentSection(
                 onValueChange = { newPosition -> sliderPosition = newPosition },
                 onValueChangeFinished = {
                     val targetLevel = sliderPosition.roundToInt().coerceIn(0, currentVolumeMax)
-                    val currentTvLevel = volumeLevel
-                    val diff = targetLevel - currentTvLevel
-                    Timber.d("Slider finished: target=$targetLevel, currentTV=$currentTvLevel, diff=$diff")
+                    val diff = targetLevel - volumeLevel
                     if (diff > 0) repeat(diff) { onVolumeUpClick() }
                     else if (diff < 0) repeat(-diff) { onVolumeDownClick() }
                 },
@@ -241,7 +312,7 @@ fun ContentSection(
             ) {
                 Icon(
                     painter = painterResource(id = if (isMuted) R.drawable.ic_mute else R.drawable.ic_volume),
-                    contentDescription = "Mute",
+                    contentDescription = if (isMuted) "Réactiver le son" else "Couper le son",
                     modifier = Modifier.size(HomeBaseButtonSpecs.DefaultSize),
                     tint = Color.Unspecified
                 )
@@ -249,7 +320,6 @@ fun ContentSection(
         }
     }
 }
-
 
 @Composable
 fun FooterSection(
