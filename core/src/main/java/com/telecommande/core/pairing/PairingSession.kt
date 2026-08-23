@@ -42,7 +42,10 @@ class PairingSession {
     private var outputStream: OutputStream? = null
     private var inputStream: InputStream? = null
 
-    private val _eventFlow = MutableSharedFlow<PairingEvent>(replay = 1)
+    private val _eventFlow = MutableSharedFlow<PairingEvent>(
+        replay = 0,
+        extraBufferCapacity = 16
+    )
     val eventFlow = _eventFlow.asSharedFlow()
 
     private val androidRemoteContext = AndroidRemoteContext.getInstance()
@@ -68,18 +71,21 @@ class PairingSession {
                         androidRemoteContext.serviceName
                     )
                     out.write(pairingMessageBytes)
+                    out.flush()
                     logSendMessage("Message d'appairage initial")
                     val pairingMessageResponse = waitForMessageOrFail()
                     logReceivedMessage("Réponse au message d'appairage: ${pairingMessageResponse.toString().take(200)}")
 
                     val pairingOptionBytes = pairingMessageManager.createPairingOption()
                     out.write(pairingOptionBytes)
+                    out.flush()
                     logSendMessage("Option d'appairage")
                     val pairingOptionAck = waitForMessageOrFail()
                     logReceivedMessage("Ack de l'option d'appairage: ${pairingOptionAck.toString().take(200)}")
 
                     val configMessageBytes = pairingMessageManager.createConfigMessage()
                     out.write(configMessageBytes)
+                    out.flush()
                     logSendMessage("Message de configuration")
                     val pairingConfigAck = waitForMessageOrFail()
                     logReceivedMessage("Ack de la configuration d'appairage: ${pairingConfigAck.toString().take(200)}")
@@ -94,6 +100,7 @@ class PairingSession {
                     val pairingSecretMessageProto = processSecret(secretCode)
                     val secretMessageBytes = pairingMessageManager.createSecretMessage(pairingSecretMessageProto)
                     out.write(secretMessageBytes)
+                    out.flush()
                     logSendMessage("Message secret")
                     val pairingSecretAck = waitForMessageOrFail()
                     logReceivedMessage("Ack du secret d'appairage: ${pairingSecretAck.toString().take(200)}")
