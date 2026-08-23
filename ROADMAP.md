@@ -102,6 +102,8 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Regrouper Netflix / YouTube / Plex / Crunchyroll sur une barre compacte responsive
 - [x] Remplacer le voile de connexion plein écran par un indicateur compact
 - [x] Appliquer une palette sombre teal cohérente au thème Material 3
+- [x] Créer et appliquer un nouveau set d'icônes vectorielles cohérent avec le design
+- [x] Ajouter les commandes média Recul / Lecture-Pause / Stop / Avance sous le volume
 - [x] Refaire l'écran de gestion / sélection des TV avec des cartes responsives
 - [x] Refaire les états vides et la recherche de TV
 - [x] Refaire le dialogue d'appairage PIN
