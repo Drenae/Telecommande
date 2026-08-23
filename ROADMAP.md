@@ -79,10 +79,14 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Nettoyer la configuration des boutons Home devenue redondante
 - [x] Vérifier que `protobuf-javalite` et `constraintlayout-compose` sont bien nécessaires côté app
 - [x] Vérifier les warnings précédemment signalés (`Room` et barre de statut déjà corrigés)
-- [ ] Auditer et simplifier les méthodes inutilisées de `SettingsRepository` / `PairedTvDao`
+- [x] Auditer et simplifier les méthodes inutilisées de `SettingsRepository` / `PairedTvDao`
+- [x] Supprimer les logs verbeux contenant les données sérialisées de la TV active
+- [x] Désactiver Android Auto Backup pour ne pas restaurer l'identité/certificats de pairing sur un autre appareil
+- [x] Supprimer les fichiers modèles `backup_rules.xml` / `data_extraction_rules.xml` devenus inutiles
+- [x] Vérifier les permissions réseau nécessaires à la découverte NSD / MulticastLock
 - [ ] Réduire les logs de debug restants du core et des managers sans masquer les erreurs utiles
 - [ ] Vérifier les dépendances Gradle restantes et le version catalog
-- [ ] Vérifier les permissions Android et la configuration réseau / sauvegarde
+- [ ] Vérifier si `network_security_config.xml` apporte encore une valeur avec le SSL custom du core
 - [ ] Nettoyer les packages et la structure finale
 
 ## Phase 7 — UI / UX ⏳
