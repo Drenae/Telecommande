@@ -44,17 +44,14 @@ fun HomeBaseButton(
     borderColor: Color = DefaultButtonColors.DefaultBorder,
     defaultElevation: Dp = HomeBaseButtonSpecs.DefaultElevation,
     pressedElevation: Dp = HomeBaseButtonSpecs.PressedElevation,
-    shadowColorLight: Color = DefaultButtonColors.DefaultShadowLight,
     shadowColorDark: Color = DefaultButtonColors.DefaultShadowDark,
-    pressedShadowColorLight: Color = DefaultButtonColors.PressedShadowLight,
     pressedShadowColorDark: Color = DefaultButtonColors.PressedShadowDark
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val currentElevation = if (isPressed) pressedElevation else defaultElevation
-    val currentShadowColorLight = if (isPressed) pressedShadowColorLight else shadowColorLight
-    val currentShadowColorDark = if (isPressed) pressedShadowColorDark else shadowColorDark
+    val currentShadowColor = if (isPressed) pressedShadowColorDark else shadowColorDark
     val currentBackgroundBrush = if (isPressed) pressedBackgroundColorBrush else defaultBackgroundColorBrush
     val iconSize = size - (iconPadding * 2)
     val pressedIconSize = iconSize - HomeBaseButtonSpecs.PressedIconReduction
@@ -71,8 +68,8 @@ fun HomeBaseButton(
                 .shadow(
                     elevation = currentElevation,
                     shape = shape,
-                    spotColor = currentShadowColorDark,
-                    ambientColor = currentShadowColorDark
+                    spotColor = currentShadowColor,
+                    ambientColor = currentShadowColor
                 )
                 .background(brush = currentBackgroundBrush, shape = shape)
                 .border(width = borderWidth, color = borderColor, shape = shape)
