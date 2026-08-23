@@ -35,7 +35,11 @@ sealed class PairingStep {
     data class PinRequested(val tvForPinEntry: DiscoveredTv) : PairingStep()
     data class VerifyingPin(val tvName: String) : PairingStep()
     data class PairingSuccessful(val pairedTvInfo: PairedTvInfo) : PairingStep()
-    data class Error(val message: String, val tvName: String?, val shouldConsiderReset: Boolean = false) : PairingStep()
+    data class Error(
+        val message: String,
+        val tvName: String?,
+        val shouldConsiderReset: Boolean = false
+    ) : PairingStep()
 }
 
 @ViewModelScoped
@@ -59,19 +63,16 @@ class PairingManager @Inject constructor(
 
     private var targetTvForPairing: DiscoveredTv? = null
     private var targetIpForConnection: String? = null
-    private var managerScope: CoroutineScope? = null
-
-    fun initialize(scope: CoroutineScope) {
-        managerScope = scope
-    }
 
     fun startPairingProcess(tvToPair: DiscoveredTv, scope: CoroutineScope) {
-        managerScope = scope
         cancelCurrentProcess()
 
         val ipAddress = tvToPair.ipAddress ?: run {
             Timber.w("PairingManager : Tentative d'appairage avec une TV sans adresse IP.")
-            _currentStep.value = PairingStep.Error("Adresse IP de la TV manquante.", tvToPair.friendlyName)
+            _currentStep.value = PairingStep.Error(
+                "Adresse IP de la TV manquante.",
+                tvToPair.friendlyName
+            )
             return
         }
         val tvName = tvToPair.friendlyName
@@ -84,12 +85,14 @@ class PairingManager @Inject constructor(
 
         connectionAttemptJob = scope.launch {
             try {
-                Timber.d("PairingManager : Appel à connectToTvUseCase pour $ipAddress (appairage)")
                 connectToTvUseCase(ipAddress)
             } catch (e: Exception) {
-                Timber.e(e, "PairingManager : Échec de l'initiation de la connexion pour l'appairage $ipAddress")
-                _currentStep.value = PairingStep.Error("Échec de l'initiation de l'appairage: ${e.message ?: "Inconnue"}", tvName)
-                cleanupAfterError(scope)
+                Timber.e(e, "PairingManager : Échec de l'initiation de l'appairage $ipAddress")
+                _currentStep.value = PairingStep.Error(
+                    "Échec de l'initiation de l'appairage: ${e.message ?: "Inconnue"}",
+                    tvName
+                )
+                cleanupAfterError()
             }
         }
     }
@@ -104,63 +107,72 @@ class PairingManager @Inject constructor(
         pairingEventsJob = observePairingEventsUseCase()
             .distinctUntilChanged()
             .onEach { event ->
-                Timber.d("PairingManager : Événement d'appairage pour $currentIp (cible): $event")
-
                 val eventIsPotentiallyForThisTarget = when (event) {
                     is TvCoreEvent.Paired -> event.host == currentIp
                     is TvCoreEvent.Error -> true
-                    is TvCoreEvent.SecretRequested, is TvCoreEvent.SessionCreated, is TvCoreEvent.ConnectingToRemote -> true
+                    is TvCoreEvent.SecretRequested,
+                    is TvCoreEvent.SessionCreated,
+                    is TvCoreEvent.ConnectingToRemote -> true
                     else -> false
                 }
 
                 if (!eventIsPotentiallyForThisTarget) {
-                    Timber.v("PairingManager : Événement $event ignoré, non pertinent pour le flux d'appairage de $currentIp.")
                     return@onEach
                 }
 
                 when (event) {
-                    is TvCoreEvent.SessionCreated -> {
-                        Timber.d("PairingManager : Session d'appairage créée pour $currentTvName.")
-                    }
+                    is TvCoreEvent.SessionCreated -> Unit
+
                     is TvCoreEvent.SecretRequested -> {
                         _currentStep.value = PairingStep.PinRequested(currentDiscoveredTv)
                     }
+
                     is TvCoreEvent.Paired -> {
-                        if (event.host != currentIp) {
-                            Timber.w("PairingManager : Événement 'Paired' reçu pour ${event.host} mais la cible est $currentIp. Ignoré.")
-                            return@onEach
-                        }
+                        if (event.host != currentIp) return@onEach
+
                         val newPairedTv = PairedTvInfo(
                             ipAddress = event.host,
                             name = currentTvName,
                             macAddress = currentDiscoveredTv.getMacAddressFromAttributesOrNull(),
                             keystoreAlias = event.tvKeystoreAlias
                         )
+
                         scope.launch {
                             addPairedTvUseCase(newPairedTv)
                             setActiveTvUseCase(newPairedTv)
                         }
+
                         _currentStep.value = PairingStep.PairingSuccessful(newPairedTv)
                         cancelCurrentProcess(clearTargetInfo = true)
                     }
+
                     is TvCoreEvent.Error -> {
                         val errorMessage = event.message ?: "Erreur d'appairage inconnue"
-                        val isSslOrKeystoreIssue = errorMessage.containsAnyOf(listOf("SSL", "certificate", "EACCES", "trust anchor"), ignoreCase = true)
+                        val isSslOrKeystoreIssue = errorMessage.containsAnyOf(
+                            listOf("SSL", "certificate", "EACCES", "trust anchor"),
+                            ignoreCase = true
+                        )
                         val considerReset = isSslOrKeystoreIssue && isKeystorePairedUseCase()
 
-                        _currentStep.value = PairingStep.Error(errorMessage, currentTvName, considerReset)
-                        cleanupAfterError(scope)
+                        _currentStep.value = PairingStep.Error(
+                            errorMessage,
+                            currentTvName,
+                            considerReset
+                        )
+                        cleanupAfterError()
                     }
-                    is TvCoreEvent.ConnectingToRemote -> {
-                        Timber.d("PairingManager : Tentative de connexion distante pour l'appairage de $currentTvName.")
-                    }
-                    else -> { Timber.v("PairingManager : Événement $event non traité spécifiquement.") }
+
+                    is TvCoreEvent.ConnectingToRemote -> Unit
+                    else -> Unit
                 }
             }
             .catch { e ->
-                Timber.e(e, "PairingManager : Erreur critique lors de l'observation des événements d'appairage pour $currentIp")
-                _currentStep.value = PairingStep.Error("Erreur de communication: ${e.message ?: "Inconnue"}", currentTvName)
-                cleanupAfterError(scope)
+                Timber.e(e, "PairingManager : Erreur critique du flux d'appairage $currentIp")
+                _currentStep.value = PairingStep.Error(
+                    "Erreur de communication: ${e.message ?: "Inconnue"}",
+                    currentTvName
+                )
+                cleanupAfterError()
             }
             .launchIn(scope)
     }
@@ -168,37 +180,39 @@ class PairingManager @Inject constructor(
     fun submitPin(pin: String, scope: CoroutineScope) {
         val step = _currentStep.value
         if (step !is PairingStep.PinRequested) {
-            Timber.w("PairingManager : Impossible de soumettre le PIN, pas dans l'état PinRequis. État actuel: $step")
-            scope.launch { _transientError.emit("Impossible de soumettre le PIN pour le moment.") }
+            scope.launch {
+                _transientError.emit("Impossible de soumettre le PIN pour le moment.")
+            }
             return
         }
+
         val tvName = step.tvForPinEntry.friendlyName
         _currentStep.value = PairingStep.VerifyingPin(tvName)
+
         scope.launch {
             try {
                 submitPinUseCase(pin)
             } catch (e: Exception) {
                 Timber.e(e, "PairingManager : Erreur lors de la soumission du PIN")
-                val errorMsg = e.message ?: "Erreur inconnue"
-                _currentStep.value = PairingStep.Error("Erreur PIN: $errorMsg", tvName)
-                cleanupAfterError(scope)
+                _currentStep.value = PairingStep.Error(
+                    "Erreur PIN: ${e.message ?: "Erreur inconnue"}",
+                    tvName
+                )
+                cleanupAfterError()
             }
         }
     }
 
     fun cancelPairingAttempt(scope: CoroutineScope) {
-        val tvNameToLog = targetTvForPairing?.friendlyName ?: targetIpForConnection
-        Timber.d("PairingManager : Annulation de la tentative d'appairage pour $tvNameToLog")
-
-        val ipToDisconnect = targetIpForConnection
+        val shouldDisconnect = targetIpForConnection != null
         cancelCurrentProcess(clearTargetInfo = true)
 
         scope.launch {
-            if (ipToDisconnect != null) {
+            if (shouldDisconnect) {
                 try {
                     disconnectFromTvUseCase()
                 } catch (e: Exception) {
-                    Timber.w(e, "PairingManager : Exception pendant la déconnexion lors de l'annulation pour $ipToDisconnect.")
+                    Timber.w(e, "PairingManager : Erreur pendant l'annulation de l'appairage")
                 }
             }
             _currentStep.value = PairingStep.Idle
@@ -211,15 +225,11 @@ class PairingManager @Inject constructor(
         }
     }
 
-    private fun cleanupAfterError(scope: CoroutineScope, delayMs: Long = 500) {
-        scope.launch {
-            if (_currentStep.value is PairingStep.Error) {
-            }
-            pairingEventsJob?.cancel()
-            connectionAttemptJob?.cancel()
-            pairingEventsJob = null
-            connectionAttemptJob = null
-        }
+    private fun cleanupAfterError() {
+        pairingEventsJob?.cancel()
+        connectionAttemptJob?.cancel()
+        pairingEventsJob = null
+        connectionAttemptJob = null
     }
 
     private fun cancelCurrentProcess(clearTargetInfo: Boolean = false) {
@@ -227,6 +237,7 @@ class PairingManager @Inject constructor(
         connectionAttemptJob?.cancel()
         pairingEventsJob = null
         connectionAttemptJob = null
+
         if (clearTargetInfo) {
             targetTvForPairing = null
             targetIpForConnection = null
@@ -234,8 +245,6 @@ class PairingManager @Inject constructor(
     }
 
     fun cleanup() {
-        Timber.d("PairingManager : Nettoyage des ressources.")
         cancelCurrentProcess(clearTargetInfo = true)
-        managerScope = null
     }
 }
