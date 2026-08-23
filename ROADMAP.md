@@ -83,11 +83,12 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Supprimer les logs verbeux contenant les données sérialisées de la TV active
 - [x] Désactiver Android Auto Backup pour ne pas restaurer l'identité/certificats de pairing sur un autre appareil
 - [x] Supprimer les fichiers modèles `backup_rules.xml` / `data_extraction_rules.xml` devenus inutiles
-- [x] Vérifier les permissions réseau nécessaires à la découverte NSD / MulticastLock
-- [ ] Réduire les logs de debug restants du core et des managers sans masquer les erreurs utiles
-- [ ] Vérifier les dépendances Gradle restantes et le version catalog
-- [ ] Vérifier si `network_security_config.xml` apporte encore une valeur avec le SSL custom du core
-- [ ] Nettoyer les packages et la structure finale
+- [x] Vérifier et conserver les permissions réseau nécessaires à la découverte NSD / MulticastLock
+- [x] Remplacer `network_security_config.xml` par `usesCleartextTraffic=false` et conserver le SSL épinglé dans le core
+- [x] Supprimer les dépendances historiques `jmdns` / `slf4j` devenues inutiles avec `NsdManager`
+- [x] Nettoyer le version catalog des alias Android View / bibliothèques non référencés
+- [x] Auditer la structure `data / di / domain / navigation / ui / util` et conserver cette séparation
+- [ ] Réduire les logs de debug restants du core sans masquer les erreurs réseau / SSL utiles
 
 ## Phase 7 — UI / UX ⏳
 
