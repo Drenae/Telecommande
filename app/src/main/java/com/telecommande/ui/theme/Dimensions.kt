@@ -20,8 +20,12 @@ object DefaultButtonColors {
     val PressedShadowLight = Color(0x66000000)
     val PressedShadowDark = Color(0x33FFFFFF)
 
-    val DefaultBackgroundBrush = Brush.linearGradient(colors = listOf(DefaultBackgroundStart, DefaultBackgroundEnd))
-    val PressedBackgroundBrush = Brush.linearGradient(colors = listOf(PressedBackgroundStart, PressedBackgroundEnd))
+    val DefaultBackgroundBrush = Brush.linearGradient(
+        colors = listOf(DefaultBackgroundStart, DefaultBackgroundEnd)
+    )
+    val PressedBackgroundBrush = Brush.linearGradient(
+        colors = listOf(PressedBackgroundStart, PressedBackgroundEnd)
+    )
 }
 
 object AppSliderColors {
@@ -72,6 +76,13 @@ object ScreenPaddings {
 
 object ComponentDimensions {
     val StatusIndicatorSize: Dp = 44.dp
+    val StatusIndicatorDotSize: Dp = 28.dp
+    val StatusCardCornerRadius: Dp = 18.dp
+    val StatusCardHorizontalPadding: Dp = 14.dp
+    val StatusCardVerticalPadding: Dp = 10.dp
+    val StatusCardContentSpacing: Dp = 10.dp
+    val HeaderTopPadding: Dp = 12.dp
+    val HeaderSpacing: Dp = 12.dp
 
     val NavButtonOffsetNegativeY: Dp = (-32).dp
 
