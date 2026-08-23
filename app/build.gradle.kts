@@ -55,13 +55,11 @@ android {
 dependencies {
     implementation(project(":core"))
 
-    implementation(libs.protobuf.javalite)
     implementation(libs.bcpkix.jdk18on)
     implementation(libs.bcprov.jdk18on)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.datastore.preferences)
-    implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.material.icons.core)
