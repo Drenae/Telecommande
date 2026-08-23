@@ -8,5 +8,5 @@ interface PairingRepository {
     suspend fun connectForPairing(hostAddress: String, tvKeystoreAlias: String? = null)
     suspend fun sendSecret(pin: String)
     fun isKeystorePairedInitially(): Boolean
-    suspend fun deleteKeystoreForReset(): Boolean
+    suspend fun removePairedTvCertificate(keystoreAlias: String): Boolean
 }
