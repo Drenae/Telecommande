@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 interface SettingsRepository {
     val activeTvInfoFlow: Flow<PairedTvInfo?>
     val pairedTvsFlow: Flow<List<PairedTvInfo>>
+    val tvDisplayNamesFlow: Flow<Map<String, String>>
 
     suspend fun saveActiveTvInfo(tvInfo: PairedTvInfo?)
     suspend fun getActiveTvInfo(): PairedTvInfo?
@@ -14,4 +15,6 @@ interface SettingsRepository {
     suspend fun addPairedTv(tvInfo: PairedTvInfo)
     suspend fun removePairedTvByKeystoreAlias(keystoreAlias: String)
     suspend fun getPairedTvByKeystoreAlias(keystoreAlias: String): PairedTvInfo?
+
+    suspend fun setTvDisplayName(keystoreAlias: String, displayName: String?)
 }
