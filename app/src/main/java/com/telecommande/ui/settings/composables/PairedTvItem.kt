@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,9 +34,11 @@ import com.telecommande.ui.theme.AppColors
 @Composable
 fun PairedTvItem(
     tvInfo: PairedTvInfo,
+    displayName: String,
     isActive: Boolean,
     isConnectedToThisTv: Boolean,
     onConnectClick: () -> Unit,
+    onRenameClick: () -> Unit,
     onForgetClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -44,6 +47,7 @@ fun PairedTvItem(
         isActive -> AppColors.statusAmber
         else -> AppColors.textSecondary
     }
+    val technicalName = tvInfo.name ?: tvInfo.ipAddress
 
     Card(
         modifier = modifier
@@ -76,11 +80,18 @@ fun PairedTvItem(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = tvInfo.name ?: "TV appairée",
+                    text = displayName,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = AppColors.appWhite
                 )
+                if (displayName != technicalName) {
+                    Text(
+                        text = technicalName,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppColors.textSecondary
+                    )
+                }
                 Text(
                     text = tvInfo.ipAddress,
                     style = MaterialTheme.typography.bodySmall,
@@ -106,10 +117,18 @@ fun PairedTvItem(
                 }
             }
 
+            IconButton(onClick = onRenameClick) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Renommer $displayName",
+                    tint = AppColors.accent
+                )
+            }
+
             IconButton(onClick = onForgetClick) {
                 Icon(
                     imageVector = Icons.Default.DeleteOutline,
-                    contentDescription = "Oublier ${tvInfo.name ?: "la TV"}",
+                    contentDescription = "Oublier $displayName",
                     tint = AppColors.statusRed.copy(alpha = 0.85f)
                 )
             }
