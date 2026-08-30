@@ -32,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -45,8 +46,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -55,6 +58,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.telecommande.data.model.PairedTvInfo
 import com.telecommande.ui.manager.PairingStep
 import com.telecommande.ui.settings.composables.DiscoveredTvItem
 import com.telecommande.ui.settings.composables.PairedTvItem
@@ -72,6 +76,8 @@ fun SettingsScreen(
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    var tvToRename by remember { mutableStateOf<PairedTvInfo?>(null) }
+    var renameValue by remember { mutableStateOf("") }
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
@@ -110,6 +116,63 @@ fun SettingsScreen(
             onConfirm = viewModel::onSubmitPin,
             onDismiss = viewModel::onCancelPinEntryOrPairing,
             isLoading = uiState.isPinDialogLoading
+        )
+    }
+
+    tvToRename?.let { tvInfo ->
+        val technicalName = tvInfo.name ?: tvInfo.ipAddress
+        AlertDialog(
+            onDismissRequest = { tvToRename = null },
+            title = { Text("Renommer la TV") },
+            text = {
+                Column {
+                    Text(
+                        text = "Nom réel : $technicalName",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppColors.textSecondary
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = renameValue,
+                        onValueChange = { renameValue = it.take(32) },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Nom affiché") },
+                        placeholder = { Text("Salon, Chambre…") },
+                        singleLine = true
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "Ce nom est uniquement visuel. Le nom réel de la TV reste inchangé pour la connexion.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppColors.textSecondary
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.renameTv(tvInfo, renameValue)
+                        tvToRename = null
+                    }
+                ) {
+                    Text("Enregistrer")
+                }
+            },
+            dismissButton = {
+                Row {
+                    if (uiState.tvDisplayNames.containsKey(tvInfo.keystoreAlias)) {
+                        TextButton(onClick = {
+                            viewModel.renameTv(tvInfo, null)
+                            tvToRename = null
+                        }) {
+                            Text("Nom d'origine")
+                        }
+                    }
+                    TextButton(onClick = { tvToRename = null }) {
+                        Text("Annuler")
+                    }
+                }
+            }
         )
     }
 
@@ -169,9 +232,12 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 item {
+                    val activeDisplayName = uiState.activeTv?.let { tv ->
+                        uiState.tvDisplayNames[tv.keystoreAlias] ?: tv.name ?: tv.ipAddress
+                    }
                     ConnectionSummary(
                         isConnected = uiState.remoteState.isConnected,
-                        activeTvName = uiState.activeTv?.name ?: uiState.activeTv?.ipAddress,
+                        activeTvName = activeDisplayName,
                         statusMessage = uiState.primaryStatusMessage
                     )
                     Spacer(Modifier.height(18.dp))
@@ -196,9 +262,13 @@ fun SettingsScreen(
                     items(uiState.pairedTvs, key = { it.keystoreAlias }) { tvInfo ->
                         val isActive = uiState.activeTv?.keystoreAlias == tvInfo.keystoreAlias
                         val isConnectedToThisTv = isActive && uiState.remoteState.isConnected
+                        val displayName = uiState.tvDisplayNames[tvInfo.keystoreAlias]
+                            ?: tvInfo.name
+                            ?: tvInfo.ipAddress
 
                         PairedTvItem(
                             tvInfo = tvInfo,
+                            displayName = displayName,
                             isActive = isActive,
                             isConnectedToThisTv = isConnectedToThisTv,
                             onConnectClick = {
@@ -207,10 +277,14 @@ fun SettingsScreen(
                                 } else {
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
-                                            "${tvInfo.name ?: tvInfo.ipAddress} est déjà connectée."
+                                            "$displayName est déjà connectée."
                                         )
                                     }
                                 }
+                            },
+                            onRenameClick = {
+                                tvToRename = tvInfo
+                                renameValue = uiState.tvDisplayNames[tvInfo.keystoreAlias] ?: ""
                             },
                             onForgetClick = { viewModel.forgetTv(tvInfo) }
                         )
