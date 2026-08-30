@@ -79,8 +79,10 @@ class RemoteSession(
                         1,
                         "1"
                     )
-                    out.write(remoteConfigure)
-                    out.flush()
+                    synchronized(out) {
+                        out.write(remoteConfigure)
+                        out.flush()
+                    }
                     Timber.d("Message RemoteConfigure envoyé.")
 
                     val configureAck = waitForMessageOrFail(
@@ -90,8 +92,10 @@ class RemoteSession(
                     Timber.i("Ack de RemoteConfigure reçu: %s", configureAck.toString().take(200))
 
                     val remoteActive = remoteMessageManager.createRemoteActive(622)
-                    out.write(remoteActive)
-                    out.flush()
+                    synchronized(out) {
+                        out.write(remoteActive)
+                        out.flush()
+                    }
                     Timber.d("Message RemoteActive envoyé.")
 
                 } ?: throw IOException("OutputStream non initialisé avant la configuration distante.")
@@ -158,7 +162,9 @@ class RemoteSession(
                 newSocket.useClientMode = true
                 newSocket.keepAlive = true
                 newSocket.tcpNoDelay = true
-                newSocket.soTimeout = SOCKET_READ_TIMEOUT_MS
+                // Une session Android TV Remote est persistante. Un timeout de lecture ici
+                // transformait une simple période sans message en fausse déconnexion.
+                newSocket.soTimeout = 0
 
                 Timber.d("Démarrage du handshake SSL avec validation du certificat TV...")
                 newSocket.startHandshake()
@@ -251,8 +257,11 @@ class RemoteSession(
 
         try {
             withContext(Dispatchers.IO) {
-                currentOutStream.write(remoteMessageManager.createKeyCommand(remoteKeyCode, remoteDirection))
-                currentOutStream.flush()
+                synchronized(currentOutStream) {
+                    val payload = remoteMessageManager.createKeyCommand(remoteKeyCode, remoteDirection)
+                    currentOutStream.write(payload)
+                    currentOutStream.flush()
+                }
                 Timber.d("Commande envoyée: %s, %s", remoteKeyCode, remoteDirection)
             }
         } catch (e: IOException) {
@@ -280,8 +289,11 @@ class RemoteSession(
         try {
             withContext(Dispatchers.IO) {
                 Timber.i("Envoi de la requête de lancement d'application pour : %s", appLink)
-                currentOutStream.write(remoteMessageManager.createAppLinkLaunchRequest(appLink))
-                currentOutStream.flush()
+                synchronized(currentOutStream) {
+                    val payload = remoteMessageManager.createAppLinkLaunchRequest(appLink)
+                    currentOutStream.write(payload)
+                    currentOutStream.flush()
+                }
                 Timber.d("Requête RemoteAppLinkLaunchRequest envoyée pour: %s", appLink)
             }
         } catch (e: IOException) {
@@ -333,7 +345,6 @@ class RemoteSession(
 
     private companion object {
         const val TCP_CONNECT_TIMEOUT_MS = 5_000
-        const val SOCKET_READ_TIMEOUT_MS = 10_000
         const val HANDSHAKE_MESSAGE_TIMEOUT_MS = 10_000L
     }
 }
