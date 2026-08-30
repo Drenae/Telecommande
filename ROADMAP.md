@@ -95,6 +95,10 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Valider une maquette de refonte avant implémentation
 - [x] Conserver le bouton d'état compact dans le header
 - [x] Ajouter un titre central sans encombrer le header
+- [x] Afficher le nom de la TV active dans le header à la place de « Télécommande »
+- [x] Permettre de renommer localement une TV (ex. Salon / Chambre) sans modifier son nom technique
+- [x] Conserver le nom technique de la TV pour l'appairage, la connexion et l'identification interne
+- [x] Permettre de revenir au nom d'origine depuis l'écran de gestion des TV
 - [x] Adapter dynamiquement le D-pad à la largeur disponible
 - [x] Agrandir et remonter le D-pad pour améliorer le confort tactile
 - [x] Agrandir les boutons Retour / Accueil
