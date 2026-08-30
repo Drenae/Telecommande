@@ -90,7 +90,7 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Auditer la structure `data / di / domain / navigation / ui / util` et conserver cette séparation
 - [x] Conserver uniquement les logs réseau / SSL utiles au diagnostic pour le reste du nettoyage
 
-## Phase 7 — UI / UX 🟡 EN COURS
+## Phase 7 — UI / UX 🟡 EN PAUSE
 
 - [x] Valider une maquette de refonte avant implémentation
 - [x] Conserver le bouton d'état compact dans le header
@@ -117,20 +117,19 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Autoriser les codes d'appairage alphanumériques (A–Z + 0–9) et afficher le clavier adapté
 - [x] Remplacer l'icône Android Studio par l'icône PNG finale Télécommande sombre / teal
 - [x] Conserver la master 1024×1024 et les déclinaisons PNG par densité Android
-- [ ] Vérifier le rendu sur petit / moyen / grand téléphone réel ou émulateur
-- [ ] Ajuster les dimensions après validation visuelle utilisateur
+- [ ] Vérifier le rendu sur petit / moyen / grand téléphone réel ou émulateur — reporté
+- [ ] Ajuster les dimensions après validation visuelle utilisateur — reporté
 
 ## Phase 8 — Finalisation ⏳
 
 - [x] Supprimer le timeout de lecture qui pouvait couper une session Remote inactive
 - [x] Sérialiser les écritures commandes / heartbeat sur le socket Remote
 - [x] Valider la stabilité de la connexion Remote sur téléphone réel avec commandes répétées
-- [ ] Tester TV éteinte / injoignable
-- [ ] Tester perte Wi-Fi
-- [ ] Tester changement de réseau
-- [ ] Tester plusieurs TV
-- [ ] Tester reprise après mise en veille
-- [ ] Tester build release
+- [x] Tester extinction / rallumage de la TV avec la commande Power
+- [x] Valider la reprise après mise en veille du téléphone
+- [x] Acter pour la V1 que téléphone et TV doivent être sur le même réseau Wi-Fi
+- [x] Reporter la gestion multi-TV à la V2
+- [ ] Tester un vrai build release signé
 - [ ] Nettoyage final
 - [ ] Documentation finale du projet
 
