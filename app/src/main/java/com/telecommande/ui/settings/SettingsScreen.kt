@@ -299,40 +299,35 @@ fun SettingsScreen(
                     )
                 }
 
-                if (uiState.discoveryState.isDiscovering && uiState.discoveryState.discoveredTvs.isEmpty()) {
+                val discoveredTvs = uiState.discoveryState.discoveredTvs
+                if (uiState.discoveryState.isDiscovering && discoveredTvs.isEmpty()) {
                     item { DiscoveryLoadingState() }
-                } else {
-                    val newTvs = uiState.discoveryState.discoveredTvs.filter { discovered ->
-                        uiState.pairedTvs.none { paired -> paired.ipAddress == discovered.ipAddress }
+                } else if (discoveredTvs.isEmpty()) {
+                    item {
+                        DiscoveryEmptyState(
+                            isSearching = uiState.discoveryState.isDiscovering,
+                            onSearch = viewModel::toggleDiscovery
+                        )
                     }
-
-                    if (newTvs.isEmpty()) {
-                        item {
-                            DiscoveryEmptyState(
-                                isSearching = uiState.discoveryState.isDiscovering,
-                                onSearch = viewModel::toggleDiscovery
-                            )
-                        }
-                    } else {
-                        items(
-                            items = newTvs,
-                            key = { it.ipAddress ?: it.serviceName }
-                        ) { tv ->
-                            DiscoveredTvItem(
-                                tv = tv,
-                                onClick = {
-                                    if (tv.ipAddress != null) {
-                                        viewModel.onDeviceSelected(tv)
-                                    } else {
-                                        Toast.makeText(
-                                            context,
-                                            "Adresse IP non disponible pour cette TV.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
+                } else {
+                    items(
+                        items = discoveredTvs,
+                        key = { it.serviceName }
+                    ) { tv ->
+                        DiscoveredTvItem(
+                            tv = tv,
+                            onClick = {
+                                if (tv.ipAddress != null) {
+                                    viewModel.onDeviceSelected(tv)
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Adresse IP non disponible pour cette TV.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
-                            )
-                        }
+                            }
+                        )
                     }
                 }
 
@@ -500,7 +495,7 @@ private fun DiscoveryEmptyState(
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = if (isSearching) "Aucune nouvelle TV pour le moment" else "Recherche arrêtée",
+                text = if (isSearching) "Aucune TV détectée pour le moment" else "Recherche arrêtée",
                 color = AppColors.appWhite,
                 fontWeight = FontWeight.Medium
             )
