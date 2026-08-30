@@ -115,13 +115,16 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Refaire les états vides et la recherche de TV
 - [x] Refaire le dialogue d'appairage PIN
 - [x] Autoriser les codes d'appairage alphanumériques (A–Z + 0–9) et afficher le clavier adapté
-- [x] Remplacer l'icône Android Studio par une identité visuelle Télécommande sombre / teal
-- [x] Fournir une Adaptive Icon avec foreground, background et couche monochrome thématique
+- [x] Remplacer l'icône Android Studio par l'icône PNG finale Télécommande sombre / teal
+- [x] Conserver la master 1024×1024 et les déclinaisons PNG par densité Android
 - [ ] Vérifier le rendu sur petit / moyen / grand téléphone réel ou émulateur
 - [ ] Ajuster les dimensions après validation visuelle utilisateur
 
 ## Phase 8 — Finalisation ⏳
 
+- [x] Supprimer le timeout de lecture qui pouvait couper une session Remote inactive
+- [x] Sérialiser les écritures commandes / heartbeat sur le socket Remote
+- [ ] Valider la stabilité de la connexion Remote sur téléphone réel avec commandes répétées
 - [ ] Tester TV éteinte / injoignable
 - [ ] Tester perte Wi-Fi
 - [ ] Tester changement de réseau
