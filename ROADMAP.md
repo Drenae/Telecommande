@@ -130,7 +130,8 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Acter pour la V1 que téléphone et TV doivent être sur le même réseau Wi-Fi
 - [x] Reporter la gestion multi-TV à la V2
 - [x] Générer, installer et valider un vrai build release signé sur téléphone réel
-- [ ] Nettoyage final
+- [x] Appliquer le nettoyage final du code et des ressources
+- [ ] Valider le nettoyage final avec tests + build debug/release
 - [ ] Documentation finale du projet
 
 ---
@@ -139,6 +140,7 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 
 ```powershell
 .\gradlew :core:testDebugUnitTest :app:assembleDebug
+.\gradlew :app:assembleRelease
 ```
 
 Puis validation manuelle minimale :
