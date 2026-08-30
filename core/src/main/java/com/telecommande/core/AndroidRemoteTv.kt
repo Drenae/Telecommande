@@ -39,6 +39,7 @@ class AndroidRemoteTv : BaseAndroidRemoteTv() {
             )
         )
         _isConnected.value = false
+        clearConnectionTarget()
     }
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob() + exceptionHandler)
@@ -49,11 +50,41 @@ class AndroidRemoteTv : BaseAndroidRemoteTv() {
     private var pairingCollectorJob: Job? = null
     private var remoteCollectorJob: Job? = null
 
+    private val connectionTargetLock = Any()
+    private var currentTargetHost: String? = null
+    private var connectionAttemptInProgress = false
+
     private val keyStoreManager: KeyStoreManager by lazy {
         KeyStoreManager()
     }
 
     fun connect(host: String, expectedTvKeystoreAlias: String? = null) {
+        val shouldStart = synchronized(connectionTargetLock) {
+            val sameTarget = currentTargetHost == host
+            val alreadyBusyWithSameTarget = sameTarget && (
+                connectionAttemptInProgress ||
+                    _isConnected.value ||
+                    currentPairingSession != null ||
+                    currentRemoteSession != null
+                )
+
+            if (alreadyBusyWithSameTarget) {
+                false
+            } else {
+                currentTargetHost = host
+                connectionAttemptInProgress = true
+                true
+            }
+        }
+
+        if (!shouldStart) {
+            Timber.i(
+                "AndroidRemoteTv: connexion vers %s ignorée car une connexion/session vers cette TV est déjà active.",
+                host
+            )
+            return
+        }
+
         Timber.i("AndroidRemoteTv: Tentative de connexion à l'hôte : %s", host)
         cleanupPreviousSessions()
         _isConnected.value = false
@@ -81,6 +112,7 @@ class AndroidRemoteTv : BaseAndroidRemoteTv() {
                     )
                 )
                 _isConnected.value = false
+                clearConnectionTargetIf(host)
             }
         }
     }
@@ -106,6 +138,11 @@ class AndroidRemoteTv : BaseAndroidRemoteTv() {
                     is RemoteEvent.Connected -> {
                         Timber.i("RemoteSession sécurisée connectée à %s.", host)
                         _isConnected.value = true
+                        synchronized(connectionTargetLock) {
+                            if (currentTargetHost == host) {
+                                connectionAttemptInProgress = false
+                            }
+                        }
                         _eventFlow.emit(AndroidTvEvent.Connected)
                     }
 
@@ -131,6 +168,7 @@ class AndroidRemoteTv : BaseAndroidRemoteTv() {
                                 _eventFlow.emit(AndroidTvEvent.Disconnected)
                             }
                             cleanupRemoteSession()
+                            clearConnectionTargetIf(host)
                         }
                     }
 
@@ -143,6 +181,7 @@ class AndroidRemoteTv : BaseAndroidRemoteTv() {
                             }
                             _eventFlow.emit(AndroidTvEvent.Error("Erreur Remote Session: ${event.message}"))
                             cleanupRemoteSession()
+                            clearConnectionTargetIf(host)
                         }
                     }
 
@@ -204,6 +243,7 @@ class AndroidRemoteTv : BaseAndroidRemoteTv() {
                                         "Échec du stockage du certificat après appairage: ${e.message}"
                                     )
                                 )
+                                clearConnectionTargetIf(host)
                             }
                         } else {
                             _eventFlow.emit(
@@ -211,6 +251,7 @@ class AndroidRemoteTv : BaseAndroidRemoteTv() {
                                     "Appairage réussi mais certificat TV manquant."
                                 )
                             )
+                            clearConnectionTargetIf(host)
                         }
 
                         pairingCollectorJob?.cancel()
@@ -230,6 +271,7 @@ class AndroidRemoteTv : BaseAndroidRemoteTv() {
                         if (currentPairingSession === session) {
                             cleanupPairingSession()
                         }
+                        clearConnectionTargetIf(host)
                     }
 
                     is PairingEvent.Log -> Unit
@@ -334,10 +376,27 @@ class AndroidRemoteTv : BaseAndroidRemoteTv() {
         currentRemoteSession = null
     }
 
+    private fun clearConnectionTargetIf(host: String) {
+        synchronized(connectionTargetLock) {
+            if (currentTargetHost == host) {
+                currentTargetHost = null
+                connectionAttemptInProgress = false
+            }
+        }
+    }
+
+    private fun clearConnectionTarget() {
+        synchronized(connectionTargetLock) {
+            currentTargetHost = null
+            connectionAttemptInProgress = false
+        }
+    }
+
     fun disconnect() {
         val wasConnected = _isConnected.value
         _isConnected.value = false
         cleanupPreviousSessions()
+        clearConnectionTarget()
 
         if (wasConnected) {
             _eventFlow.tryEmit(AndroidTvEvent.Disconnected)
