@@ -1,6 +1,8 @@
 # Roadmap — Télécommande Android
 
-Cette roadmap suit l'assainissement, la sécurisation et la modernisation du projet **Télécommande**. Elle est mise à jour à chaque jalon important.
+Cette roadmap suit l'assainissement, la sécurisation et la modernisation du projet **Télécommande**.
+
+> **V1.0 terminée et validée.** Les éléments explicitement reportés ci-dessous ne bloquent pas la V1 et serviront de base aux évolutions post-V1 / V2.
 
 ## Phase 1 — Stabilisation du projet ✅
 
@@ -38,7 +40,7 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Oublier uniquement le certificat de la TV concernée
 - [x] Conserver l'identité locale et les autres TV lors d'un oubli
 
-## Phase 4 — Tests automatiques 🟢
+## Phase 4 — Tests automatiques ✅
 
 - [x] Supprimer les faux tests Android Studio
 - [x] Ajouter `ProtocolCoreTest`
@@ -50,8 +52,6 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Tester les messages de pairing
 - [x] Tester l'encodage PIN / secret
 - [x] Valider `:core:testDebugUnitTest`
-- [ ] Ajouter des tests ciblés sur les repositories / managers
-- [ ] Ajouter des scénarios d'erreur réseau / certificat
 
 ## Phase 5 — Nettoyage de l'architecture app ✅
 
@@ -90,13 +90,13 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Auditer la structure `data / di / domain / navigation / ui / util` et conserver cette séparation
 - [x] Conserver uniquement les logs réseau / SSL utiles au diagnostic pour le reste du nettoyage
 
-## Phase 7 — UI / UX 🟡 EN PAUSE
+## Phase 7 — UI / UX V1 ✅
 
 - [x] Valider une maquette de refonte avant implémentation
 - [x] Conserver le bouton d'état compact dans le header
 - [x] Ajouter un titre central sans encombrer le header
 - [x] Afficher le nom de la TV active dans le header à la place de « Télécommande »
-- [x] Permettre de renommer localement une TV (ex. Salon / Chambre) sans modifier son nom technique
+- [x] Permettre de renommer localement une TV sans modifier son nom technique
 - [x] Conserver le nom technique de la TV pour l'appairage, la connexion et l'identification interne
 - [x] Permettre de revenir au nom d'origine depuis l'écran de gestion des TV
 - [x] Adapter dynamiquement le D-pad à la largeur disponible
@@ -117,10 +117,8 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Autoriser les codes d'appairage alphanumériques (A–Z + 0–9) et afficher le clavier adapté
 - [x] Remplacer l'icône Android Studio par l'icône PNG finale Télécommande sombre / teal
 - [x] Conserver la master 1024×1024 et les déclinaisons PNG par densité Android
-- [ ] Vérifier le rendu sur petit / moyen / grand téléphone réel ou émulateur — reporté
-- [ ] Ajuster les dimensions après validation visuelle utilisateur — reporté
 
-## Phase 8 — Finalisation ⏳
+## Phase 8 — Finalisation V1 ✅
 
 - [x] Supprimer le timeout de lecture qui pouvait couper une session Remote inactive
 - [x] Sérialiser les écritures commandes / heartbeat sur le socket Remote
@@ -132,21 +130,23 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Générer, installer et valider un vrai build release signé sur téléphone réel
 - [x] Appliquer le nettoyage final du code et des ressources
 - [x] Valider le nettoyage final avec tests + build debug/release
-- [ ] Documentation finale du projet
+- [x] Ajouter la documentation finale du projet (`README.md`)
+
+## Post-V1 / V2 📌
+
+- [ ] Ajouter des tests ciblés supplémentaires sur les repositories / managers
+- [ ] Ajouter des scénarios automatisés d'erreur réseau / certificat
+- [ ] Vérifier et ajuster le rendu sur davantage de tailles de téléphone
+- [ ] Étendre la gestion multi-TV
+- [ ] Continuer les améliorations UI/UX sans déstabiliser le core V1 validé
 
 ---
 
-### Commandes de validation
+### Commandes de validation V1
 
 ```powershell
 .\gradlew :core:testDebugUnitTest :app:assembleDebug
 .\gradlew :app:assembleRelease
 ```
 
-Puis validation manuelle minimale :
-
-1. lancement de l'application ;
-2. connexion automatique à la TV active ;
-3. commandes de télécommande ;
-4. oubli d'une TV ;
-5. nouvel appairage avec PIN.
+Validation manuelle réalisée sur téléphone réel : installation propre, appairage, connexion automatique, commandes de télécommande, volume, média, lancement d'applications, Power, veille/réveil et stabilité sous commandes répétées.
