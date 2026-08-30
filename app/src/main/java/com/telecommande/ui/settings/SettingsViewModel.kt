@@ -31,6 +31,7 @@ data class SettingsUiState(
     val pairingStep: PairingStep = PairingStep.Idle,
     val pairedTvs: List<PairedTvInfo> = emptyList(),
     val activeTv: PairedTvInfo? = null,
+    val tvDisplayNames: Map<String, String> = emptyMap(),
     val isLoadingOverall: Boolean = false,
     val snackbarMessage: String? = null,
     val showPinEntryDialogForTv: DiscoveredTv? = null,
@@ -54,9 +55,10 @@ class SettingsViewModel @Inject constructor(
 
     private val tvSelectionFlow = combine(
         settingsRepository.pairedTvsFlow,
-        settingsRepository.activeTvInfoFlow
-    ) { pairedTvs, activeTv ->
-        pairedTvs to activeTv
+        settingsRepository.activeTvInfoFlow,
+        settingsRepository.tvDisplayNamesFlow
+    ) { pairedTvs, activeTv, displayNames ->
+        Triple(pairedTvs, activeTv, displayNames)
     }
 
     val uiState: StateFlow<SettingsUiState> = combine(
@@ -66,7 +68,8 @@ class SettingsViewModel @Inject constructor(
         tvSelectionFlow,
         _currentPinInput
     ) { discoveryState, remoteState, pairingStep, tvSelection, pinInput ->
-        val (pairedList, activeTvInfo) = tvSelection
+        val (pairedList, activeTvInfo, displayNames) = tvSelection
+        val activeDisplayName = activeTvInfo?.let { displayNames[it.keystoreAlias] ?: it.name ?: it.ipAddress }
 
         val isLoadingOverall = discoveryState.isDiscovering ||
             remoteState.isLoading ||
@@ -81,13 +84,11 @@ class SettingsViewModel @Inject constructor(
         }
 
         val statusMsgFromRemote = when {
-            remoteState.isLoading && remoteState.activeTvName != null ->
-                "Connexion à ${remoteState.activeTvName}..."
+            remoteState.isLoading && activeDisplayName != null -> "Connexion à $activeDisplayName..."
             remoteState.isLoading -> "Connexion en cours..."
-            remoteState.isConnected && remoteState.activeTvName != null ->
-                "Connecté à ${remoteState.activeTvName}"
+            remoteState.isConnected && activeDisplayName != null -> "Connecté à $activeDisplayName"
             remoteState.isConnected -> "Connecté"
-            activeTvInfo != null -> "Déconnecté de ${activeTvInfo.name ?: activeTvInfo.ipAddress}"
+            activeDisplayName != null -> "Déconnecté de $activeDisplayName"
             else -> "Non connecté"
         }
 
@@ -115,6 +116,7 @@ class SettingsViewModel @Inject constructor(
             pairingStep = pairingStep,
             pairedTvs = pairedList,
             activeTv = activeTvInfo,
+            tvDisplayNames = displayNames,
             isLoadingOverall = isLoadingOverall,
             snackbarMessage = _internalSnackbarMessage.value,
             showPinEntryDialogForTv = (pairingStep as? PairingStep.PinRequested)?.tvForPinEntry,
@@ -161,7 +163,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onPinChanged(pin: String) {
-        _currentPinInput.value = pin
+        _currentPinInput.value = pin.uppercase().filter { it in 'A'..'Z' || it in '0'..'9' }
     }
 
     fun onSubmitPin() {
@@ -179,12 +181,27 @@ class SettingsViewModel @Inject constructor(
         pairingManager.acknowledgeError()
     }
 
-    fun forgetTv(tvInfo: PairedTvInfo) {
+    fun renameTv(tvInfo: PairedTvInfo, displayName: String?) {
         viewModelScope.launch {
-            _internalSnackbarMessage.value = "Oubli de ${tvInfo.name}..."
+            try {
+                settingsRepository.setTvDisplayName(tvInfo.keystoreAlias, displayName)
+                val finalName = displayName?.trim()?.takeIf { it.isNotBlank() } ?: tvInfo.name ?: tvInfo.ipAddress
+                _internalSnackbarMessage.value = "Nom de la TV mis à jour : $finalName"
+            } catch (e: Exception) {
+                Timber.e(e, "Erreur lors du renommage de la TV ${tvInfo.name}")
+                _internalSnackbarMessage.value = "Erreur de renommage: ${e.message}"
+            }
+        }
+    }
+
+    fun forgetTv(tvInfo: PairedTvInfo) {
+        val displayName = uiState.value.tvDisplayNames[tvInfo.keystoreAlias] ?: tvInfo.name ?: tvInfo.ipAddress
+        viewModelScope.launch {
+            _internalSnackbarMessage.value = "Oubli de $displayName..."
             try {
                 resetPairingUseCase(tvInfo.keystoreAlias)
-                _internalSnackbarMessage.value = "${tvInfo.name} oubliée."
+                settingsRepository.setTvDisplayName(tvInfo.keystoreAlias, null)
+                _internalSnackbarMessage.value = "$displayName oubliée."
             } catch (e: Exception) {
                 Timber.e(e, "Erreur lors de l'oubli de la TV ${tvInfo.name}")
                 _internalSnackbarMessage.value = "Erreur d'oubli: ${e.message}"
@@ -193,16 +210,16 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setTvAsActive(tvInfo: PairedTvInfo) {
+        val displayName = uiState.value.tvDisplayNames[tvInfo.keystoreAlias] ?: tvInfo.name ?: tvInfo.ipAddress
         if (
             uiState.value.activeTv?.ipAddress == tvInfo.ipAddress &&
             uiState.value.remoteState.isConnected
         ) {
-            _internalSnackbarMessage.value =
-                "${tvInfo.name ?: tvInfo.ipAddress} est déjà active et connectée."
+            _internalSnackbarMessage.value = "$displayName est déjà active et connectée."
             return
         }
 
-        _internalSnackbarMessage.value = "Sélection de ${tvInfo.name ?: tvInfo.ipAddress}..."
+        _internalSnackbarMessage.value = "Sélection de $displayName..."
         viewModelScope.launch {
             try {
                 settingsRepository.saveActiveTvInfo(tvInfo)
