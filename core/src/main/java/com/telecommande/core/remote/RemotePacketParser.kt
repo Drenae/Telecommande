@@ -47,8 +47,10 @@ class RemotePacketParser(
                     // toutes les 5 secondes : on répond immédiatement mais on ne le logue
                     // pas afin de garder Logcat lisible.
                     val pingResponse = remoteMessageManager.createPingResponse(remoteMessage.remotePingRequest.val1)
-                    outputStream.write(pingResponse)
-                    outputStream.flush()
+                    synchronized(outputStream) {
+                        outputStream.write(pingResponse)
+                        outputStream.flush()
+                    }
                 }
                 remoteMessage.hasRemoteStart() -> {
                     Timber.i("Message RemoteStart reçu.")
