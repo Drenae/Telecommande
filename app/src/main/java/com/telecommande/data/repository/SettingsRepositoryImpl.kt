@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
@@ -28,6 +29,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     companion object {
         private val ACTIVE_TV_INFO_KEY = stringPreferencesKey("active_tv_info_serialized_v2")
+        private val TV_DISPLAY_NAMES_KEY = stringPreferencesKey("tv_display_names_v1")
     }
 
     override val activeTvInfoFlow: Flow<PairedTvInfo?> = dataStore.data
@@ -55,6 +57,26 @@ class SettingsRepositoryImpl @Inject constructor(
         .catch { e ->
             Timber.tag("SettingsRepo").e(e, "Erreur de lecture des TVs appairées depuis Room")
             emit(emptyList())
+        }
+
+    override val tvDisplayNamesFlow: Flow<Map<String, String>> = dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                Timber.tag("SettingsRepo").w(exception, "Erreur de lecture des noms personnalisés des TV")
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            preferences[TV_DISPLAY_NAMES_KEY]?.let { jsonString ->
+                try {
+                    Json.decodeFromString<Map<String, String>>(jsonString)
+                } catch (e: Exception) {
+                    Timber.tag("SettingsRepo").e(e, "Échec du décodage des noms personnalisés des TV")
+                    emptyMap()
+                }
+            } ?: emptyMap()
         }
 
     override suspend fun saveActiveTvInfo(tvInfo: PairedTvInfo?) {
@@ -87,6 +109,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun removePairedTvByKeystoreAlias(keystoreAlias: String) {
         pairedTvDao.deleteByKeystoreAlias(keystoreAlias)
+        setTvDisplayName(keystoreAlias, null)
 
         val activeTv = getActiveTvInfo()
         if (activeTv?.keystoreAlias == keystoreAlias) {
@@ -96,5 +119,27 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun getPairedTvByKeystoreAlias(keystoreAlias: String): PairedTvInfo? {
         return pairedTvDao.getByKeystoreAlias(keystoreAlias)
+    }
+
+    override suspend fun setTvDisplayName(keystoreAlias: String, displayName: String?) {
+        dataStore.edit { settings ->
+            val currentNames = settings[TV_DISPLAY_NAMES_KEY]?.let { jsonString ->
+                try {
+                    Json.decodeFromString<Map<String, String>>(jsonString)
+                } catch (_: Exception) {
+                    emptyMap()
+                }
+            } ?: emptyMap()
+
+            val updatedNames = currentNames.toMutableMap()
+            val normalizedName = displayName?.trim()?.takeIf { it.isNotBlank() }
+            if (normalizedName == null) {
+                updatedNames.remove(keystoreAlias)
+            } else {
+                updatedNames[keystoreAlias] = normalizedName
+            }
+
+            settings[TV_DISPLAY_NAMES_KEY] = Json.encodeToString(updatedNames)
+        }
     }
 }
