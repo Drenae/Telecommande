@@ -27,10 +27,6 @@ class PairingPacketParser(
             Timber.v("Message d'appairage analysé: %s", pairingMessage.status)
 
             if (pairingMessage.status == Pairingmessage.PairingMessage.Status.STATUS_OK) {
-                if (messagesChannel.isClosedForSend) {
-                    Timber.w("Canal de messages déjà fermé, impossible d'envoyer le message d'appairage.")
-                    return
-                }
                 messagesChannel.send(pairingMessage)
                 Timber.d("Message d'appairage avec statut OK envoyé au canal.")
             } else {
@@ -40,11 +36,11 @@ class PairingPacketParser(
             Timber.e(e, "Échec de l'analyse du tampon en PairingMessage.")
             messagesChannel.close(e)
         } catch (e: Exception) {
-            if (currentCoroutineContext().isActive && !messagesChannel.isClosedForSend) {
+            if (currentCoroutineContext().isActive) {
                 Timber.e(e, "Erreur lors de l'envoi du message d'appairage au canal.")
                 messagesChannel.close(e)
             } else {
-                Timber.d("Erreur lors de l'envoi au canal, mais le canal est fermé ou la coroutine est inactive: %s", e.message)
+                Timber.d("Erreur lors de l'envoi au canal alors que la coroutine est inactive: %s", e.message)
             }
         }
     }
