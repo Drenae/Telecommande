@@ -3,12 +3,12 @@ package com.telecommande.ui.home.config
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.KeyboardArrowLeft
-import androidx.compose.material.icons.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.runtime.Composable
@@ -58,7 +58,7 @@ data class HomeButtonConfig(
 
 object HomeButtons {
     val Power = remoteButton(Icons.Rounded.PowerSettingsNew, "Power", tint = AppColors.accent)
-    val Back = remoteButton(Icons.Rounded.ArrowBack, "Retour")
+    val Back = remoteButton(Icons.AutoMirrored.Rounded.ArrowBack, "Retour")
     val Home = remoteButton(Icons.Rounded.Home, "Accueil")
 
     val Ok = remoteButton(
@@ -69,8 +69,8 @@ object HomeButtons {
     )
     val Up = dpadButton(Icons.Rounded.KeyboardArrowUp, "Haut")
     val Down = dpadButton(Icons.Rounded.KeyboardArrowDown, "Bas")
-    val Left = dpadButton(Icons.Rounded.KeyboardArrowLeft, "Gauche")
-    val Right = dpadButton(Icons.Rounded.KeyboardArrowRight, "Droite")
+    val Left = dpadButton(Icons.AutoMirrored.Rounded.KeyboardArrowLeft, "Gauche")
+    val Right = dpadButton(Icons.AutoMirrored.Rounded.KeyboardArrowRight, "Droite")
 
     val Netflix = appButton(R.drawable.ic_app_netflix, "Lancer Netflix", 80.dp)
     val YouTube = appButton(R.drawable.ic_app_youtube, "Lancer YouTube", 100.dp)
