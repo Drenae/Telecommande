@@ -1,9 +1,11 @@
 package com.telecommande.util
 
 import com.telecommande.core.discovery.DiscoveredTv
-import timber.log.Timber
 
 fun DiscoveredTv.getMacAddressFromAttributesOrNull(): String? {
-    Timber.w("getMacAddressFromAttributesOrNull : Logique non implémentée, retourne null.")
-    return null
+    return attributes["bt"]
+        ?.trim()
+        ?.takeIf { value ->
+            value.matches(Regex("(?i)^[0-9A-F]{2}(:[0-9A-F]{2}){5}$"))
+        }
 }
