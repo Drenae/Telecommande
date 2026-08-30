@@ -129,7 +129,7 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Valider la reprise après mise en veille du téléphone
 - [x] Acter pour la V1 que téléphone et TV doivent être sur le même réseau Wi-Fi
 - [x] Reporter la gestion multi-TV à la V2
-- [ ] Tester un vrai build release signé
+- [x] Générer, installer et valider un vrai build release signé sur téléphone réel
 - [ ] Nettoyage final
 - [ ] Documentation finale du projet
 
