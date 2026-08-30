@@ -12,6 +12,7 @@ import com.telecommande.ui.manager.PairingManager
 import com.telecommande.ui.manager.PairingStep
 import com.telecommande.ui.manager.RemoteManager
 import com.telecommande.ui.manager.RemoteState
+import com.telecommande.util.getMacAddressFromAttributesOrNull
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -154,7 +155,17 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onDeviceSelected(tv: DiscoveredTv) {
-        val existingPaired = uiState.value.pairedTvs.find { it.ipAddress == tv.ipAddress }
+        val discoveredMac = tv.getMacAddressFromAttributesOrNull()
+        val existingPaired = uiState.value.pairedTvs.find { paired ->
+            when {
+                discoveredMac != null && paired.macAddress != null ->
+                    paired.macAddress.equals(discoveredMac, ignoreCase = true)
+                paired.name != null ->
+                    paired.name == tv.friendlyName || paired.name == tv.serviceName
+                else -> false
+            }
+        }
+
         if (existingPaired != null) {
             setTvAsActive(existingPaired)
         } else {
@@ -212,7 +223,7 @@ class SettingsViewModel @Inject constructor(
     fun setTvAsActive(tvInfo: PairedTvInfo) {
         val displayName = uiState.value.tvDisplayNames[tvInfo.keystoreAlias] ?: tvInfo.name ?: tvInfo.ipAddress
         if (
-            uiState.value.activeTv?.ipAddress == tvInfo.ipAddress &&
+            uiState.value.activeTv?.keystoreAlias == tvInfo.keystoreAlias &&
             uiState.value.remoteState.isConnected
         ) {
             _internalSnackbarMessage.value = "$displayName est déjà active et connectée."
