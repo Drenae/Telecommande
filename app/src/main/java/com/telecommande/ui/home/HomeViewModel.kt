@@ -3,11 +3,12 @@ package com.telecommande.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.telecommande.core.remote.Remotemessage
+import com.telecommande.data.repository.SettingsRepository
 import com.telecommande.ui.manager.RemoteManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -24,27 +25,34 @@ data class HomeUiState(
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val remoteManager: RemoteManager
+    private val remoteManager: RemoteManager,
+    settingsRepository: SettingsRepository
 ) : ViewModel() {
 
-    val uiState: StateFlow<HomeUiState> = remoteManager.state
-        .map { managerState ->
-            HomeUiState(
-                isConnected = managerState.isConnected,
-                isLoading = managerState.isLoading,
-                activeTvName = managerState.activeTvName,
-                snackbarMessage = managerState.snackbarMessage,
-                pairingRequiredEvent = managerState.pairingRequiredOnActiveTv,
-                volumeLevel = managerState.volumeLevel,
-                volumeMax = managerState.volumeMax,
-                isMuted = managerState.isMuted
-            )
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = HomeUiState()
+    val uiState: StateFlow<HomeUiState> = combine(
+        remoteManager.state,
+        settingsRepository.activeTvInfoFlow,
+        settingsRepository.tvDisplayNamesFlow
+    ) { managerState, activeTvInfo, displayNames ->
+        val displayName = activeTvInfo?.let { tv ->
+            displayNames[tv.keystoreAlias] ?: tv.name ?: tv.ipAddress
+        } ?: managerState.activeTvName
+
+        HomeUiState(
+            isConnected = managerState.isConnected,
+            isLoading = managerState.isLoading,
+            activeTvName = displayName,
+            snackbarMessage = managerState.snackbarMessage,
+            pairingRequiredEvent = managerState.pairingRequiredOnActiveTv,
+            volumeLevel = managerState.volumeLevel,
+            volumeMax = managerState.volumeMax,
+            isMuted = managerState.isMuted
         )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = HomeUiState()
+    )
 
     init {
         remoteManager.initialize(viewModelScope)
