@@ -73,6 +73,7 @@ fun HomeScreen(
                     .padding(horizontal = ScreenPaddings.Horizontal)
             ) {
                 HeaderSection(
+                    title = uiState.activeTvName ?: "Télécommande",
                     onPowerClick = viewModel::sendPowerCommand,
                     isConnected = uiState.isConnected,
                     isLoading = uiState.isLoading,
