@@ -131,7 +131,7 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 - [x] Reporter la gestion multi-TV à la V2
 - [x] Générer, installer et valider un vrai build release signé sur téléphone réel
 - [x] Appliquer le nettoyage final du code et des ressources
-- [ ] Valider le nettoyage final avec tests + build debug/release
+- [x] Valider le nettoyage final avec tests + build debug/release
 - [ ] Documentation finale du projet
 
 ---
