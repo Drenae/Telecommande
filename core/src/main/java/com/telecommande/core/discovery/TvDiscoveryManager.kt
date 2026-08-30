@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.telecommande.core.discovery
 
 import android.content.Context
@@ -166,7 +168,7 @@ class TvDiscoveryManager(context: Context) {
                 servicesToResolve.add(serviceName)
 
                 Timber.d("Planification de la résolution du service : %s", serviceName)
-                val resolveListener = initializeResolveListener(serviceName, service)
+                val resolveListener = initializeResolveListener(serviceName)
                 activeResolveListeners[serviceName] = resolveListener
 
                 try {
@@ -175,7 +177,6 @@ class TvDiscoveryManager(context: Context) {
                         nsdManager?.resolveService(service, nsdExecutor, resolveListener)
                     } else {
                         Timber.d("Utilisation de l'ancienne API resolveService pour %s", serviceName)
-                        @Suppress("DEPRECATION")
                         nsdManager?.resolveService(service, resolveListener)
                     }
                 } catch (e: IllegalArgumentException) {
@@ -222,7 +223,7 @@ class TvDiscoveryManager(context: Context) {
         }
     }
 
-    private fun initializeResolveListener(serviceNameKey: String, originalServiceInfo: NsdServiceInfo): NsdManager.ResolveListener {
+    private fun initializeResolveListener(serviceNameKey: String): NsdManager.ResolveListener {
         return object : NsdManager.ResolveListener {
             override fun onResolveFailed(failedServiceInfo: NsdServiceInfo?, errorCode: Int) {
                 val name = failedServiceInfo?.serviceName ?: serviceNameKey
@@ -231,7 +232,6 @@ class TvDiscoveryManager(context: Context) {
                 activeResolveListeners.remove(name)
             }
 
-            @Suppress("DEPRECATION")
             override fun onServiceResolved(resolvedServiceInfo: NsdServiceInfo?) {
                 if (resolvedServiceInfo == null) {
                     Timber.w("onServiceResolved appelé avec serviceInfo nul pour la clé %s. Ignoré.", serviceNameKey)
@@ -263,7 +263,6 @@ class TvDiscoveryManager(context: Context) {
 
                 var friendlyName = currentServiceName
                 val port = resolvedServiceInfo.port
-                val hostAddress: InetAddress?
                 val hostAddresses: List<InetAddress>? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                     resolvedServiceInfo.hostAddresses?.takeIf { it.isNotEmpty() }
                 } else {
@@ -274,17 +273,15 @@ class TvDiscoveryManager(context: Context) {
                     Timber.w("Le service résolu %s a des adresses d'hôte nulles ou vides. Ignoré.", currentServiceName)
                     return
                 }
-                hostAddress = hostAddresses[0]
+                val hostAddress = hostAddresses[0]
                 Timber.d("Utilisation de l'adresse IP: %s pour %s", hostAddress, currentServiceName)
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    resolvedServiceInfo.attributes?.get("fn")?.let { fnBytes ->
-                        try {
-                            friendlyName = String(fnBytes, Charsets.UTF_8)
-                            Timber.d("Nom convivial à partir de l'enregistrement TXT : %s", friendlyName)
-                        } catch (e: Exception) {
-                            Timber.w(e, "Échec du décodage du nom convivial à partir de l'enregistrement TXT")
-                        }
+                resolvedServiceInfo.attributes?.get("fn")?.let { fnBytes ->
+                    try {
+                        friendlyName = String(fnBytes, Charsets.UTF_8)
+                        Timber.d("Nom convivial à partir de l'enregistrement TXT : %s", friendlyName)
+                    } catch (e: Exception) {
+                        Timber.w(e, "Échec du décodage du nom convivial à partir de l'enregistrement TXT")
                     }
                 }
 
@@ -314,9 +311,7 @@ class TvDiscoveryManager(context: Context) {
             if (wifi != null) {
                 multicastLock = wifi.createMulticastLock("${this.javaClass.simpleName}.MulticastLock").apply {
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                        @Suppress("DEPRECATION")
                         setReferenceCounted(true)
-                    } else {
                     }
                 }
             } else {
