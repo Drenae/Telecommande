@@ -43,15 +43,13 @@ class RemotePacketParser(
         try {
             when {
                 remoteMessage.hasRemotePingRequest() -> {
-                    // Heartbeat normal du protocole Android TV Remote. Il arrive environ
-                    // toutes les 5 secondes : on répond immédiatement mais on ne le logue
-                    // pas afin de garder Logcat lisible.
                     val pingResponse = remoteMessageManager.createPingResponse(remoteMessage.remotePingRequest.val1)
                     synchronized(outputStream) {
                         outputStream.write(pingResponse)
                         outputStream.flush()
                     }
                 }
+
                 remoteMessage.hasRemoteStart() -> {
                     Timber.i("Message RemoteStart reçu.")
                     if (!hasNotifiedConnected) {
@@ -61,6 +59,7 @@ class RemotePacketParser(
                     }
                     sendToChannel(remoteMessage)
                 }
+
                 remoteMessage.hasRemoteSetVolumeLevel() -> {
                     val volumeInfo = remoteMessage.remoteSetVolumeLevel
                     Timber.i(
@@ -79,9 +78,8 @@ class RemotePacketParser(
                         )
                     )
                 }
-                else -> {
-                    sendToChannel(remoteMessage)
-                }
+
+                else -> sendToChannel(remoteMessage)
             }
         } catch (e: IOException) {
             Timber.e(e, "IOException lors du traitement du message distant: %s", e.message)
@@ -92,7 +90,7 @@ class RemotePacketParser(
             }
         } catch (e: Exception) {
             Timber.e(e, "Erreur inattendue lors du traitement du message distant: %s", e.message)
-            if (currentCoroutineContext().isActive && !messagesChannel.isClosedForSend) {
+            if (currentCoroutineContext().isActive) {
                 eventFlow.emit(RemoteEvent.Error("Erreur interne lors du traitement du message: ${e.message}"))
                 messagesChannel.close(e)
             }
@@ -100,10 +98,6 @@ class RemotePacketParser(
     }
 
     private suspend fun sendToChannel(message: Remotemessage.RemoteMessage) {
-        if (messagesChannel.isClosedForSend) {
-            Timber.w("Canal de messages distant déjà fermé, impossible d'envoyer le message.")
-            return
-        }
         messagesChannel.send(message)
     }
 }
