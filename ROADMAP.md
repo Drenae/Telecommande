@@ -124,7 +124,7 @@ Cette roadmap suit l'assainissement, la sécurisation et la modernisation du pro
 
 - [x] Supprimer le timeout de lecture qui pouvait couper une session Remote inactive
 - [x] Sérialiser les écritures commandes / heartbeat sur le socket Remote
-- [ ] Valider la stabilité de la connexion Remote sur téléphone réel avec commandes répétées
+- [x] Valider la stabilité de la connexion Remote sur téléphone réel avec commandes répétées
 - [ ] Tester TV éteinte / injoignable
 - [ ] Tester perte Wi-Fi
 - [ ] Tester changement de réseau
