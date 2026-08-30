@@ -53,6 +53,7 @@ import kotlin.math.roundToInt
 
 @Composable
 fun HeaderSection(
+    title: String,
     modifier: Modifier = Modifier,
     onPowerClick: () -> Unit,
     isConnected: Boolean,
@@ -74,11 +75,14 @@ fun HeaderSection(
         )
 
         Text(
-            text = "Télécommande",
+            text = title,
             color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.align(Alignment.Center)
+            maxLines = 1,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(horizontal = 70.dp)
         )
 
         StatusIndicator(
