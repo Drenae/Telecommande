@@ -2,7 +2,7 @@ package com.telecommande.data.repository.remote
 
 import com.telecommande.core.AndroidRemoteTv
 import com.telecommande.core.event.AndroidTvEvent as CoreAndroidTvEvent
-import com.telecommande.core.remote.Remotemessage
+import com.telecommande.core.protocol.TvCommand
 import com.telecommande.data.repository.TvCoreEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,16 +41,13 @@ class RemoteRepositoryImpl @Inject constructor(
         androidRemoteTv.disconnect()
     }
 
-    override suspend fun sendCommand(
-        keyCode: Remotemessage.RemoteKeyCode,
-        action: Remotemessage.RemoteDirection
-    ) {
+    override suspend fun sendCommand(command: TvCommand) {
         if (!isConnected.value) {
-            Timber.w("RemoteRepo: Cannot send command %s, not connected.", keyCode.name)
+            Timber.w("RemoteRepo: Cannot send command %s, not connected.", command.name)
             return
         }
 
-        androidRemoteTv.sendCommand(keyCode, action)
+        androidRemoteTv.sendCommand(command)
     }
 
     override fun launchApplication(appLink: String) {
