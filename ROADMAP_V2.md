@@ -4,13 +4,16 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 
 ## Phase 1 — Architecture multi-protocole ⏳
 
-- [ ] Remplacer la dépendance directe au protocole Android TV par une abstraction de protocole TV
-- [ ] Définir une interface commune `TvProtocol` / `TvRemoteClient`
-- [ ] Définir les capacités communes : navigation, volume, mute, power, média, applications, clavier
-- [ ] Permettre à chaque protocole d'annoncer ses capacités réelles
-- [ ] Séparer découverte, appairage/authentification, connexion et commandes
+- [x] Créer l'abstraction de base `TvProtocol`
+- [x] Définir `TvProtocolType` pour identifier les familles de protocoles
+- [x] Définir les capacités communes (`TvCapability`) : navigation, volume, mute, power, média, applications, clavier, sources
+- [x] Définir les commandes communes de télécommande (`TvCommand`)
+- [x] Permettre à chaque protocole d'annoncer ses capacités réelles
+- [x] Enregistrer Android TV Remote v2 comme premier adaptateur dans `TvProtocolRegistry`
+- [ ] Introduire `TvRemoteClient` et faire transiter les commandes de l'application par cette interface
+- [ ] Isoler complètement connexion et commandes Android TV v2 derrière l'adaptateur
+- [ ] Séparer découverte, appairage/authentification, connexion et commandes pour chaque protocole
 - [ ] Stocker le type de protocole avec chaque TV enregistrée
-- [ ] Conserver le protocole Android TV Remote v2 actuel comme premier adaptateur
 
 ## Phase 2 — Découverte multi-protocole ⏳
 
@@ -32,7 +35,8 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 - [x] Thomson / Google TV `GoogleTV8318` détectée, appairée et contrôlée
 - [x] Navigation, volume, média, applications et extinction validés sur Thomson
 - [x] Conserver l'épinglage certificat et la sécurité existante pour V2
-- [ ] Isoler l'implémentation V2 actuelle derrière l'interface multi-protocole
+- [x] Déclarer Android TV Remote v2 dans l'abstraction multi-protocole et ses capacités actuelles
+- [ ] Faire transiter l'implémentation V2 actuelle par `TvRemoteClient`
 - [ ] Ajouter le protocole Android TV Remote v1 pour les appareils utilisant l'ancien Remote Service
 - [ ] Détecter automatiquement V1/V2 lorsque possible
 - [ ] Ajouter Wake-on-LAN comme capacité séparée lorsque la TV le permet
@@ -45,7 +49,7 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 - [ ] Gérer l'autorisation affichée sur la TV et stocker le token
 - [ ] Mapper navigation, volume, mute, power, média et sources vers les `KEY_*` Samsung
 - [ ] Ajouter Wake-on-LAN lorsque le modèle le permet
-- [ ] Tester plusieurs générations Tizen, car le comportement varie selon les années/modèles
+- [ ] Validation matérielle à effectuer lorsqu'une Samsung compatible sera disponible
 
 ## Phase 5 — LG webOS ⏳
 
@@ -56,6 +60,7 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 - [ ] Implémenter le pointer input socket pour D-pad / OK / Back / Home
 - [ ] Mapper volume, mute, média, power et lancement d'applications
 - [ ] Prévoir Wake-on-LAN pour l'allumage lorsque disponible
+- [ ] Validation matérielle à effectuer lorsqu'une LG webOS sera disponible
 
 ## Phase 6 — Roku TV / Roku Player ⏳
 
@@ -64,6 +69,7 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 - [ ] Implémenter les commandes ECP `keypress`, `keydown`, `keyup`
 - [ ] Mapper navigation, média, volume et power selon les capacités de l'appareil
 - [ ] Gérer la contrainte Roku « Control by mobile apps »
+- [ ] Validation matérielle à effectuer lorsqu'un Roku sera disponible
 
 ## Phase 7 — Fire TV / Fire OS 🔬
 
@@ -110,7 +116,7 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 
 ## Phase 12 — Clavier TV ⏳
 
-- [ ] Définir une capacité `TEXT_INPUT` commune
+- [x] Définir une capacité `TEXT_INPUT` commune
 - [ ] Android TV : exploiter le support texte du protocole si disponible
 - [ ] Adapter le clavier aux protocoles Samsung/LG/Apple selon leurs possibilités
 - [ ] N'afficher le clavier que lorsqu'il est réellement supporté
@@ -149,9 +155,9 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 | --- | --- | --- | --- |
 | Android TV / Google TV v2 | mDNS `_androidtvremote2._tcp.` | TLS + Protobuf, 6466/6467 | Validé Philips + Thomson |
 | Android TV ancien | protocole Remote v1 à étudier | Remote v1 | Haute |
-| Samsung Tizen | SSDP / découverte réseau | WebSocket 8001/8002 | Haute |
-| LG webOS | SSDP `webos-second-screen` | SSAP WebSocket 3000/3001 | Haute |
-| Roku | SSDP `roku:ecp` | HTTP ECP, généralement 8060 | Haute |
+| Samsung Tizen | SSDP / découverte réseau | WebSocket 8001/8002 | Haute — validation matérielle différée |
+| LG webOS | SSDP `webos-second-screen` | SSAP WebSocket 3000/3001 | Haute — validation matérielle différée |
+| Roku | SSDP `roku:ecp` | HTTP ECP, généralement 8060 | Haute — validation matérielle différée |
 | Fire TV | DIAL/SSDP + éventuellement ADB | DIAL limité / ADB optionnel | Recherche |
 | Apple TV | mDNS `_mediaremotetv._tcp.` / `_companion-link._tcp.` | MRP / Companion | Recherche |
 
