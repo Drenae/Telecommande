@@ -1,6 +1,7 @@
 package com.telecommande.ui.manager
 
 import com.telecommande.core.discovery.DiscoveredTv
+import com.telecommande.core.protocol.TvProtocolType
 import com.telecommande.data.model.PairedTvInfo
 import com.telecommande.data.repository.SettingsRepository
 import com.telecommande.data.repository.TvCoreEvent
@@ -118,7 +119,8 @@ class PairingManager @Inject constructor(
                             ipAddress = event.host,
                             name = currentTvName,
                             macAddress = currentDiscoveredTv.getMacAddressFromAttributesOrNull(),
-                            keystoreAlias = event.tvKeystoreAlias
+                            keystoreAlias = event.tvKeystoreAlias,
+                            protocolType = TvProtocolType.ANDROID_TV_REMOTE_V2.name
                         )
 
                         scope.launch {
