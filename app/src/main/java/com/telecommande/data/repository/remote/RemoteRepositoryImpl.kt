@@ -3,6 +3,7 @@ package com.telecommande.data.repository.remote
 import com.telecommande.core.AndroidRemoteTv
 import com.telecommande.core.event.AndroidTvEvent as CoreAndroidTvEvent
 import com.telecommande.core.protocol.TvCommand
+import com.telecommande.core.protocol.TvProtocolType
 import com.telecommande.data.repository.TvCoreEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,6 +37,19 @@ class RemoteRepositoryImpl @Inject constructor(
         .filterNotNull()
 
     override val isConnected: StateFlow<Boolean> = androidRemoteTv.isConnected
+
+    override suspend fun connectToTv(
+        hostAddress: String,
+        credentialId: String?,
+        protocolType: TvProtocolType
+    ) {
+        when (protocolType) {
+            TvProtocolType.ANDROID_TV_REMOTE_V2 -> androidRemoteTv.connect(hostAddress, credentialId)
+            else -> throw UnsupportedOperationException(
+                "Protocole TV non encore implémenté pour la connexion : $protocolType"
+            )
+        }
+    }
 
     override suspend fun disconnectFromTv() {
         androidRemoteTv.disconnect()
