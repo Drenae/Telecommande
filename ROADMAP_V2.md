@@ -14,7 +14,8 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 - [x] Isoler les commandes Android TV v2 derrière l'adaptateur / mapping protocolaire
 - [ ] Isoler complètement la connexion Android TV v2 derrière une interface client multi-protocole
 - [ ] Séparer découverte, appairage/authentification, connexion et commandes pour chaque protocole
-- [ ] Stocker le type de protocole avec chaque TV enregistrée
+- [x] Stocker le type de protocole avec chaque TV enregistrée
+- [x] Migrer Room 1 → 2 sans perdre les TV existantes, en les marquant `ANDROID_TV_REMOTE_V2`
 
 ## Phase 2 — Découverte multi-protocole ⏳
 
