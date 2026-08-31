@@ -10,8 +10,9 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 - [x] Définir les commandes communes de télécommande (`TvCommand`)
 - [x] Permettre à chaque protocole d'annoncer ses capacités réelles
 - [x] Enregistrer Android TV Remote v2 comme premier adaptateur dans `TvProtocolRegistry`
-- [ ] Introduire `TvRemoteClient` et faire transiter les commandes de l'application par cette interface
-- [ ] Isoler complètement connexion et commandes Android TV v2 derrière l'adaptateur
+- [x] Faire transiter les commandes de l'application par l'abstraction commune `TvCommand`
+- [x] Isoler les commandes Android TV v2 derrière l'adaptateur / mapping protocolaire
+- [ ] Isoler complètement la connexion Android TV v2 derrière une interface client multi-protocole
 - [ ] Séparer découverte, appairage/authentification, connexion et commandes pour chaque protocole
 - [ ] Stocker le type de protocole avec chaque TV enregistrée
 
@@ -36,7 +37,8 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 - [x] Navigation, volume, média, applications et extinction validés sur Thomson
 - [x] Conserver l'épinglage certificat et la sécurité existante pour V2
 - [x] Déclarer Android TV Remote v2 dans l'abstraction multi-protocole et ses capacités actuelles
-- [ ] Faire transiter l'implémentation V2 actuelle par `TvRemoteClient`
+- [x] Faire transiter les commandes de l'implémentation V2 actuelle par `TvCommand`
+- [x] Valider sur TV réelle le chemin UI → `TvCommand` → Android TV Remote v2
 - [ ] Ajouter le protocole Android TV Remote v1 pour les appareils utilisant l'ancien Remote Service
 - [ ] Détecter automatiquement V1/V2 lorsque possible
 - [ ] Ajouter Wake-on-LAN comme capacité séparée lorsque la TV le permet
