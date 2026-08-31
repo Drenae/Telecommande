@@ -1,6 +1,6 @@
 package com.telecommande.ui.manager
 
-import com.telecommande.core.remote.Remotemessage
+import com.telecommande.core.protocol.TvCommand
 import com.telecommande.data.model.PairedTvInfo
 import com.telecommande.data.repository.SettingsRepository
 import com.telecommande.data.repository.TvCoreEvent
@@ -271,11 +271,7 @@ class RemoteManager @Inject constructor(
         }
     }
 
-    fun sendCommand(
-        keyCode: Remotemessage.RemoteKeyCode,
-        action: Remotemessage.RemoteDirection,
-        scope: CoroutineScope
-    ) {
+    fun sendCommand(command: TvCommand, scope: CoroutineScope) {
         if (!_state.value.isConnected) {
             _state.update { it.copy(snackbarMessage = "Non connecté. Veuillez connecter une TV.") }
             if (activeTvInfo != null) connect()
@@ -284,9 +280,9 @@ class RemoteManager @Inject constructor(
 
         scope.launch {
             try {
-                remoteRepository.sendCommand(keyCode, action)
+                remoteRepository.sendCommand(command)
             } catch (e: Exception) {
-                Timber.e(e, "RemoteManager : Erreur lors de l'envoi de ${keyCode.name}")
+                Timber.e(e, "RemoteManager : Erreur lors de l'envoi de ${command.name}")
                 _state.update { it.copy(snackbarMessage = "Erreur d'envoi: ${e.message}") }
             }
         }
