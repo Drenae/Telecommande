@@ -2,7 +2,7 @@ package com.telecommande.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.telecommande.core.remote.Remotemessage
+import com.telecommande.core.protocol.TvCommand
 import com.telecommande.data.repository.SettingsRepository
 import com.telecommande.ui.manager.RemoteManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -58,24 +58,24 @@ class HomeViewModel @Inject constructor(
         remoteManager.initialize(viewModelScope)
     }
 
-    fun sendPowerCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_POWER)
-    fun sendDpadCenterCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_CENTER)
-    fun sendDpadUpCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_UP)
-    fun sendDpadDownCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_DOWN)
-    fun sendDpadLeftCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_LEFT)
-    fun sendDpadRightCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_DPAD_RIGHT)
-    fun sendBackCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_BACK)
-    fun sendHomeCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_HOME)
-    fun sendVolumeUpCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_VOLUME_UP)
-    fun sendVolumeDownCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_VOLUME_DOWN)
-    fun sendMuteCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_VOLUME_MUTE)
-    fun sendMediaRewindCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_MEDIA_REWIND)
-    fun sendMediaPlayPauseCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_MEDIA_PLAY_PAUSE)
-    fun sendMediaStopCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_MEDIA_STOP)
-    fun sendMediaFastForwardCommand() = sendShortCommand(Remotemessage.RemoteKeyCode.KEYCODE_MEDIA_FAST_FORWARD)
+    fun sendPowerCommand() = sendCommand(TvCommand.POWER)
+    fun sendDpadCenterCommand() = sendCommand(TvCommand.OK)
+    fun sendDpadUpCommand() = sendCommand(TvCommand.UP)
+    fun sendDpadDownCommand() = sendCommand(TvCommand.DOWN)
+    fun sendDpadLeftCommand() = sendCommand(TvCommand.LEFT)
+    fun sendDpadRightCommand() = sendCommand(TvCommand.RIGHT)
+    fun sendBackCommand() = sendCommand(TvCommand.BACK)
+    fun sendHomeCommand() = sendCommand(TvCommand.HOME)
+    fun sendVolumeUpCommand() = sendCommand(TvCommand.VOLUME_UP)
+    fun sendVolumeDownCommand() = sendCommand(TvCommand.VOLUME_DOWN)
+    fun sendMuteCommand() = sendCommand(TvCommand.MUTE)
+    fun sendMediaRewindCommand() = sendCommand(TvCommand.REWIND)
+    fun sendMediaPlayPauseCommand() = sendCommand(TvCommand.PLAY_PAUSE)
+    fun sendMediaStopCommand() = sendCommand(TvCommand.STOP)
+    fun sendMediaFastForwardCommand() = sendCommand(TvCommand.FAST_FORWARD)
 
-    private fun sendShortCommand(keyCode: Remotemessage.RemoteKeyCode) {
-        remoteManager.sendCommand(keyCode, Remotemessage.RemoteDirection.SHORT, viewModelScope)
+    private fun sendCommand(command: TvCommand) {
+        remoteManager.sendCommand(command, viewModelScope)
     }
 
     fun launchAppByLink(appLink: String) {
