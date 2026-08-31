@@ -15,20 +15,27 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 ## Phase 2 — Découverte multi-protocole ⏳
 
 - [ ] Remplacer la constante unique `_androidtvremote2._tcp.` par des fournisseurs de découverte
-- [ ] Conserver mDNS/NSD pour Android TV / Google TV v2 : `_androidtvremote2._tcp.`
+- [x] Remplacer `NsdManager` par une découverte mDNS directe pour Android TV / Google TV v2 : `_androidtvremote2._tcp.`
+- [x] Détecter plusieurs TV Android/Google TV simultanément sur le même réseau local
+- [x] Résoudre PTR / SRV / TXT / A / AAAA et récupérer les identifiants TXT stables (`bt`)
 - [ ] Étudier et ajouter Android TV Remote v1 pour les anciens Android TV
 - [ ] Ajouter SSDP/UPnP en complément de mDNS
 - [ ] Dédupliquer une même TV découverte par plusieurs mécanismes
 - [ ] Identifier automatiquement fabricant, OS/protocole, nom, IP et identifiant stable lorsque disponibles
 - [ ] Ajouter une saisie IP manuelle comme fallback
 
-## Phase 3 — Android TV / Google TV ⏳
+## Phase 3 — Android TV / Google TV ✅
 
 - [x] Android TV Remote Service v2 : mDNS `_androidtvremote2._tcp.`, pairing TLS 6467, remote TLS 6466
+- [x] Découverte mDNS directe validée sur appareil physique
+- [x] Philips `50PUS8106/12` détectée, appairée et contrôlée
+- [x] Thomson / Google TV `GoogleTV8318` détectée, appairée et contrôlée
+- [x] Navigation, volume, média, applications et extinction validés sur Thomson
+- [x] Conserver l'épinglage certificat et la sécurité existante pour V2
 - [ ] Isoler l'implémentation V2 actuelle derrière l'interface multi-protocole
 - [ ] Ajouter le protocole Android TV Remote v1 pour les appareils utilisant l'ancien Remote Service
 - [ ] Détecter automatiquement V1/V2 lorsque possible
-- [ ] Conserver l'épinglage certificat et la sécurité existante pour V2
+- [ ] Ajouter Wake-on-LAN comme capacité séparée lorsque la TV le permet
 
 ## Phase 4 — Samsung Smart TV / Tizen ⏳
 
@@ -140,7 +147,7 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 
 | Famille | Découverte | Contrôle | Priorité |
 | --- | --- | --- | --- |
-| Android TV / Google TV v2 | mDNS `_androidtvremote2._tcp.` | TLS + Protobuf, 6466/6467 | Déjà supporté |
+| Android TV / Google TV v2 | mDNS `_androidtvremote2._tcp.` | TLS + Protobuf, 6466/6467 | Validé Philips + Thomson |
 | Android TV ancien | protocole Remote v1 à étudier | Remote v1 | Haute |
 | Samsung Tizen | SSDP / découverte réseau | WebSocket 8001/8002 | Haute |
 | LG webOS | SSDP `webos-second-screen` | SSAP WebSocket 3000/3001 | Haute |
