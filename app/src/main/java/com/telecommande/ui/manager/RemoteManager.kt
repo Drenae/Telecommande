@@ -1,6 +1,7 @@
 package com.telecommande.ui.manager
 
 import com.telecommande.core.protocol.TvCommand
+import com.telecommande.core.protocol.TvProtocolType
 import com.telecommande.data.model.PairedTvInfo
 import com.telecommande.data.repository.SettingsRepository
 import com.telecommande.data.repository.TvCoreEvent
@@ -128,7 +129,11 @@ class RemoteManager @Inject constructor(
             _state.update { it.copy(isLoading = true, snackbarMessage = "Connexion à ${tv.name ?: tv.ipAddress}...") }
             try {
                 if (disconnectFirst && _state.value.isConnected) remoteRepository.disconnectFromTv()
-                remoteRepository.connectToTv(tv.ipAddress, tv.keystoreAlias, tv.protocolType)
+                val protocolType = runCatching { TvProtocolType.valueOf(tv.protocolType) }
+                    .getOrElse {
+                        throw IllegalStateException("Type de protocole TV inconnu : ${tv.protocolType}", it)
+                    }
+                remoteRepository.connectToTv(tv.ipAddress, tv.keystoreAlias, protocolType)
             } catch (e: Exception) {
                 Timber.e(e, "RemoteManager : Échec de connexion à ${tv.ipAddress} via ${tv.protocolType}")
                 _state.update { it.copy(snackbarMessage = "Échec de connexion à ${tv.name ?: tv.ipAddress}.", isConnected = false, isLoading = false) }
