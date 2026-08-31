@@ -70,7 +70,6 @@ class MdnsDiscoveryEngine(
                     try {
                         val packet = DatagramPacket(buffer, buffer.size)
                         multicastSocket.receive(packet)
-                        Timber.v("Paquet mDNS reçu de %s:%d (%d octets)", packet.address.hostAddress, packet.port, packet.length)
                         parsePacket(packet.data.copyOf(packet.length))
                     } catch (_: java.net.SocketTimeoutException) {}
                 }
@@ -107,15 +106,12 @@ class MdnsDiscoveryEngine(
 
     private fun sendQueries(s: MulticastSocket) {
         sendQuery(s, SERVICE_FQDN, TYPE_PTR)
-        // Certains responders ne mettent pas toujours les additional records dans la réponse PTR.
-        // ANY force une réponse plus complète sur les implémentations Android TV concernées.
         ptrInstances.forEach { sendQuery(s, it, TYPE_ANY) }
     }
 
     private fun sendQuery(s: MulticastSocket, name: String, type: Int) {
         val query = buildQuery(name, type)
         s.send(DatagramPacket(query, query.size, InetAddress.getByName(MDNS_ADDRESS), MDNS_PORT))
-        Timber.v("Requête mDNS envoyée : %s type=%d", name, type)
     }
 
     private fun parsePacket(data: ByteArray) {
@@ -157,7 +153,11 @@ class MdnsDiscoveryEngine(
             val attrs = txtRecords[instance].orEmpty()
             val serviceName = instance.removeSuffix(".$SERVICE_FQDN").removeSuffix(".")
             val tv = DiscoveredTv(serviceName, attrs["fn"]?.takeIf { it.isNotBlank() } ?: serviceName, address, srv.port, attrs)
-            if (emitted[instance] != tv) { emitted[instance] = tv; Timber.i("TV mDNS directe trouvée : nom=%s, ip=%s, port=%d, txt=%s", tv.friendlyName, tv.ipAddress, tv.port, tv.attributes); onFound(tv) }
+            if (emitted[instance] != tv) {
+                emitted[instance] = tv
+                Timber.i("TV mDNS directe trouvée : nom=%s, ip=%s, port=%d, txt=%s", tv.friendlyName, tv.ipAddress, tv.port, tv.attributes)
+                onFound(tv)
+            }
         }
     }
 
@@ -177,5 +177,18 @@ class MdnsDiscoveryEngine(
         fun readBytes(n:Int):ByteArray { require(n>=0 && position+n<=data.size); return data.copyOfRange(position,position+n).also{position+=n} }
         fun readName():String { val labels=mutableListOf<String>(); var cursor=position; var jumped=false; var guard=0; while(cursor<data.size && guard++<128){ val len=data[cursor].toInt() and 255; when { len==0->{if(!jumped)position=cursor+1;break}; len and 0xc0==0xc0->{require(cursor+1<data.size);val p=((len and 0x3f) shl 8) or (data[cursor+1].toInt() and 255);if(!jumped)position=cursor+2;cursor=p;jumped=true}; else->{val st=cursor+1;val en=st+len;require(en<=data.size);labels+=data.copyOfRange(st,en).toString(StandardCharsets.UTF_8);cursor=en;if(!jumped)position=cursor} } }; return labels.joinToString(".") }
     }
-    companion object { private const val MDNS_ADDRESS="224.0.0.251"; private const val MDNS_PORT=5353; private const val DNS_HEADER_SIZE=12; private const val MAX_PACKET_SIZE=9000; private const val QUERY_INTERVAL_MS=1500L; private const val TYPE_A=1; private const val TYPE_PTR=12; private const val TYPE_TXT=16; private const val TYPE_AAAA=28; private const val TYPE_SRV=33; private const val TYPE_ANY=255; const val SERVICE_FQDN="_androidtvremote2._tcp.local" }
+    companion object {
+        private const val MDNS_ADDRESS="224.0.0.251"
+        private const val MDNS_PORT=5353
+        private const val DNS_HEADER_SIZE=12
+        private const val MAX_PACKET_SIZE=9000
+        private const val QUERY_INTERVAL_MS=5000L
+        private const val TYPE_A=1
+        private const val TYPE_PTR=12
+        private const val TYPE_TXT=16
+        private const val TYPE_AAAA=28
+        private const val TYPE_SRV=33
+        private const val TYPE_ANY=255
+        const val SERVICE_FQDN="_androidtvremote2._tcp.local"
+    }
 }
