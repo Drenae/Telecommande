@@ -129,10 +129,13 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
                 if (uiState.discoveryState.isDiscovering && discoveredTvs.isEmpty()) item { DiscoveryLoadingState() }
                 else if (discoveredTvs.isEmpty()) item { DiscoveryEmptyState(uiState.discoveryState.isDiscovering, viewModel::toggleDiscovery) }
                 else items(discoveredTvs, key = { it.serviceName }) { tv ->
-                    DiscoveredTvItem(tv) {
-                        if (tv.ipAddress != null) viewModel.onDeviceSelected(tv)
-                        else Toast.makeText(context, "Adresse IP non disponible pour cette TV.", Toast.LENGTH_SHORT).show()
-                    }
+                    DiscoveredTvItem(
+                        tv = tv,
+                        onClick = {
+                            if (tv.ipAddress != null) viewModel.onDeviceSelected(tv)
+                            else Toast.makeText(context, "Adresse IP non disponible pour cette TV.", Toast.LENGTH_SHORT).show()
+                        }
+                    )
                 }
 
                 item { Spacer(Modifier.height(18.dp)); SectionTitle("Mes TV", if (uiState.pairedTvs.isEmpty()) "Aucune TV appairée" else "Touchez une TV pour la rendre active") }
