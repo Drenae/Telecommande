@@ -28,6 +28,13 @@ class RemoteRepositoryImpl @Inject constructor(
                     coreEvent.muted
                 )
                 is CoreAndroidTvEvent.AppLinkLaunchSent -> TvCoreEvent.AppLinkLaunchSent(coreEvent.appLink)
+                is CoreAndroidTvEvent.TextInputRequested -> TvCoreEvent.TextInputRequested(
+                    value = coreEvent.value,
+                    selectionStart = coreEvent.selectionStart,
+                    selectionEnd = coreEvent.selectionEnd,
+                    fieldCounter = coreEvent.fieldCounter,
+                    label = coreEvent.label
+                )
                 is CoreAndroidTvEvent.SecretRequested -> TvCoreEvent.SecretRequested
                 is CoreAndroidTvEvent.SessionCreated -> null
                 is CoreAndroidTvEvent.Paired -> null
