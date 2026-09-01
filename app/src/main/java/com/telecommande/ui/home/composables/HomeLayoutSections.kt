@@ -17,10 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeOff
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
-import androidx.compose.material.icons.rounded.FastForward
-import androidx.compose.material.icons.rounded.FastRewind
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,400 +47,98 @@ import com.telecommande.ui.theme.DpadSectionSpecs
 import kotlin.math.roundToInt
 
 @Composable
-fun HeaderSection(
-    title: String,
-    modifier: Modifier = Modifier,
-    onPowerClick: () -> Unit,
-    isConnected: Boolean,
-    isLoading: Boolean,
-    onStatusIndicatorClick: () -> Unit
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 4.dp)
-    ) {
-        ConfigurableHomeButton(
-            config = HomeButtons.Power.copy(
-                size = 60.dp,
-                iconPadding = 13.dp
-            ),
-            onClick = onPowerClick,
-            modifier = Modifier.align(Alignment.CenterStart)
-        )
-
-        Text(
-            text = title,
-            color = MaterialTheme.colorScheme.onBackground,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(horizontal = 70.dp)
-        )
-
-        StatusIndicator(
-            isConnected = isConnected,
-            isLoading = isLoading,
-            onClick = onStatusIndicatorClick,
-            modifier = Modifier.align(Alignment.CenterEnd)
-        )
+fun HeaderSection(title: String, modifier: Modifier = Modifier, onPowerClick: () -> Unit, isConnected: Boolean, isLoading: Boolean, onStatusIndicatorClick: () -> Unit) {
+    Box(modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp)) {
+        ConfigurableHomeButton(HomeButtons.Power.copy(size = 60.dp, iconPadding = 10.dp), onPowerClick, Modifier.align(Alignment.CenterStart))
+        Text(title, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, modifier = Modifier.align(Alignment.Center).padding(horizontal = 70.dp))
+        StatusIndicator(isConnected, isLoading, onStatusIndicatorClick, Modifier.align(Alignment.CenterEnd))
     }
 }
 
 @Composable
-fun StatusIndicator(
-    isConnected: Boolean,
-    isLoading: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    connectedIconRes: Int = R.drawable.ic_status_on,
-    disconnectedIconRes: Int = R.drawable.ic_status_off
-) {
-    Box(
-        modifier = modifier
-            .size(42.dp)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(25.dp),
-                strokeWidth = 2.5.dp,
-                color = MaterialTheme.colorScheme.primary
-            )
-        } else {
-            Icon(
-                painter = painterResource(id = if (isConnected) connectedIconRes else disconnectedIconRes),
-                contentDescription = if (isConnected) "Connectée - Gérer les TV" else "Déconnectée - Gérer les TV",
-                modifier = Modifier.size(42.dp),
-                tint = Color.Unspecified
-            )
-        }
+fun StatusIndicator(isConnected: Boolean, isLoading: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, connectedIconRes: Int = R.drawable.ic_status_on, disconnectedIconRes: Int = R.drawable.ic_status_off) {
+    Box(modifier.size(42.dp).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+        if (isLoading) CircularProgressIndicator(Modifier.size(25.dp), strokeWidth = 2.5.dp, color = MaterialTheme.colorScheme.primary)
+        else Icon(painterResource(if (isConnected) connectedIconRes else disconnectedIconRes), if (isConnected) "Connectée - Gérer les TV" else "Déconnectée - Gérer les TV", Modifier.size(42.dp), tint = Color.Unspecified)
     }
 }
 
 @Composable
-fun ContentSection(
-    modifier: Modifier = Modifier,
-    onOkClick: () -> Unit,
-    onUpClick: () -> Unit,
-    onDownClick: () -> Unit,
-    onLeftClick: () -> Unit,
-    onRightClick: () -> Unit,
-    onBackClick: () -> Unit,
-    onHomeClick: () -> Unit,
-    volumeLevel: Int,
-    volumeMax: Int,
-    isMuted: Boolean,
-    onVolumeUpClick: () -> Unit,
-    onVolumeDownClick: () -> Unit,
-    onMuteClick: () -> Unit,
-    onRewindClick: () -> Unit,
-    onPlayPauseClick: () -> Unit,
-    onStopClick: () -> Unit,
-    onFastForwardClick: () -> Unit
-) {
-    BoxWithConstraints(
-        modifier = modifier.fillMaxWidth(),
-        contentAlignment = Alignment.TopCenter
-    ) {
+fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpClick: () -> Unit, onDownClick: () -> Unit, onLeftClick: () -> Unit, onRightClick: () -> Unit, onBackClick: () -> Unit, onHomeClick: () -> Unit, volumeLevel: Int, volumeMax: Int, isMuted: Boolean, onVolumeUpClick: () -> Unit, onVolumeDownClick: () -> Unit, onMuteClick: () -> Unit, onRewindClick: () -> Unit, onPlayPauseClick: () -> Unit, onStopClick: () -> Unit, onFastForwardClick: () -> Unit) {
+    BoxWithConstraints(modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
         val compactWidth = maxWidth < 360.dp
         val dpadSize = (maxWidth * 0.84f).coerceIn(246.dp, 330.dp)
         val okSize = (dpadSize * 0.37f).coerceIn(92.dp, 122.dp)
-        val arrowSize = (dpadSize * 0.19f).coerceIn(48.dp, 62.dp)
+        val arrowSize = (dpadSize * 0.21f).coerceIn(52.dp, 68.dp)
         val navSize = if (compactWidth) 68.dp else 76.dp
         val sectionSpacing = if (compactWidth) 8.dp else 11.dp
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 2.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
-        ) {
-            ConstraintLayout(
-                modifier = Modifier
-                    .size(dpadSize)
-                    .background(
-                        brush = DpadSectionSpecs.BackgroundBrush,
-                        shape = DpadSectionSpecs.ContainerShape
-                    )
-                    .border(
-                        width = DpadSectionSpecs.BorderWidth,
-                        color = DpadSectionSpecs.BorderColor,
-                        shape = DpadSectionSpecs.ContainerShape
-                    )
-            ) {
+        Column(Modifier.fillMaxWidth().padding(top = 2.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            ConstraintLayout(Modifier.size(dpadSize).background(DpadSectionSpecs.BackgroundBrush, DpadSectionSpecs.ContainerShape).border(DpadSectionSpecs.BorderWidth, DpadSectionSpecs.BorderColor, DpadSectionSpecs.ContainerShape)) {
                 val (okBtn, upBtn, downBtn, leftBtn, rightBtn) = createRefs()
-
-                ConfigurableHomeButton(
-                    config = HomeButtons.Ok.copy(
-                        size = okSize,
-                        iconPadding = okSize * 0.18f
-                    ),
-                    onClick = onOkClick,
-                    modifier = Modifier.constrainAs(okBtn) {
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    }
-                )
-                ConfigurableHomeButton(
-                    config = HomeButtons.Up.copy(size = arrowSize),
-                    onClick = onUpClick,
-                    modifier = Modifier.constrainAs(upBtn) {
-                        top.linkTo(parent.top, margin = 7.dp)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    }
-                )
-                ConfigurableHomeButton(
-                    config = HomeButtons.Down.copy(size = arrowSize),
-                    onClick = onDownClick,
-                    modifier = Modifier.constrainAs(downBtn) {
-                        bottom.linkTo(parent.bottom, margin = 7.dp)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    }
-                )
-                ConfigurableHomeButton(
-                    config = HomeButtons.Left.copy(size = arrowSize),
-                    onClick = onLeftClick,
-                    modifier = Modifier.constrainAs(leftBtn) {
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                        start.linkTo(parent.start, margin = 7.dp)
-                    }
-                )
-                ConfigurableHomeButton(
-                    config = HomeButtons.Right.copy(size = arrowSize),
-                    onClick = onRightClick,
-                    modifier = Modifier.constrainAs(rightBtn) {
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                        end.linkTo(parent.end, margin = 7.dp)
-                    }
-                )
+                ConfigurableHomeButton(HomeButtons.Ok.copy(size = okSize, iconPadding = okSize * .10f), onOkClick, Modifier.constrainAs(okBtn) { centerTo(parent) })
+                ConfigurableHomeButton(HomeButtons.Up.copy(size = arrowSize), onUpClick, Modifier.constrainAs(upBtn) { top.linkTo(parent.top, 7.dp); start.linkTo(parent.start); end.linkTo(parent.end) })
+                ConfigurableHomeButton(HomeButtons.Down.copy(size = arrowSize), onDownClick, Modifier.constrainAs(downBtn) { bottom.linkTo(parent.bottom, 7.dp); start.linkTo(parent.start); end.linkTo(parent.end) })
+                ConfigurableHomeButton(HomeButtons.Left.copy(size = arrowSize), onLeftClick, Modifier.constrainAs(leftBtn) { top.linkTo(parent.top); bottom.linkTo(parent.bottom); start.linkTo(parent.start, 7.dp) })
+                ConfigurableHomeButton(HomeButtons.Right.copy(size = arrowSize), onRightClick, Modifier.constrainAs(rightBtn) { top.linkTo(parent.top); bottom.linkTo(parent.bottom); end.linkTo(parent.end, 7.dp) })
             }
-
             Spacer(Modifier.height(sectionSpacing))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(
-                    space = if (compactWidth) 52.dp else 68.dp,
-                    alignment = Alignment.CenterHorizontally
-                ),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ConfigurableHomeButton(
-                    config = HomeButtons.Back.copy(size = navSize, iconPadding = if (compactWidth) 16.dp else 18.dp),
-                    onClick = onBackClick
-                )
-                ConfigurableHomeButton(
-                    config = HomeButtons.Home.copy(size = navSize, iconPadding = if (compactWidth) 16.dp else 18.dp),
-                    onClick = onHomeClick
-                )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(if (compactWidth) 52.dp else 68.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
+                ConfigurableHomeButton(HomeButtons.Back.copy(size = navSize, iconPadding = if (compactWidth) 12.dp else 14.dp), onBackClick)
+                ConfigurableHomeButton(HomeButtons.Home.copy(size = navSize, iconPadding = if (compactWidth) 12.dp else 14.dp), onHomeClick)
             }
-
             Spacer(Modifier.height(sectionSpacing))
-
-            VolumeControl(
-                volumeLevel = volumeLevel,
-                volumeMax = volumeMax,
-                isMuted = isMuted,
-                onVolumeUpClick = onVolumeUpClick,
-                onVolumeDownClick = onVolumeDownClick,
-                onMuteClick = onMuteClick,
-                compact = compactWidth
-            )
-
+            VolumeControl(volumeLevel, volumeMax, isMuted, onVolumeUpClick, onVolumeDownClick, onMuteClick, compactWidth)
             Spacer(Modifier.height(if (compactWidth) 5.dp else 8.dp))
-
-            MediaControls(
-                onRewindClick = onRewindClick,
-                onPlayPauseClick = onPlayPauseClick,
-                onStopClick = onStopClick,
-                onFastForwardClick = onFastForwardClick,
-                compact = compactWidth
-            )
+            MediaControls(onRewindClick, onPlayPauseClick, onStopClick, onFastForwardClick, compactWidth)
         }
     }
 }
 
 @Composable
-private fun VolumeControl(
-    volumeLevel: Int,
-    volumeMax: Int,
-    isMuted: Boolean,
-    onVolumeUpClick: () -> Unit,
-    onVolumeDownClick: () -> Unit,
-    onMuteClick: () -> Unit,
-    compact: Boolean
-) {
+private fun VolumeControl(volumeLevel: Int, volumeMax: Int, isMuted: Boolean, onVolumeUpClick: () -> Unit, onVolumeDownClick: () -> Unit, onMuteClick: () -> Unit, compact: Boolean) {
     val currentVolumeMax = volumeMax.takeIf { it > 0 } ?: 100
     var sliderPosition by remember(volumeLevel) { mutableStateOf(volumeLevel.toFloat()) }
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Volume : $volumeLevel / $currentVolumeMax",
-            color = MaterialTheme.colorScheme.onBackground,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(bottom = 2.dp),
-            textAlign = TextAlign.Center
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Slider(
-                value = sliderPosition,
-                onValueChange = { sliderPosition = it },
-                onValueChangeFinished = {
-                    val targetLevel = sliderPosition.roundToInt().coerceIn(0, currentVolumeMax)
-                    val diff = targetLevel - volumeLevel
-                    if (diff > 0) repeat(diff) { onVolumeUpClick() }
-                    else if (diff < 0) repeat(-diff) { onVolumeDownClick() }
-                },
-                valueRange = 0f..currentVolumeMax.toFloat(),
-                steps = if (currentVolumeMax > 0) currentVolumeMax - 1 else 0,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = if (compact) 0.dp else 4.dp, end = 8.dp),
-                colors = SliderDefaults.colors(
-                    thumbColor = AppSliderColors.thumbColor,
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                    inactiveTrackColor = DefaultButtonColors.DefaultBackgroundStart,
-                    activeTickColor = AppSliderColors.activeTickColor,
-                    inactiveTickColor = AppSliderColors.inactiveTickColor
-                )
-            )
-
-            IconButton(
-                onClick = onMuteClick,
-                modifier = Modifier.size(if (compact) 54.dp else 58.dp)
-            ) {
-                Icon(
-                    imageVector = if (isMuted) Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp,
-                    contentDescription = if (isMuted) "Réactiver le son" else "Couper le son",
-                    modifier = Modifier.size(if (compact) 32.dp else 36.dp),
-                    tint = AppColors.accent
-                )
-            }
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Text("Volume  $volumeLevel", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom = 2.dp), textAlign = TextAlign.Center)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Slider(value = sliderPosition, onValueChange = { sliderPosition = it }, onValueChangeFinished = {
+                val target = sliderPosition.roundToInt().coerceIn(0, currentVolumeMax); val diff = target - volumeLevel
+                if (diff > 0) repeat(diff) { onVolumeUpClick() } else if (diff < 0) repeat(-diff) { onVolumeDownClick() }
+            }, valueRange = 0f..currentVolumeMax.toFloat(), steps = if (currentVolumeMax > 0) currentVolumeMax - 1 else 0, modifier = Modifier.weight(1f).padding(start = if (compact) 0.dp else 4.dp, end = 8.dp), colors = SliderDefaults.colors(thumbColor = AppSliderColors.thumbColor, activeTrackColor = MaterialTheme.colorScheme.primary, inactiveTrackColor = DefaultButtonColors.DefaultBackgroundStart, activeTickColor = AppSliderColors.activeTickColor, inactiveTickColor = AppSliderColors.inactiveTickColor))
+            IconButton(onMuteClick, Modifier.size(if (compact) 54.dp else 58.dp)) { Icon(if (isMuted) Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp, if (isMuted) "Réactiver le son" else "Couper le son", Modifier.size(if (compact) 32.dp else 36.dp), tint = AppColors.accent) }
         }
     }
 }
 
 @Composable
-private fun MediaControls(
-    onRewindClick: () -> Unit,
-    onPlayPauseClick: () -> Unit,
-    onStopClick: () -> Unit,
-    onFastForwardClick: () -> Unit,
-    compact: Boolean
-) {
-    val buttonSize = if (compact) 58.dp else 66.dp
-    val iconSize = if (compact) 27.dp else 31.dp
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        MediaButton(Icons.Rounded.FastRewind, "Recul", buttonSize, iconSize, onRewindClick)
-        MediaButton(Icons.Rounded.PlayArrow, "Lecture / Pause", buttonSize, iconSize, onPlayPauseClick)
-        MediaButton(Icons.Rounded.Stop, "Stop", buttonSize, iconSize, onStopClick)
-        MediaButton(Icons.Rounded.FastForward, "Avance", buttonSize, iconSize, onFastForwardClick)
+private fun MediaControls(onRewindClick: () -> Unit, onPlayPauseClick: () -> Unit, onStopClick: () -> Unit, onFastForwardClick: () -> Unit, compact: Boolean) {
+    val size = if (compact) 58.dp else 66.dp
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+        MediaArtworkButton(R.drawable.ic_media_rewind, "Recul", size, onRewindClick)
+        MediaArtworkButton(R.drawable.ic_media_play_pause, "Lecture / Pause", size + 4.dp, onPlayPauseClick)
+        MediaArtworkButton(R.drawable.ic_media_stop, "Stop", size, onStopClick)
+        MediaArtworkButton(R.drawable.ic_media_fast_forward, "Avance", size, onFastForwardClick)
     }
 }
 
 @Composable
-private fun MediaButton(
-    icon: ImageVector,
-    contentDescription: String,
-    size: androidx.compose.ui.unit.Dp,
-    iconSize: androidx.compose.ui.unit.Dp,
-    onClick: () -> Unit
-) {
+private fun MediaArtworkButton(iconRes: Int, description: String, size: androidx.compose.ui.unit.Dp, onClick: () -> Unit) {
     val shape = RoundedCornerShape(20.dp)
-    Box(
-        modifier = Modifier
-            .size(size)
-            .background(DefaultButtonColors.DefaultBackgroundBrush, shape)
-            .border(1.dp, DefaultButtonColors.DefaultBorder, shape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            modifier = Modifier.size(iconSize),
-            tint = AppColors.appWhite
-        )
+    Box(Modifier.size(size).background(DefaultButtonColors.DefaultBackgroundBrush, shape).border(1.dp, DefaultButtonColors.DefaultBorder, shape).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+        Icon(painterResource(iconRes), description, Modifier.size(size * .48f), tint = Color.Unspecified)
     }
 }
 
 @Composable
-fun FooterSection(
-    modifier: Modifier = Modifier,
-    onLaunchNetflix: () -> Unit,
-    onLaunchYouTube: () -> Unit,
-    onLaunchPlex: () -> Unit,
-    onLaunchCrunchyroll: () -> Unit
-) {
-    BoxWithConstraints(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 12.dp)
-    ) {
-        val compact = maxWidth < 360.dp
-        val buttonHeight = if (compact) 56.dp else 62.dp
-        val iconSize = if (compact) 42.dp else 48.dp
-        val horizontalSpacing = if (compact) 7.dp else 9.dp
-        val verticalSpacing = if (compact) 7.dp else 9.dp
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(verticalSpacing)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
-            ) {
-                ConfigurableHomeButton(
-                    config = HomeButtons.Netflix.copy(appLauncherIconSize = iconSize),
-                    onClick = onLaunchNetflix,
-                    modifier = Modifier.weight(1f).height(buttonHeight)
-                )
-                ConfigurableHomeButton(
-                    config = HomeButtons.YouTube.copy(appLauncherIconSize = iconSize),
-                    onClick = onLaunchYouTube,
-                    modifier = Modifier.weight(1f).height(buttonHeight)
-                )
+fun FooterSection(modifier: Modifier = Modifier, onLaunchNetflix: () -> Unit, onLaunchYouTube: () -> Unit, onLaunchPlex: () -> Unit, onLaunchCrunchyroll: () -> Unit) {
+    BoxWithConstraints(modifier.fillMaxWidth().padding(top = 8.dp, bottom = 12.dp)) {
+        val compact = maxWidth < 360.dp; val buttonHeight = if (compact) 56.dp else 62.dp; val iconSize = if (compact) 42.dp else 48.dp; val spacing = if (compact) 7.dp else 9.dp
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing)) {
+                ConfigurableHomeButton(HomeButtons.Netflix.copy(appLauncherIconSize = iconSize), onLaunchNetflix, Modifier.weight(1f).height(buttonHeight)); ConfigurableHomeButton(HomeButtons.YouTube.copy(appLauncherIconSize = iconSize), onLaunchYouTube, Modifier.weight(1f).height(buttonHeight))
             }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
-            ) {
-                ConfigurableHomeButton(
-                    config = HomeButtons.Plex.copy(appLauncherIconSize = iconSize),
-                    onClick = onLaunchPlex,
-                    modifier = Modifier.weight(1f).height(buttonHeight)
-                )
-                ConfigurableHomeButton(
-                    config = HomeButtons.Crunchyroll.copy(appLauncherIconSize = iconSize),
-                    onClick = onLaunchCrunchyroll,
-                    modifier = Modifier.weight(1f).height(buttonHeight)
-                )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing)) {
+                ConfigurableHomeButton(HomeButtons.Plex.copy(appLauncherIconSize = iconSize), onLaunchPlex, Modifier.weight(1f).height(buttonHeight)); ConfigurableHomeButton(HomeButtons.Crunchyroll.copy(appLauncherIconSize = iconSize), onLaunchCrunchyroll, Modifier.weight(1f).height(buttonHeight))
             }
         }
     }
