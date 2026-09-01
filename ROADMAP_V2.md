@@ -12,19 +12,23 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 - [x] Enregistrer Android TV Remote v2 comme premier adaptateur dans `TvProtocolRegistry`
 - [x] Faire transiter les commandes de l'application par l'abstraction commune `TvCommand`
 - [x] Isoler les commandes Android TV v2 derrière l'adaptateur / mapping protocolaire
-- [ ] Isoler complètement la connexion Android TV v2 derrière une interface client multi-protocole
+- [x] Isoler la connexion d'une TV enregistrée de l'appairage Android et router selon son `TvProtocolType`
+- [ ] Isoler complètement les sessions/événements derrière des clients multi-protocoles
 - [ ] Séparer découverte, appairage/authentification, connexion et commandes pour chaque protocole
 - [x] Stocker le type de protocole avec chaque TV enregistrée
 - [x] Migrer Room 1 → 2 sans perdre les TV existantes, en les marquant `ANDROID_TV_REMOTE_V2`
 
 ## Phase 2 — Découverte multi-protocole ⏳
 
-- [ ] Remplacer la constante unique `_androidtvremote2._tcp.` par des fournisseurs de découverte
+- [x] Remplacer la constante unique `_androidtvremote2._tcp.` par des fournisseurs de découverte
+- [x] Créer un contrat commun `TvDiscoveryProvider` et un orchestrateur multi-provider
 - [x] Remplacer `NsdManager` par une découverte mDNS directe pour Android TV / Google TV v2 : `_androidtvremote2._tcp.`
 - [x] Détecter plusieurs TV Android/Google TV simultanément sur le même réseau local
 - [x] Résoudre PTR / SRV / TXT / A / AAAA et récupérer les identifiants TXT stables (`bt`)
 - [ ] Étudier et ajouter Android TV Remote v1 pour les anciens Android TV
-- [ ] Ajouter SSDP/UPnP en complément de mDNS
+- [x] Ajouter un moteur SSDP M-SEARCH générique en complément de mDNS
+- [x] Ajouter le provider SSDP Roku `ST: roku:ecp` (validation matérielle différée)
+- [ ] Ajouter les providers de découverte Samsung/LG sur le moteur SSDP commun après validation des signatures réseau retenues
 - [ ] Dédupliquer une même TV découverte par plusieurs mécanismes
 - [ ] Identifier automatiquement fabricant, OS/protocole, nom, IP et identifiant stable lorsque disponibles
 - [ ] Ajouter une saisie IP manuelle comme fallback
@@ -67,8 +71,9 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 
 ## Phase 6 — Roku TV / Roku Player ⏳
 
-- [ ] Ajouter la découverte SSDP Roku avec `ST: roku:ecp`
-- [ ] Utiliser l'URL ECP exposée par la TV, généralement sur le port 8060
+- [x] Ajouter la découverte SSDP Roku avec `ST: roku:ecp`
+- [x] Extraire l'URL ECP exposée par la réponse SSDP, généralement sur le port 8060
+- [ ] Enrichir le nom/modèle via `query/device-info`
 - [ ] Implémenter les commandes ECP `keypress`, `keydown`, `keyup`
 - [ ] Mapper navigation, média, volume et power selon les capacités de l'appareil
 - [ ] Gérer la contrainte Roku « Control by mobile apps »
@@ -160,7 +165,7 @@ La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif princip
 | Android TV ancien | protocole Remote v1 à étudier | Remote v1 | Haute |
 | Samsung Tizen | SSDP / découverte réseau | WebSocket 8001/8002 | Haute — validation matérielle différée |
 | LG webOS | SSDP `webos-second-screen` | SSAP WebSocket 3000/3001 | Haute — validation matérielle différée |
-| Roku | SSDP `roku:ecp` | HTTP ECP, généralement 8060 | Haute — validation matérielle différée |
+| Roku | SSDP `roku:ecp` | HTTP ECP, généralement 8060 | Haute — découverte codée, validation matérielle différée |
 | Fire TV | DIAL/SSDP + éventuellement ADB | DIAL limité / ADB optionnel | Recherche |
 | Apple TV | mDNS `_mediaremotetv._tcp.` / `_companion-link._tcp.` | MRP / Companion | Recherche |
 
