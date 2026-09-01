@@ -28,6 +28,7 @@ data class HomeButtonConfig(
     val baseType: HomeButtonType = HomeButtonType.BASE_REMOTE,
     val vectorIcon: ImageVector? = null,
     @DrawableRes val drawableIconRes: Int? = null,
+    val textLabel: String? = null,
     val size: Dp? = null,
     val iconTint: Color = Color.Unspecified,
     val iconPadding: Dp? = null,
@@ -48,20 +49,21 @@ object HomeButtons {
     val Back = remoteDrawable(R.drawable.ic_remote_back, "Retour")
     val Home = remoteDrawable(R.drawable.ic_remote_home, "Accueil")
 
-    val Ok = remoteDrawable(
-        R.drawable.ic_remote_ok,
-        "OK",
-        size = AppSpecificButtonSizes.OkButtonSize
+    val Ok = HomeButtonConfig(
+        contentDescription = "OK",
+        textLabel = "OK",
+        size = AppSpecificButtonSizes.OkButtonSize,
+        iconTint = AppColors.accent
     )
     val Up = dpadDrawable(R.drawable.ic_remote_up, "Haut")
     val Down = dpadDrawable(R.drawable.ic_remote_down, "Bas")
     val Left = dpadDrawable(R.drawable.ic_remote_left, "Gauche")
     val Right = dpadDrawable(R.drawable.ic_remote_right, "Droite")
 
-    val Netflix = appButton(R.drawable.ic_app_netflix, "Lancer Netflix", 80.dp)
-    val YouTube = appButton(R.drawable.ic_app_youtube, "Lancer YouTube", 100.dp)
-    val Plex = appButton(R.drawable.ic_app_plex, "Lancer Plex", 60.dp)
-    val Crunchyroll = appButton(R.drawable.ic_app_crunchy, "Lancer Crunchyroll", 120.dp)
+    val Netflix = appButton(R.drawable.ic_app_netflix, "Lancer Netflix", 88.dp)
+    val YouTube = appButton(R.drawable.ic_app_youtube, "Lancer YouTube", 108.dp)
+    val Plex = appButton(R.drawable.ic_app_plex, "Lancer Plex", 68.dp)
+    val Crunchyroll = appButton(R.drawable.ic_app_crunchy, "Lancer Crunchyroll", 132.dp)
 
     private fun remoteDrawable(@DrawableRes icon: Int, description: String, size: Dp? = null) = HomeButtonConfig(
         drawableIconRes = icon,
@@ -96,6 +98,7 @@ fun ConfigurableHomeButton(config: HomeButtonConfig, onClick: () -> Unit, modifi
             onClick = onClick,
             vectorIcon = config.vectorIcon,
             drawableIconRes = config.drawableIconRes,
+            textLabel = config.textLabel,
             contentDescription = config.contentDescription,
             modifier = modifier,
             size = config.size ?: HomeBaseButtonSpecs.DefaultSize,
