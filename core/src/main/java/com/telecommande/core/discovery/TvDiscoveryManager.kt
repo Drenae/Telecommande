@@ -39,6 +39,11 @@ class TvDiscoveryManager(context: Context) {
             scope = coroutineScope,
             onFound = ::handleProviderFound,
             onLost = ::handleProviderLost
+        ),
+        RokuDiscoveryProvider(
+            scope = coroutineScope,
+            onFound = ::handleProviderFound,
+            onLost = ::handleProviderLost
         )
     )
 
@@ -113,6 +118,7 @@ class TvDiscoveryManager(context: Context) {
 
     private fun serviceKey(tv: DiscoveredTv): String {
         val stableId = tv.attributes["bt"]?.trim()?.lowercase()?.takeIf { it.isNotBlank() }
+            ?: tv.attributes["usn"]?.trim()?.lowercase()?.takeIf { it.isNotBlank() }
             ?: tv.serviceName.lowercase()
         return "${tv.protocolType.name}:$stableId"
     }
