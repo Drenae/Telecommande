@@ -1,174 +1,221 @@
 # Roadmap — Télécommande Android V2
 
-La V2 part de la V1.0 stable et figée sur la branche `v1.0`. L'objectif principal est d'étendre l'application à plusieurs TV et plusieurs familles de protocoles tout en conservant une API de télécommande commune côté application.
+La V2 part de la V1.0 stable et figée sur la branche `v1.0`.
 
-## Phase 1 — Architecture multi-protocole ⏳
+Après réaudit de l'état réel de l'application, la V2 est recentrée sur **Android TV / Google TV**, seul écosystème actuellement testable sur matériel réel. L'architecture multi-protocole reste en place pour permettre une extension future, mais Samsung, LG, Roku, Fire TV et Apple TV sont reportés tant qu'un appareil compatible n'est pas disponible pour validation.
+
+## Phase 1 — Architecture extensible ✅
 
 - [x] Créer l'abstraction de base `TvProtocol`
-- [x] Définir `TvProtocolType` pour identifier les familles de protocoles
-- [x] Définir les capacités communes (`TvCapability`) : navigation, volume, mute, power, média, applications, clavier, sources
-- [x] Définir les commandes communes de télécommande (`TvCommand`)
-- [x] Permettre à chaque protocole d'annoncer ses capacités réelles
-- [x] Enregistrer Android TV Remote v2 comme premier adaptateur dans `TvProtocolRegistry`
-- [x] Faire transiter les commandes de l'application par l'abstraction commune `TvCommand`
-- [x] Isoler les commandes Android TV v2 derrière l'adaptateur / mapping protocolaire
-- [x] Isoler la connexion d'une TV enregistrée de l'appairage Android et router selon son `TvProtocolType`
-- [ ] Isoler complètement les sessions/événements derrière des clients multi-protocoles
-- [ ] Séparer découverte, appairage/authentification, connexion et commandes pour chaque protocole
+- [x] Définir `TvProtocolType`
+- [x] Définir les capacités communes `TvCapability`
+- [x] Définir les commandes communes `TvCommand`
+- [x] Permettre à un protocole d'annoncer ses capacités
+- [x] Enregistrer Android TV Remote v2 dans `TvProtocolRegistry`
+- [x] Faire transiter les commandes de l'application par `TvCommand`
+- [x] Isoler le mapping des commandes Android TV v2
+- [x] Isoler la connexion d'une TV enregistrée de l'appairage et router selon son `TvProtocolType`
 - [x] Stocker le type de protocole avec chaque TV enregistrée
-- [x] Migrer Room 1 → 2 sans perdre les TV existantes, en les marquant `ANDROID_TV_REMOTE_V2`
+- [x] Migrer Room 1 → 2 sans perdre les TV existantes
+- [x] Créer le contrat commun `TvDiscoveryProvider`
+- [x] Transformer `TvDiscoveryManager` en orchestrateur de providers
+- [x] Conserver une architecture permettant d'ajouter d'autres protocoles plus tard
 
-## Phase 2 — Découverte multi-protocole ⏳
+> Les abstractions supplémentaires de session/authentification ne sont plus bloquantes pour la V2 Android TV. Elles seront approfondies lorsqu'un second écosystème réellement testable devra être intégré.
 
-- [x] Remplacer la constante unique `_androidtvremote2._tcp.` par des fournisseurs de découverte
-- [x] Créer un contrat commun `TvDiscoveryProvider` et un orchestrateur multi-provider
-- [x] Remplacer `NsdManager` par une découverte mDNS directe pour Android TV / Google TV v2 : `_androidtvremote2._tcp.`
-- [x] Détecter plusieurs TV Android/Google TV simultanément sur le même réseau local
-- [x] Résoudre PTR / SRV / TXT / A / AAAA et récupérer les identifiants TXT stables (`bt`)
-- [ ] Étudier et ajouter Android TV Remote v1 pour les anciens Android TV
-- [x] Ajouter un moteur SSDP M-SEARCH générique en complément de mDNS
-- [x] Ajouter le provider SSDP Roku `ST: roku:ecp` (validation matérielle différée)
-- [ ] Ajouter les providers de découverte Samsung/LG sur le moteur SSDP commun après validation des signatures réseau retenues
-- [ ] Dédupliquer une même TV découverte par plusieurs mécanismes
-- [ ] Identifier automatiquement fabricant, OS/protocole, nom, IP et identifiant stable lorsque disponibles
-- [ ] Ajouter une saisie IP manuelle comme fallback
+## Phase 2 — Découverte Android TV / Google TV ✅
 
-## Phase 3 — Android TV / Google TV ✅
+- [x] Remplacer `NsdManager` par une découverte mDNS directe
+- [x] Utiliser `_androidtvremote2._tcp.`
+- [x] Résoudre PTR / SRV / TXT / A / AAAA
+- [x] Récupérer l'identifiant TXT `bt`
+- [x] Détecter plusieurs TV simultanément
+- [x] Identifier chaque résultat avec son `TvProtocolType`
+- [x] Valider la découverte sur appareil Android physique
+- [x] Détecter simultanément Philips `50PUS8106/12` et Thomson / Google TV `GoogleTV8318`
 
-- [x] Android TV Remote Service v2 : mDNS `_androidtvremote2._tcp.`, pairing TLS 6467, remote TLS 6466
-- [x] Découverte mDNS directe validée sur appareil physique
-- [x] Philips `50PUS8106/12` détectée, appairée et contrôlée
-- [x] Thomson / Google TV `GoogleTV8318` détectée, appairée et contrôlée
-- [x] Navigation, volume, média, applications et extinction validés sur Thomson
-- [x] Conserver l'épinglage certificat et la sécurité existante pour V2
-- [x] Déclarer Android TV Remote v2 dans l'abstraction multi-protocole et ses capacités actuelles
-- [x] Faire transiter les commandes de l'implémentation V2 actuelle par `TvCommand`
-- [x] Valider sur TV réelle le chemin UI → `TvCommand` → Android TV Remote v2
-- [ ] Ajouter le protocole Android TV Remote v1 pour les appareils utilisant l'ancien Remote Service
-- [ ] Détecter automatiquement V1/V2 lorsque possible
-- [ ] Ajouter Wake-on-LAN comme capacité séparée lorsque la TV le permet
+### À étudier uniquement si un besoin réel apparaît
 
-## Phase 4 — Samsung Smart TV / Tizen ⏳
+- [ ] Android TV Remote v1 pour d'anciens appareils incompatibles avec Remote v2
+- [ ] Saisie IP manuelle comme fallback si une TV compatible n'annonce pas son service mDNS
 
-- [ ] Ajouter la découverte Samsung (SSDP/réseau local)
-- [ ] Implémenter le canal remote WebSocket Samsung
-- [ ] Supporter `ws://TV:8001` et `wss://TV:8002` selon le modèle
-- [ ] Gérer l'autorisation affichée sur la TV et stocker le token
-- [ ] Mapper navigation, volume, mute, power, média et sources vers les `KEY_*` Samsung
-- [ ] Ajouter Wake-on-LAN lorsque le modèle le permet
-- [ ] Validation matérielle à effectuer lorsqu'une Samsung compatible sera disponible
+## Phase 3 — Android TV / Google TV Remote v2 ✅
 
-## Phase 5 — LG webOS ⏳
+- [x] Pairing TLS
+- [x] Connexion Remote TLS + Protobuf
+- [x] Épinglage certificat / credentials persistants
+- [x] Navigation D-pad + OK
+- [x] Back / Home
+- [x] Volume + mute
+- [x] Média : retour, play/pause, stop, avance
+- [x] Lancement d'applications
+- [x] Extinction
+- [x] Reconnexion à une TV déjà appairée
+- [x] Philips testée en conditions réelles
+- [x] Thomson / Google TV testée en conditions réelles
+- [x] Chemin UI → `TvCommand` → Android TV Remote v2 validé sur TV réelle
 
-- [ ] Ajouter la découverte LG via SSDP (`urn:lge-com:service:webos-second-screen:1`) et fallback réseau
-- [ ] Implémenter SSAP WebSocket
-- [ ] Supporter `ws://TV:3000` pour anciens firmwares et `wss://TV:3001` pour firmwares récents
-- [ ] Gérer l'appairage à l'écran et la persistance du `client-key`
-- [ ] Implémenter le pointer input socket pour D-pad / OK / Back / Home
-- [ ] Mapper volume, mute, média, power et lancement d'applications
-- [ ] Prévoir Wake-on-LAN pour l'allumage lorsque disponible
-- [ ] Validation matérielle à effectuer lorsqu'une LG webOS sera disponible
+### Limitation connue
 
-## Phase 6 — Roku TV / Roku Player ⏳
+- [ ] Réveil/allumage réseau : à traiter comme capacité séparée. L'extinction fonctionne sur Thomson, mais son réveil réseau n'est pas validé.
 
-- [x] Ajouter la découverte SSDP Roku avec `ST: roku:ecp`
-- [x] Extraire l'URL ECP exposée par la réponse SSDP, généralement sur le port 8060
-- [ ] Enrichir le nom/modèle via `query/device-info`
-- [ ] Implémenter les commandes ECP `keypress`, `keydown`, `keyup`
-- [ ] Mapper navigation, média, volume et power selon les capacités de l'appareil
-- [ ] Gérer la contrainte Roku « Control by mobile apps »
-- [ ] Validation matérielle à effectuer lorsqu'un Roku sera disponible
+## Phase 4 — Multi-TV utilisateur ✅
 
-## Phase 7 — Fire TV / Fire OS 🔬
+- [x] Enregistrer plusieurs TV simultanément
+- [x] Afficher toutes les TV enregistrées dans `Mes TV`
+- [x] Choisir une TV active en touchant sa carte
+- [x] Changer de TV sans refaire l'appairage
+- [x] Afficher visuellement la TV active/connectée
+- [x] Mémoriser IP, identifiant, credentials/certificat et protocole par TV
+- [x] Reconnexion à la TV active
+- [x] Renommage local indépendant du nom technique
+- [x] Oublier/supprimer une TV individuellement sans supprimer les autres
+- [x] Validation réelle avec deux TV enregistrées : Philips `Salon` + Thomson `Chambre Caleb`
 
-- [ ] Étudier la découverte DIAL/SSDP : `urn:dial-multiscreen-org:service:dial:1`
-- [ ] Séparer ce que DIAL permet réellement (découverte/lancement d'apps) du contrôle de télécommande complet
-- [ ] Étudier une implémentation ADB réseau comme adaptateur optionnel
-- [ ] Ne pas rendre les Developer Options/ADB obligatoires pour les autres protocoles
-- [ ] Décider après prototype si Fire TV complet entre dans la V2 ou une V2.x
+> Le bouton/indicateur d'état de l'écran principal ouvre déjà l'écran de choix des TV. Un sélecteur supplémentaire directement dans la télécommande n'est donc pas considéré comme nécessaire actuellement.
 
-## Phase 8 — Apple TV 🔬
+## Phase 5 — UI / UX V2 ⏳
 
-- [ ] Étudier `_mediaremotetv._tcp.local.` et `_companion-link._tcp.local.`
-- [ ] Étudier Media Remote Protocol / Companion pour navigation et média
-- [ ] Évaluer le coût de l'appairage/chiffrement avant intégration
-- [ ] Décider après prototype si Apple TV entre dans la V2 ou une V2.x
+### Déjà en place
 
-## Phase 9 — Autres écosystèmes TV 🔬
+- [x] Écran `Choisir une TV`
+- [x] Sections `Ajouter une TV` et `Mes TV`
+- [x] Carte distincte pour chaque TV enregistrée
+- [x] État connecté visible
+- [x] Renommage depuis la liste des TV
+- [x] Suppression/oubli depuis la liste des TV
+- [x] Nom de la TV active affiché dans l'en-tête de la télécommande
+- [x] Accès à l'écran TV depuis l'indicateur d'état de la télécommande
 
-- [ ] Identifier les protocoles réellement accessibles pour VIDAA / Hisense
-- [ ] Identifier les modèles Philips non Android/Google TV (Saphi/Titan OS)
-- [ ] Identifier les modèles Panasonic non Android/Google TV
-- [ ] Ne pas considérer la marque seule comme protocole : TCL, Philips, Hisense, Sony, etc. peuvent utiliser Android TV, Google TV, Roku TV, Fire TV ou un OS propriétaire selon le modèle
-- [ ] Ajouter uniquement les protocoles testables et suffisamment stables
+### Reste à valider/améliorer
 
-## Phase 10 — Multi-TV utilisateur ⏳
+- [ ] Validation finale sur petit / moyen / grand téléphone
+- [ ] Ajuster les dimensions finales uniquement si les tests montrent un problème
+- [ ] Retour haptique sur les commandes si souhaité
+- [ ] Maintien appuyé/répétition pour les commandes où cela apporte un vrai gain
 
-- [ ] Enregistrer plusieurs TV simultanément
-- [ ] Choisir une TV active rapidement depuis l'écran principal
-- [ ] Définir une TV par défaut
-- [ ] Mémoriser protocole, identifiant, IP/host, credentials/token/certificat propres à chaque TV
-- [ ] Reconnexion automatique à la bonne TV
-- [ ] Renommage local indépendant du nom technique
-- [ ] Gestion propre des TV indisponibles ou hors réseau
-- [ ] Oubli d'une TV sans affecter les autres
+## Phase 6 — Clavier TV ⏳
 
-## Phase 11 — UI / UX V2 ⏳
+- [x] Définir la capacité commune `TEXT_INPUT`
+- [ ] Vérifier ce que permet réellement Android TV Remote v2 pour la saisie de texte
+- [ ] Implémenter le clavier uniquement si le comportement est fiable sur les TV de test
 
-- [ ] Reprendre les validations petit / moyen / grand téléphone reportées de V1
-- [ ] Ajuster les dimensions finales après tests
-- [ ] Afficher les capacités disponibles selon la TV active
-- [ ] Masquer ou désactiver les commandes non supportées par le protocole courant
-- [ ] Ajouter un sélecteur de TV rapide sans surcharger l'écran principal
-- [ ] Ajouter retour haptique et maintien appuyé/répétition pour les commandes adaptées
+## Phase 7 — Applications personnalisables ⏳
 
-## Phase 12 — Clavier TV ⏳
+### Actuel
 
-- [x] Définir une capacité `TEXT_INPUT` commune
-- [ ] Android TV : exploiter le support texte du protocole si disponible
-- [ ] Adapter le clavier aux protocoles Samsung/LG/Apple selon leurs possibilités
-- [ ] N'afficher le clavier que lorsqu'il est réellement supporté
+- [x] Raccourcis Netflix / YouTube / Plex / Crunchyroll
+- [x] Lancement des applications validé avec Android TV Remote v2
 
-## Phase 13 — Applications personnalisables ⏳
+### Optionnel pour la V2
 
-- [ ] Remplacer la grille d'applications fixe par une configuration par TV/protocole
-- [ ] Permettre d'ajouter, supprimer et réordonner les raccourcis
-- [ ] Adapter le lancement d'application à chaque protocole
-- [ ] Conserver des presets Netflix / YouTube / Plex / Crunchyroll lorsque disponibles
+- [ ] Permettre de personnaliser les raccourcis
+- [ ] Ajouter/supprimer/réordonner les applications
+- [ ] Prévoir éventuellement une configuration différente par TV
 
-## Phase 14 — Fiabilité et tests ⏳
+## Phase 8 — Fiabilité et tests ⏳
 
-- [ ] Ajouter tests ciblés repositories/managers reportés de V1
-- [ ] Ajouter scénarios d'erreur réseau/certificat
-- [ ] Tester la déduplication de découverte multi-protocole
-- [ ] Tester les credentials séparés par TV
-- [ ] Tester changement de TV sans fuite de session
-- [ ] Tester changement de réseau et reprise après veille
-- [ ] Ajouter tests par adaptateur de protocole
+### Déjà validé en conditions réelles
 
-## Phase 15 — Finalisation V2 ⏳
+- [x] Découverte de plusieurs Android/Google TV sur le même réseau
+- [x] Appairage de deux TV distinctes
+- [x] Credentials séparés par TV
+- [x] Changement de TV active
+- [x] Reconnexion après sélection
+- [x] Commandes via `TvCommand`
+- [x] Migration Room 1 → 2 avec conservation des TV existantes
+- [x] Build/tests Gradle validés après les principales migrations d'architecture
 
-- [ ] Nettoyage final
-- [ ] Documentation protocoles supportés / limitations par modèle
-- [ ] Build debug et release
-- [ ] Tests réels sur les familles de TV disponibles
-- [ ] Générer et installer un APK release signé
+### À compléter
+
+- [ ] Ajouter des tests unitaires ciblés sur les repositories/managers lorsque pertinent
+- [ ] Ajouter des scénarios d'erreur réseau/certificat
+- [ ] Tester changement de réseau et reprise après veille plus largement
+- [ ] Vérifier l'absence de fuite de session lors de changements répétés entre les deux TV
+
+## Phase 9 — Finalisation V2 ⏳
+
+- [ ] Nettoyage final du code et des logs de diagnostic
+- [ ] Documentation des fonctions Android TV / Google TV supportées
+- [ ] Documenter les limitations connues, notamment le réveil réseau
+- [ ] Build debug final
+- [ ] Build release final
+- [ ] Tests réels finaux sur Philips + Thomson
+- [ ] Générer et installer l'APK release signé
 - [ ] Figer la V2 stable dans une branche dédiée
 
 ---
 
-## Protocoles identifiés au démarrage de la V2
+# Protocoles reportés — matériel de test nécessaire
 
-| Famille | Découverte | Contrôle | Priorité |
-| --- | --- | --- | --- |
-| Android TV / Google TV v2 | mDNS `_androidtvremote2._tcp.` | TLS + Protobuf, 6466/6467 | Validé Philips + Thomson |
-| Android TV ancien | protocole Remote v1 à étudier | Remote v1 | Haute |
-| Samsung Tizen | SSDP / découverte réseau | WebSocket 8001/8002 | Haute — validation matérielle différée |
-| LG webOS | SSDP `webos-second-screen` | SSAP WebSocket 3000/3001 | Haute — validation matérielle différée |
-| Roku | SSDP `roku:ecp` | HTTP ECP, généralement 8060 | Haute — découverte codée, validation matérielle différée |
-| Fire TV | DIAL/SSDP + éventuellement ADB | DIAL limité / ADB optionnel | Recherche |
-| Apple TV | mDNS `_mediaremotetv._tcp.` / `_companion-link._tcp.` | MRP / Companion | Recherche |
+Ces écosystèmes **ne font plus partie du développement actif de la V2**. Aucun ne devra être annoncé comme supporté tant que découverte, appairage et commandes n'auront pas été testés sur une vraie TV ou un vrai appareil compatible.
 
-### Principe architectural
+## Samsung Smart TV / Tizen — REPORTÉ
 
-La V2 ne doit pas chercher une liste de variantes de `_androidtvremote2`. Une Smart TV peut utiliser un mécanisme complètement différent : mDNS, SSDP/UPnP, WebSocket, HTTP, TLS/Protobuf ou un protocole propriétaire. La bonne approche est donc de rendre le `core` extensible avec plusieurs adaptateurs de découverte et de contrôle partageant une interface commune.
+- Découverte réseau / SSDP selon génération
+- WebSocket 8001/8002
+- Autorisation TV et token
+- Commandes `KEY_*`
+- Wake-on-LAN éventuel
+
+**Reprise :** lorsqu'une Samsung compatible sera disponible pour tests.
+
+## LG webOS — REPORTÉ
+
+- SSDP `webos-second-screen`
+- SSAP WebSocket 3000/3001
+- Appairage et `client-key`
+- Pointer input socket
+- Applications / média / volume / power
+
+**Reprise :** lorsqu'une LG webOS sera disponible pour tests.
+
+## Roku — PROTOTYPE DE DÉCOUVERTE, SUITE REPORTÉE
+
+- [x] Moteur SSDP M-SEARCH générique créé
+- [x] Provider expérimental `ST: roku:ecp` créé
+- [ ] Validation de la découverte sur vrai Roku
+- [ ] `query/device-info`
+- [ ] Commandes ECP
+
+Le provider actuel est un **prototype non validé matériellement** et ne signifie pas que Roku est supporté par l'application.
+
+**Reprise :** lorsqu'un Roku sera disponible pour tests.
+
+## Fire TV / Fire OS — REPORTÉ
+
+- DIAL/SSDP à étudier
+- Contrôle complet à distinguer de DIAL
+- ADB réseau éventuellement optionnel
+
+**Reprise :** lorsqu'un Fire TV sera disponible pour tests.
+
+## Apple TV — REPORTÉ
+
+- `_mediaremotetv._tcp.local.` / `_companion-link._tcp.local.`
+- Media Remote Protocol / Companion
+- Appairage/chiffrement
+
+**Reprise :** lorsqu'un Apple TV sera disponible pour tests.
+
+## Autres OS TV — REPORTÉ
+
+VIDAA / Hisense, Philips Saphi/Titan OS, Panasonic et autres systèmes propriétaires seront étudiés uniquement si un appareil testable devient disponible.
+
+---
+
+## État des protocoles
+
+| Famille | État réel |
+| --- | --- |
+| Android TV / Google TV Remote v2 | **Supporté et validé — Philips + Thomson** |
+| Android TV Remote v1 | Non implémenté — à étudier seulement si nécessaire |
+| Samsung Tizen | Reporté — aucun matériel de validation |
+| LG webOS | Reporté — aucun matériel de validation |
+| Roku | Prototype de découverte uniquement — non validé |
+| Fire TV | Reporté — aucun matériel de validation |
+| Apple TV | Reporté — aucun matériel de validation |
+
+### Principe
+
+Une fonctionnalité/protocole n'est considéré comme supporté que lorsqu'il peut être testé de bout en bout sur du matériel réel. L'architecture reste extensible, mais la V2 active se concentre désormais sur ce qui peut être développé et validé sérieusement : **Android TV / Google TV Remote v2, multi-TV, UX, fiabilité et finalisation**.
