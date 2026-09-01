@@ -23,9 +23,7 @@ class RemotePacketParser(
     private var hasNotifiedConnected = false
 
     override suspend fun messageBufferReceived(buf: ByteArray) {
-        if (!currentCoroutineContext().isActive) {
-            return
-        }
+        if (!currentCoroutineContext().isActive) return
         if (buf.isEmpty()) {
             Timber.w("Tampon de message distant reçu vide, ignoré.")
             return
@@ -39,6 +37,8 @@ class RemotePacketParser(
             messagesChannel.close(e)
             return
         }
+
+        traceIncomingMessage(remoteMessage, buf)
 
         try {
             when {
@@ -117,6 +117,33 @@ class RemotePacketParser(
                 messagesChannel.close(e)
             }
         }
+    }
+
+    private fun traceIncomingMessage(message: Remotemessage.RemoteMessage, raw: ByteArray) {
+        val type = when {
+            message.hasRemoteConfigure() -> "RemoteConfigure"
+            message.hasRemoteSetActive() -> "RemoteSetActive"
+            message.hasRemoteError() -> "RemoteError"
+            message.hasRemotePingRequest() -> "RemotePingRequest"
+            message.hasRemotePingResponse() -> "RemotePingResponse"
+            message.hasRemoteKeyInject() -> "RemoteKeyInject"
+            message.hasRemoteImeKeyInject() -> "RemoteImeKeyInject"
+            message.hasRemoteImeBatchEdit() -> "RemoteImeBatchEdit"
+            message.hasRemoteImeShowRequest() -> "RemoteImeShowRequest"
+            message.hasRemoteVoiceBegin() -> "RemoteVoiceBegin"
+            message.hasRemoteVoicePayload() -> "RemoteVoicePayload"
+            message.hasRemoteVoiceEnd() -> "RemoteVoiceEnd"
+            message.hasRemoteStart() -> "RemoteStart"
+            message.hasRemoteSetVolumeLevel() -> "RemoteSetVolumeLevel"
+            message.hasRemoteAdjustVolumeLevel() -> "RemoteAdjustVolumeLevel"
+            message.hasRemoteSetPreferredAudioDevice() -> "RemoteSetPreferredAudioDevice"
+            message.hasRemoteResetPreferredAudioDevice() -> "RemoteResetPreferredAudioDevice"
+            message.hasRemoteAppLinkLaunchRequest() -> "RemoteAppLinkLaunchRequest"
+            else -> "INCONNU"
+        }
+        val hex = raw.joinToString(" ") { "%02X".format(it.toInt() and 0xFF) }
+        Timber.d("TV RX: type=%s, longueur=%d, hex=[%s]", type, raw.size, hex)
+        if (type == "INCONNU") Timber.w("TV RX message inconnu décodé: %s", message.toString().take(500))
     }
 
     private suspend fun sendToChannel(message: Remotemessage.RemoteMessage) {
