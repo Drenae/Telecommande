@@ -12,4 +12,17 @@ sealed class RemoteEvent {
         val muted: Boolean,
         val deviceName: String?
     ) : RemoteEvent()
+
+    /**
+     * Émis lorsque la TV ouvre un champ de saisie et demande un clavier distant.
+     * Les compteurs/positions viennent directement du protocole Android TV Remote v2
+     * et seront réutilisés pour synchroniser l'IME du téléphone avec celui de la TV.
+     */
+    data class TextInputRequested(
+        val value: String,
+        val selectionStart: Int,
+        val selectionEnd: Int,
+        val fieldCounter: Int,
+        val label: String?
+    ) : RemoteEvent()
 }
