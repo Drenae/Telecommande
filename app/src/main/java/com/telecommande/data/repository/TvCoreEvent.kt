@@ -10,4 +10,11 @@ sealed class TvCoreEvent {
     data class Error(val message: String) : TvCoreEvent()
     data class VolumeUpdated(val level: Int, val max: Int, val muted: Boolean) : TvCoreEvent()
     data class AppLinkLaunchSent(val appLink: String) : TvCoreEvent()
+    data class TextInputRequested(
+        val value: String,
+        val selectionStart: Int,
+        val selectionEnd: Int,
+        val fieldCounter: Int,
+        val label: String?
+    ) : TvCoreEvent()
 }
