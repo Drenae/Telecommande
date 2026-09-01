@@ -79,6 +79,28 @@ class RemotePacketParser(
                     )
                 }
 
+                remoteMessage.hasRemoteImeShowRequest() -> {
+                    val textField = remoteMessage.remoteImeShowRequest.remoteTextFieldStatus
+                    val label = textField.label.takeIf { it.isNotBlank() }
+                    Timber.i(
+                        "TV IME demandée : label=%s, valeur=%s, sélection=%d..%d, fieldCounter=%d",
+                        label ?: "<sans label>",
+                        textField.value,
+                        textField.start,
+                        textField.end,
+                        textField.counterField
+                    )
+                    eventFlow.emit(
+                        RemoteEvent.TextInputRequested(
+                            value = textField.value,
+                            selectionStart = textField.start,
+                            selectionEnd = textField.end,
+                            fieldCounter = textField.counterField,
+                            label = label
+                        )
+                    )
+                }
+
                 else -> sendToChannel(remoteMessage)
             }
         } catch (e: IOException) {
