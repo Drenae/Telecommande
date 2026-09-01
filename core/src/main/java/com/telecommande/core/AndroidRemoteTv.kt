@@ -82,6 +82,15 @@ class AndroidRemoteTv : BaseAndroidRemoteTv(), TvRemoteClient {
                     is RemoteEvent.Disconnected -> if (currentRemoteSession === newSession) { val wasConnected = _isConnected.value; _isConnected.value = false; if (wasConnected) _eventFlow.emit(AndroidTvEvent.Disconnected); cleanupRemoteSession(); clearConnectionTargetIf(host) }
                     is RemoteEvent.Error -> if (currentRemoteSession === newSession) { val wasConnected = _isConnected.value; _isConnected.value = false; if (wasConnected) _eventFlow.emit(AndroidTvEvent.Disconnected); _eventFlow.emit(AndroidTvEvent.Error("Erreur Remote Session: ${event.message}")); cleanupRemoteSession(); clearConnectionTargetIf(host) }
                     is RemoteEvent.VolumeStateChanged -> _eventFlow.emit(AndroidTvEvent.VolumeUpdated(event.level, event.max, event.muted))
+                    is RemoteEvent.TextInputRequested -> _eventFlow.emit(
+                        AndroidTvEvent.TextInputRequested(
+                            value = event.value,
+                            selectionStart = event.selectionStart,
+                            selectionEnd = event.selectionEnd,
+                            fieldCounter = event.fieldCounter,
+                            label = event.label
+                        )
+                    )
                 }
             }
         }
