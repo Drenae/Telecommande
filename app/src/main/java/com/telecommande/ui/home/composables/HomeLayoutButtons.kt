@@ -1,6 +1,7 @@
 package com.telecommande.ui.home.composables
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -31,14 +33,15 @@ import com.telecommande.ui.theme.HomeDpadButtonSpecs
 @Composable
 fun HomeBaseButton(
     onClick: () -> Unit,
-    icon: ImageVector,
+    vectorIcon: ImageVector? = null,
+    @DrawableRes drawableIconRes: Int? = null,
     contentDescription: String,
     modifier: Modifier = Modifier,
     size: Dp = HomeBaseButtonSpecs.DefaultSize,
     defaultBackgroundColorBrush: Brush = DefaultButtonColors.DefaultBackgroundBrush,
     pressedBackgroundColorBrush: Brush = DefaultButtonColors.PressedBackgroundBrush,
     shape: Shape = HomeBaseButtonSpecs.DefaultShape,
-    iconTint: Color,
+    iconTint: Color = Color.Unspecified,
     iconPadding: Dp = HomeBaseButtonSpecs.DefaultIconPadding,
     borderWidth: Dp = HomeBaseButtonSpecs.DefaultBorderWidth,
     borderColor: Color = DefaultButtonColors.DefaultBorder,
@@ -49,37 +52,23 @@ fun HomeBaseButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-
+    val scale by animateFloatAsState(if (isPressed) 0.92f else 1f, label = "remoteButtonScale")
     val currentElevation = if (isPressed) pressedElevation else defaultElevation
     val currentShadowColor = if (isPressed) pressedShadowColorDark else shadowColorDark
     val currentBackgroundBrush = if (isPressed) pressedBackgroundColorBrush else defaultBackgroundColorBrush
     val iconSize = size - (iconPadding * 2)
-    val pressedIconSize = iconSize - HomeBaseButtonSpecs.PressedIconReduction
 
-    IconButton(
-        onClick = onClick,
-        modifier = modifier.size(size),
-        interactionSource = interactionSource
-    ) {
+    IconButton(onClick = onClick, modifier = modifier.size(size), interactionSource = interactionSource) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(size)
-                .shadow(
-                    elevation = currentElevation,
-                    shape = shape,
-                    spotColor = currentShadowColor,
-                    ambientColor = currentShadowColor
-                )
-                .background(brush = currentBackgroundBrush, shape = shape)
-                .border(width = borderWidth, color = borderColor, shape = shape)
+                .scale(scale)
+                .shadow(currentElevation, shape, spotColor = currentShadowColor, ambientColor = currentShadowColor)
+                .background(currentBackgroundBrush, shape)
+                .border(borderWidth, borderColor, shape)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = contentDescription,
-                tint = iconTint,
-                modifier = Modifier.size(if (isPressed) pressedIconSize else iconSize)
-            )
+            RemoteArtwork(vectorIcon, drawableIconRes, contentDescription, iconTint, iconSize)
         }
     }
 }
@@ -87,23 +76,46 @@ fun HomeBaseButton(
 @Composable
 fun HomeDpadButton(
     onClick: () -> Unit,
-    icon: ImageVector,
+    vectorIcon: ImageVector? = null,
+    @DrawableRes drawableIconRes: Int? = null,
     contentDescription: String,
     modifier: Modifier = Modifier,
     size: Dp = HomeDpadButtonSpecs.DefaultSize,
-    iconTint: Color,
+    iconTint: Color = Color.Unspecified,
     iconPadding: Dp
 ) {
-    IconButton(
-        onClick = onClick,
-        modifier = modifier.size(size)
-    ) {
-        Icon(
-            imageVector = icon,
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (isPressed) 0.84f else 1f, label = "dpadButtonScale")
+    IconButton(onClick = onClick, modifier = modifier.size(size), interactionSource = interactionSource) {
+        Box(Modifier.size(size).scale(scale), contentAlignment = Alignment.Center) {
+            RemoteArtwork(vectorIcon, drawableIconRes, contentDescription, iconTint, size - (iconPadding * 2))
+        }
+    }
+}
+
+@Composable
+private fun RemoteArtwork(
+    vectorIcon: ImageVector?,
+    @DrawableRes drawableIconRes: Int?,
+    contentDescription: String,
+    tint: Color,
+    size: Dp
+) {
+    when {
+        drawableIconRes != null -> Icon(
+            painter = painterResource(drawableIconRes),
             contentDescription = contentDescription,
-            tint = iconTint,
-            modifier = Modifier.size(size - (iconPadding * 2))
+            tint = tint,
+            modifier = Modifier.size(size)
         )
+        vectorIcon != null -> Icon(
+            imageVector = vectorIcon,
+            contentDescription = contentDescription,
+            tint = tint,
+            modifier = Modifier.size(size)
+        )
+        else -> error("Aucun artwork fourni pour $contentDescription")
     }
 }
 
@@ -121,24 +133,17 @@ fun HomeAppButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-
+    val scale by animateFloatAsState(if (isPressed) 0.96f else 1f, label = "appButtonScale")
     val currentBackgroundBrush = if (isPressed) pressedBackgroundBrush else defaultBackgroundBrush
 
     Box(
         modifier = modifier
-            .background(brush = currentBackgroundBrush, shape = shape)
-            .clickable(
-                onClick = onClick,
-                interactionSource = interactionSource,
-                indication = null
-            ),
+            .scale(scale)
+            .background(currentBackgroundBrush, shape)
+            .border(HomeBaseButtonSpecs.DefaultBorderWidth, DefaultButtonColors.DefaultBorder, shape)
+            .clickable(onClick = onClick, interactionSource = interactionSource, indication = null),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            contentDescription = contentDescription,
-            tint = iconTint,
-            modifier = Modifier.size(iconSize)
-        )
+        Icon(painterResource(iconRes), contentDescription, tint = iconTint, modifier = Modifier.size(iconSize))
     }
 }
