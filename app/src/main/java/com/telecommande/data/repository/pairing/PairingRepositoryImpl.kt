@@ -33,6 +33,7 @@ class PairingRepositoryImpl @Inject constructor(
                 is CoreAndroidTvEvent.Connected -> null
                 is CoreAndroidTvEvent.VolumeUpdated -> null
                 is CoreAndroidTvEvent.AppLinkLaunchSent -> null
+                is CoreAndroidTvEvent.TextInputRequested -> null
             }
         }
         .filterNotNull()
