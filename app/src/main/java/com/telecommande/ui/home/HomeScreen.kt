@@ -1,6 +1,7 @@
 package com.telecommande.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,10 +37,7 @@ fun HomeScreen(
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
-            snackbarHostState.showSnackbar(
-                message = message,
-                duration = SnackbarDuration.Short
-            )
+            snackbarHostState.showSnackbar(message = message, duration = SnackbarDuration.Short)
             viewModel.clearSnackbarMessage()
         }
     }
@@ -50,9 +48,7 @@ fun HomeScreen(
                 message = "Appairage requis pour ${uiState.activeTvName ?: "la TV"}.",
                 duration = SnackbarDuration.Short
             )
-            navController.navigate(Screen.Settings.route) {
-                launchSingleTop = true
-            }
+            navController.navigate(Screen.Settings.route) { launchSingleTop = true }
             viewModel.consumePairingRequiredEvent()
         }
     }
@@ -70,7 +66,8 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = ScreenPaddings.Horizontal)
+                    .padding(horizontal = ScreenPaddings.Horizontal, vertical = ScreenPaddings.Horizontal / 2),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
                 HeaderSection(
                     title = uiState.activeTvName ?: "Télécommande",
@@ -78,15 +75,11 @@ fun HomeScreen(
                     isConnected = uiState.isConnected,
                     isLoading = uiState.isLoading,
                     modifier = Modifier.fillMaxWidth(),
-                    onStatusIndicatorClick = {
-                        navController.navigate(Screen.Settings.route)
-                    }
+                    onStatusIndicatorClick = { navController.navigate(Screen.Settings.route) }
                 )
 
                 ContentSection(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     onOkClick = viewModel::sendDpadCenterCommand,
                     onUpClick = viewModel::sendDpadUpCommand,
                     onDownClick = viewModel::sendDpadDownCommand,
