@@ -1,7 +1,16 @@
 package com.telecommande.ui.home.config
 
-import androidx.annotation.DrawableRes
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Apps
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -10,7 +19,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.telecommande.R
 import com.telecommande.ui.home.composables.HomeAppButton
 import com.telecommande.ui.home.composables.HomeBaseButton
 import com.telecommande.ui.home.composables.HomeDpadButton
@@ -27,10 +35,9 @@ data class HomeButtonConfig(
     val contentDescription: String,
     val baseType: HomeButtonType = HomeButtonType.BASE_REMOTE,
     val vectorIcon: ImageVector? = null,
-    @DrawableRes val drawableIconRes: Int? = null,
     val textLabel: String? = null,
     val size: Dp? = null,
-    val iconTint: Color = Color.Unspecified,
+    val iconTint: Color = Color.White,
     val iconPadding: Dp? = null,
     val appLauncherIconSize: Dp? = null,
     val defaultBackgroundColorBrush: Brush? = null,
@@ -45,95 +52,31 @@ data class HomeButtonConfig(
 )
 
 object HomeButtons {
-    val Power = remoteDrawable(R.drawable.ic_remote_power, "Power")
-    val Back = remoteDrawable(R.drawable.ic_remote_back, "Retour")
-    val Home = remoteDrawable(R.drawable.ic_remote_home, "Accueil")
+    val Power = remote(Icons.Rounded.PowerSettingsNew, "Power")
+    val Back = remote(Icons.AutoMirrored.Rounded.ArrowBack, "Retour")
+    val Home = remote(Icons.Rounded.Home, "Accueil")
+    val Ok = HomeButtonConfig("OK", textLabel = "OK", size = AppSpecificButtonSizes.OkButtonSize, iconTint = AppColors.accent, shape = CircleShape)
+    val Up = dpad(Icons.Rounded.KeyboardArrowUp, "Haut")
+    val Down = dpad(Icons.Rounded.KeyboardArrowDown, "Bas")
+    val Left = dpad(Icons.Rounded.KeyboardArrowLeft, "Gauche")
+    val Right = dpad(Icons.Rounded.KeyboardArrowRight, "Droite")
 
-    val Ok = HomeButtonConfig(
-        contentDescription = "OK",
-        textLabel = "OK",
-        size = AppSpecificButtonSizes.OkButtonSize,
-        iconTint = AppColors.accent
-    )
-    val Up = dpadDrawable(R.drawable.ic_remote_up, "Haut")
-    val Down = dpadDrawable(R.drawable.ic_remote_down, "Bas")
-    val Left = dpadDrawable(R.drawable.ic_remote_left, "Gauche")
-    val Right = dpadDrawable(R.drawable.ic_remote_right, "Droite")
+    // Material-only launcher artwork: no PNG/SVG application logos.
+    val Netflix = app("Lancer Netflix")
+    val YouTube = app("Lancer YouTube")
+    val Plex = app("Lancer Plex")
+    val Crunchyroll = app("Lancer Crunchyroll")
 
-    val Netflix = appButton(R.drawable.ic_app_netflix, "Lancer Netflix", 88.dp)
-    val YouTube = appButton(R.drawable.ic_app_youtube, "Lancer YouTube", 108.dp)
-    val Plex = appButton(R.drawable.ic_app_plex, "Lancer Plex", 68.dp)
-    val Crunchyroll = appButton(R.drawable.ic_app_crunchy, "Lancer Crunchyroll", 132.dp)
-
-    private fun remoteDrawable(@DrawableRes icon: Int, description: String, size: Dp? = null) = HomeButtonConfig(
-        drawableIconRes = icon,
-        contentDescription = description,
-        size = size,
-        iconTint = Color.Unspecified
-    )
-
-    private fun dpadDrawable(@DrawableRes icon: Int, description: String) = HomeButtonConfig(
-        drawableIconRes = icon,
-        contentDescription = description,
-        baseType = HomeButtonType.DPAD_REMOTE,
-        iconTint = Color.Unspecified
-    )
-
-    private fun appButton(@DrawableRes iconRes: Int, description: String, iconSize: Dp) = HomeButtonConfig(
-        drawableIconRes = iconRes,
-        contentDescription = description,
-        baseType = HomeButtonType.APP_LAUNCHER,
-        iconTint = Color.Unspecified,
-        shape = RoundedCornerShape(18.dp),
-        defaultBackgroundColorBrush = DefaultButtonColors.DefaultBackgroundBrush,
-        pressedBackgroundColorBrush = DefaultButtonColors.PressedBackgroundBrush,
-        appLauncherIconSize = iconSize
-    )
+    private fun remote(icon: ImageVector, description: String) = HomeButtonConfig(vectorIcon = icon, contentDescription = description)
+    private fun dpad(icon: ImageVector, description: String) = HomeButtonConfig(vectorIcon = icon, contentDescription = description, baseType = HomeButtonType.DPAD_REMOTE, iconTint = Color.White)
+    private fun app(description: String) = HomeButtonConfig(vectorIcon = Icons.Rounded.Apps, contentDescription = description, baseType = HomeButtonType.APP_LAUNCHER, iconTint = Color.White, shape = RoundedCornerShape(18.dp), defaultBackgroundColorBrush = DefaultButtonColors.DefaultBackgroundBrush, pressedBackgroundColorBrush = DefaultButtonColors.PressedBackgroundBrush, appLauncherIconSize = 34.dp)
 }
 
 @Composable
 fun ConfigurableHomeButton(config: HomeButtonConfig, onClick: () -> Unit, modifier: Modifier = Modifier) {
     when (config.baseType) {
-        HomeButtonType.BASE_REMOTE -> HomeBaseButton(
-            onClick = onClick,
-            vectorIcon = config.vectorIcon,
-            drawableIconRes = config.drawableIconRes,
-            textLabel = config.textLabel,
-            contentDescription = config.contentDescription,
-            modifier = modifier,
-            size = config.size ?: HomeBaseButtonSpecs.DefaultSize,
-            defaultBackgroundColorBrush = config.defaultBackgroundColorBrush ?: DefaultButtonColors.DefaultBackgroundBrush,
-            pressedBackgroundColorBrush = config.pressedBackgroundColorBrush ?: DefaultButtonColors.PressedBackgroundBrush,
-            shape = config.shape ?: HomeBaseButtonSpecs.DefaultShape,
-            iconTint = config.iconTint,
-            iconPadding = config.iconPadding ?: HomeBaseButtonSpecs.DefaultIconPadding,
-            borderWidth = config.borderWidth ?: HomeBaseButtonSpecs.DefaultBorderWidth,
-            borderColor = config.borderColor ?: DefaultButtonColors.DefaultBorder,
-            defaultElevation = config.defaultElevation ?: HomeBaseButtonSpecs.DefaultElevation,
-            pressedElevation = config.pressedElevation ?: HomeBaseButtonSpecs.PressedElevation,
-            shadowColorDark = config.shadowColorDark ?: DefaultButtonColors.DefaultShadowDark,
-            pressedShadowColorDark = config.pressedShadowColorDark ?: DefaultButtonColors.PressedShadowDark
-        )
-        HomeButtonType.DPAD_REMOTE -> HomeDpadButton(
-            onClick = onClick,
-            vectorIcon = config.vectorIcon,
-            drawableIconRes = config.drawableIconRes,
-            contentDescription = config.contentDescription,
-            modifier = modifier,
-            size = config.size ?: HomeDpadButtonSpecs.DefaultSize,
-            iconTint = config.iconTint,
-            iconPadding = config.iconPadding ?: 0.dp
-        )
-        HomeButtonType.APP_LAUNCHER -> HomeAppButton(
-            onClick = onClick,
-            iconRes = requireNotNull(config.drawableIconRes),
-            contentDescription = config.contentDescription,
-            modifier = modifier,
-            shape = config.shape ?: HomeAppButtonSpecs.DefaultShape,
-            defaultBackgroundBrush = config.defaultBackgroundColorBrush ?: HomeAppButtonSpecs.DefaultBackgroundBrush,
-            pressedBackgroundBrush = config.pressedBackgroundColorBrush ?: HomeAppButtonSpecs.PressedBackgroundBrush,
-            iconTint = config.iconTint,
-            iconSize = config.appLauncherIconSize ?: HomeAppButtonSpecs.DefaultIconSize
-        )
+        HomeButtonType.BASE_REMOTE -> HomeBaseButton(onClick, config.vectorIcon, null, config.textLabel, config.contentDescription, modifier, config.size ?: HomeBaseButtonSpecs.DefaultSize, config.defaultBackgroundColorBrush ?: DefaultButtonColors.DefaultBackgroundBrush, config.pressedBackgroundColorBrush ?: DefaultButtonColors.PressedBackgroundBrush, config.shape ?: HomeBaseButtonSpecs.DefaultShape, config.iconTint, config.iconPadding ?: HomeBaseButtonSpecs.DefaultIconPadding, config.borderWidth ?: HomeBaseButtonSpecs.DefaultBorderWidth, config.borderColor ?: DefaultButtonColors.DefaultBorder, config.defaultElevation ?: HomeBaseButtonSpecs.DefaultElevation, config.pressedElevation ?: HomeBaseButtonSpecs.PressedElevation, config.shadowColorDark ?: DefaultButtonColors.DefaultShadowDark, config.pressedShadowColorDark ?: DefaultButtonColors.PressedShadowDark)
+        HomeButtonType.DPAD_REMOTE -> HomeDpadButton(onClick, config.vectorIcon, null, config.contentDescription, modifier, config.size ?: HomeDpadButtonSpecs.DefaultSize, config.iconTint, config.iconPadding ?: 0.dp)
+        HomeButtonType.APP_LAUNCHER -> HomeAppButton(onClick, requireNotNull(config.vectorIcon), config.contentDescription, modifier, config.shape ?: HomeAppButtonSpecs.DefaultShape, config.defaultBackgroundColorBrush ?: HomeAppButtonSpecs.DefaultBackgroundBrush, config.pressedBackgroundColorBrush ?: HomeAppButtonSpecs.PressedBackgroundBrush, config.iconTint, config.appLauncherIconSize ?: HomeAppButtonSpecs.DefaultIconSize)
     }
 }
