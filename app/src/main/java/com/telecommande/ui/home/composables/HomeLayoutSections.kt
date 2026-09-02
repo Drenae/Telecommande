@@ -76,7 +76,7 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
             Row(horizontalArrangement = Arrangement.spacedBy(44.dp)) { NavPill(Icons.AutoMirrored.Rounded.ArrowBack,"RETOUR",onBackClick); NavPill(Icons.Rounded.Home,"ACCUEIL",onHomeClick) }
             Spacer(Modifier.height(10.dp))
             VolumeControl(volumeLevel,volumeMax,isMuted,onVolumeUpClick,onVolumeDownClick,onMuteClick,compact)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(22.dp))
             MediaControls(onRewindClick,onPlayPauseClick,onStopClick,onFastForwardClick,compact)
         }
     }
@@ -94,14 +94,7 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
             Row(Modifier.fillMaxWidth().padding(horizontal=4.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text("VOLUME",color=Color(0xFF9AA7B1),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold);Text("$volumeLevel",color=Cyan,fontWeight=FontWeight.Bold,style=MaterialTheme.typography.labelLarge)}
             Spacer(Modifier.height(3.dp))
             Box(Modifier.fillMaxWidth().height(38.dp).shadow(7.dp,RoundedCornerShape(19.dp)).background(Brush.horizontalGradient(listOf(Color(0xFF0D141B),Color(0xFF111C24))),RoundedCornerShape(19.dp)).border(1.dp,Rim.copy(alpha=.85f),RoundedCornerShape(19.dp)).padding(horizontal=7.dp),contentAlignment=Alignment.Center){
-                Slider(
-                    value=pos,
-                    onValueChange={pos=it},
-                    onValueChangeFinished={val target=pos.roundToInt().coerceIn(0,max);val diff=target-volumeLevel;if(diff>0)repeat(diff){onVolumeUpClick()}else if(diff<0)repeat(-diff){onVolumeDownClick()}},
-                    valueRange=0f..max.toFloat(),steps=0,modifier=Modifier.fillMaxWidth(),
-                    colors=SliderDefaults.colors(activeTrackColor=Cyan,inactiveTrackColor=Color(0xFF24323D),activeTickColor=Color.Transparent,inactiveTickColor=Color.Transparent),
-                    thumb={Box(Modifier.size(22.dp).shadow(7.dp,CircleShape).background(Brush.radialGradient(listOf(Color.White,Cyan)),CircleShape).border(2.dp,Color(0xFFB9F4FF),CircleShape))}
-                )
+                Slider(value=pos,onValueChange={pos=it},onValueChangeFinished={val target=pos.roundToInt().coerceIn(0,max);val diff=target-volumeLevel;if(diff>0)repeat(diff){onVolumeUpClick()}else if(diff<0)repeat(-diff){onVolumeDownClick()}},valueRange=0f..max.toFloat(),steps=0,modifier=Modifier.fillMaxWidth(),colors=SliderDefaults.colors(activeTrackColor=Cyan,inactiveTrackColor=Color(0xFF24323D),activeTickColor=Color.Transparent,inactiveTickColor=Color.Transparent),thumb={Box(Modifier.size(22.dp).shadow(7.dp,CircleShape).background(Brush.radialGradient(listOf(Color.White,Cyan)),CircleShape).border(2.dp,Color(0xFFB9F4FF),CircleShape))})
             }
         }
         PremiumCircle(if(isMuted)Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp,"Muet",48.dp,onMuteClick)
