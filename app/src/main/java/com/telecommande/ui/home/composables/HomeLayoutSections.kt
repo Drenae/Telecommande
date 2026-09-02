@@ -65,10 +65,10 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
             ConstraintLayout(Modifier.size(dpad).shadow(18.dp, CircleShape).background(Brush.radialGradient(listOf(Color(0xFF1B2630), Deep)), CircleShape).border(2.dp, Rim, CircleShape)) {
                 val (ok,u,d,l,r)=createRefs()
                 PremiumCircle(Icons.Rounded.Check, "OK", dpad*.31f, onOkClick, Modifier.constrainAs(ok){centerTo(parent)}, Cyan)
-                DpadIcon(Icons.Rounded.KeyboardArrowUp,"Haut",dpad*.23f,onUpClick,Modifier.constrainAs(u){top.linkTo(parent.top,10.dp);start.linkTo(parent.start);end.linkTo(parent.end)})
-                DpadIcon(Icons.Rounded.KeyboardArrowDown,"Bas",dpad*.23f,onDownClick,Modifier.constrainAs(d){bottom.linkTo(parent.bottom,10.dp);start.linkTo(parent.start);end.linkTo(parent.end)})
-                DpadIcon(Icons.Rounded.KeyboardArrowLeft,"Gauche",dpad*.23f,onLeftClick,Modifier.constrainAs(l){start.linkTo(parent.start,10.dp);top.linkTo(parent.top);bottom.linkTo(parent.bottom)})
-                DpadIcon(Icons.Rounded.KeyboardArrowRight,"Droite",dpad*.23f,onRightClick,Modifier.constrainAs(r){end.linkTo(parent.end,10.dp);top.linkTo(parent.top);bottom.linkTo(parent.bottom)})
+                DpadIcon(Icons.Rounded.KeyboardArrowUp,"Haut",dpad*.32f,onUpClick,Modifier.constrainAs(u){top.linkTo(parent.top,2.dp);start.linkTo(parent.start);end.linkTo(parent.end)})
+                DpadIcon(Icons.Rounded.KeyboardArrowDown,"Bas",dpad*.32f,onDownClick,Modifier.constrainAs(d){bottom.linkTo(parent.bottom,2.dp);start.linkTo(parent.start);end.linkTo(parent.end)})
+                DpadIcon(Icons.Rounded.KeyboardArrowLeft,"Gauche",dpad*.32f,onLeftClick,Modifier.constrainAs(l){start.linkTo(parent.start,2.dp);top.linkTo(parent.top);bottom.linkTo(parent.bottom)})
+                DpadIcon(Icons.Rounded.KeyboardArrowRight,"Droite",dpad*.32f,onRightClick,Modifier.constrainAs(r){end.linkTo(parent.end,2.dp);top.linkTo(parent.top);bottom.linkTo(parent.bottom)})
             }
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(44.dp)) {
@@ -83,7 +83,11 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
     }
 }
 
-@Composable private fun DpadIcon(icon: ImageVector, desc:String,size:Dp,onClick:()->Unit,modifier:Modifier=Modifier){ IconButton(onClick = onClick, modifier = modifier.size(size)){Icon(icon,desc,tint=Color.White,modifier=Modifier.size(size*.72f))} }
+@Composable private fun DpadIcon(icon: ImageVector, desc:String,size:Dp,onClick:()->Unit,modifier:Modifier=Modifier){
+    IconButton(onClick = onClick, modifier = modifier.size(size)){
+        Icon(icon,desc,tint=Color.White,modifier=Modifier.size(size*.50f))
+    }
+}
 
 @Composable private fun PremiumCircle(icon:ImageVector,desc:String,size:Dp,onClick:()->Unit,modifier:Modifier=Modifier,tint:Color=Color.White){
     Box(modifier.size(size).shadow(10.dp,CircleShape).background(Brush.radialGradient(listOf(Color(0xFF1A232C),Deep)),CircleShape).border(1.dp,Rim,CircleShape).clickable(onClick=onClick),contentAlignment=Alignment.Center){Icon(icon,desc,tint=tint,modifier=Modifier.size(size*.48f))}
@@ -94,12 +98,35 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
 }
 
 @Composable private fun VolumeControl(volumeLevel:Int,volumeMax:Int,isMuted:Boolean,onVolumeUpClick:()->Unit,onVolumeDownClick:()->Unit,onMuteClick:()->Unit,compact:Boolean){
-    val max=volumeMax.takeIf{it>0}?:100;var pos by remember(volumeLevel){mutableStateOf(volumeLevel.toFloat())}
-    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){PremiumCircle(Icons.AutoMirrored.Rounded.VolumeUp,"Volume",48.dp,onVolumeUpClick);Column(Modifier.weight(1f).padding(horizontal=8.dp)){Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Text("VOLUME",color=Color(0xFF9AA7B1),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold);Text("$volumeLevel",color=Cyan,fontWeight=FontWeight.Bold)};Slider(value=pos,onValueChange={pos=it},onValueChangeFinished={val target=pos.roundToInt().coerceIn(0,max);val diff=target-volumeLevel;if(diff>0)repeat(diff){onVolumeUpClick()}else if(diff<0)repeat(-diff){onVolumeDownClick()}},valueRange=0f..max.toFloat(),steps=if(max>0)max-1 else 0,colors=SliderDefaults.colors(thumbColor=Color.White,activeTrackColor=Cyan,inactiveTrackColor=DefaultButtonColors.DefaultBackgroundStart,activeTickColor=Color.Transparent,inactiveTickColor=Color.Transparent))};PremiumCircle(if(isMuted)Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp,"Muet",48.dp,onMuteClick)}
+    val max=volumeMax.takeIf{it>0}?:100
+    var pos by remember(volumeLevel){mutableStateOf(volumeLevel.toFloat())}
+    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+        Column(Modifier.weight(1f).padding(start=4.dp,end=10.dp)){
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){
+                Text("VOLUME",color=Color(0xFF9AA7B1),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold)
+                Text("$volumeLevel",color=Cyan,fontWeight=FontWeight.Bold)
+            }
+            Slider(value=pos,onValueChange={pos=it},onValueChangeFinished={val target=pos.roundToInt().coerceIn(0,max);val diff=target-volumeLevel;if(diff>0)repeat(diff){onVolumeUpClick()}else if(diff<0)repeat(-diff){onVolumeDownClick()}},valueRange=0f..max.toFloat(),steps=if(max>0)max-1 else 0,colors=SliderDefaults.colors(thumbColor=Color.White,activeTrackColor=Cyan,inactiveTrackColor=DefaultButtonColors.DefaultBackgroundStart,activeTickColor=Color.Transparent,inactiveTickColor=Color.Transparent))
+        }
+        PremiumCircle(if(isMuted)Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp,"Muet",48.dp,onMuteClick)
+    }
 }
 
-@Composable private fun MediaControls(rew:()->Unit,play:()->Unit,stop:()->Unit,ff:()->Unit,compact:Boolean){Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly){Media(Icons.Rounded.FastRewind,"RETOUR RAPIDE",rew);Media(Icons.Rounded.PlayArrow,"LECTURE / PAUSE",play);Media(Icons.Rounded.Stop,"STOP",stop);Media(Icons.Rounded.FastForward,"AVANCE RAPIDE",ff)}}
-@Composable private fun Media(icon:ImageVector,label:String,onClick:()->Unit){Column(horizontalAlignment=Alignment.CenterHorizontally){PremiumCircle(icon,label,54.dp,onClick,tint=Color.White);Spacer(Modifier.height(4.dp));Text(label,color=Color(0xFF9AA7B1),style=MaterialTheme.typography.labelSmall,textAlign=TextAlign.Center,maxLines=1)}}
+@Composable private fun MediaControls(rew:()->Unit,play:()->Unit,stop:()->Unit,ff:()->Unit,compact:Boolean){
+    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly){
+        Media(Icons.Rounded.FastRewind,"RETOUR RAPIDE",rew)
+        Media(Icons.Rounded.PlayArrow,"LECTURE / PAUSE",play)
+        Media(Icons.Rounded.Stop,"STOP",stop)
+        Media(Icons.Rounded.FastForward,"AVANCE RAPIDE",ff)
+    }
+}
+@Composable private fun Media(icon:ImageVector,label:String,onClick:()->Unit){
+    Column(horizontalAlignment=Alignment.CenterHorizontally){
+        PremiumCircle(icon,label,62.dp,onClick,tint=Color.White)
+        Spacer(Modifier.height(4.dp))
+        Text(label,color=Color(0xFF9AA7B1),style=MaterialTheme.typography.labelSmall,textAlign=TextAlign.Center,maxLines=1)
+    }
+}
 
 @Composable
 fun FooterSection(modifier:Modifier=Modifier,onLaunchNetflix:()->Unit,onLaunchYouTube:()->Unit,onLaunchPlex:()->Unit,onLaunchCrunchyroll:()->Unit){
