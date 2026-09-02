@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.VolumeOff
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.*
@@ -23,9 +24,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import com.telecommande.ui.home.config.ConfigurableHomeButton
-import com.telecommande.ui.home.config.HomeButtons
-import com.telecommande.ui.theme.AppSliderColors
 import com.telecommande.ui.theme.DefaultButtonColors
 import kotlin.math.roundToInt
 
@@ -85,7 +83,7 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
     }
 }
 
-@Composable private fun DpadIcon(icon: ImageVector, desc:String,size:Dp,onClick:()->Unit,modifier:Modifier=Modifier){ IconButton(onClick,modifier.size(size)){Icon(icon,desc,tint=Color.White,modifier=Modifier.size(size*.72f))} }
+@Composable private fun DpadIcon(icon: ImageVector, desc:String,size:Dp,onClick:()->Unit,modifier:Modifier=Modifier){ IconButton(onClick = onClick, modifier = modifier.size(size)){Icon(icon,desc,tint=Color.White,modifier=Modifier.size(size*.72f))} }
 
 @Composable private fun PremiumCircle(icon:ImageVector,desc:String,size:Dp,onClick:()->Unit,modifier:Modifier=Modifier,tint:Color=Color.White){
     Box(modifier.size(size).shadow(10.dp,CircleShape).background(Brush.radialGradient(listOf(Color(0xFF1A232C),Deep)),CircleShape).border(1.dp,Rim,CircleShape).clickable(onClick=onClick),contentAlignment=Alignment.Center){Icon(icon,desc,tint=tint,modifier=Modifier.size(size*.48f))}
@@ -97,7 +95,7 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
 
 @Composable private fun VolumeControl(volumeLevel:Int,volumeMax:Int,isMuted:Boolean,onVolumeUpClick:()->Unit,onVolumeDownClick:()->Unit,onMuteClick:()->Unit,compact:Boolean){
     val max=volumeMax.takeIf{it>0}?:100;var pos by remember(volumeLevel){mutableStateOf(volumeLevel.toFloat())}
-    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){PremiumCircle(Icons.AutoMirrored.Rounded.VolumeUp,"Volume",48.dp,onVolumeUpClick);Column(Modifier.weight(1f).padding(horizontal=8.dp)){Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Text("VOLUME",color=Color(0xFF9AA7B1),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold);Text("$volumeLevel",color=Cyan,fontWeight=FontWeight.Bold)};Slider(pos,{pos=it},{val target=pos.roundToInt().coerceIn(0,max);val diff=target-volumeLevel;if(diff>0)repeat(diff){onVolumeUpClick()}else if(diff<0)repeat(-diff){onVolumeDownClick()}},valueRange=0f..max.toFloat(),steps=if(max>0)max-1 else 0,colors=SliderDefaults.colors(thumbColor=Color.White,activeTrackColor=Cyan,inactiveTrackColor=DefaultButtonColors.DefaultBackgroundStart,activeTickColor=Color.Transparent,inactiveTickColor=Color.Transparent))};PremiumCircle(if(isMuted)Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp,"Muet",48.dp,onMuteClick)}
+    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){PremiumCircle(Icons.AutoMirrored.Rounded.VolumeUp,"Volume",48.dp,onVolumeUpClick);Column(Modifier.weight(1f).padding(horizontal=8.dp)){Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Text("VOLUME",color=Color(0xFF9AA7B1),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold);Text("$volumeLevel",color=Cyan,fontWeight=FontWeight.Bold)};Slider(value=pos,onValueChange={pos=it},onValueChangeFinished={val target=pos.roundToInt().coerceIn(0,max);val diff=target-volumeLevel;if(diff>0)repeat(diff){onVolumeUpClick()}else if(diff<0)repeat(-diff){onVolumeDownClick()}},valueRange=0f..max.toFloat(),steps=if(max>0)max-1 else 0,colors=SliderDefaults.colors(thumbColor=Color.White,activeTrackColor=Cyan,inactiveTrackColor=DefaultButtonColors.DefaultBackgroundStart,activeTickColor=Color.Transparent,inactiveTickColor=Color.Transparent))};PremiumCircle(if(isMuted)Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp,"Muet",48.dp,onMuteClick)}
 }
 
 @Composable private fun MediaControls(rew:()->Unit,play:()->Unit,stop:()->Unit,ff:()->Unit,compact:Boolean){Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly){Media(Icons.Rounded.FastRewind,"RETOUR RAPIDE",rew);Media(Icons.Rounded.PlayArrow,"LECTURE / PAUSE",play,true);Media(Icons.Rounded.Stop,"STOP",stop);Media(Icons.Rounded.FastForward,"AVANCE RAPIDE",ff)}}
