@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.telecommande.ui.theme.DefaultButtonColors
 import kotlin.math.roundToInt
@@ -102,11 +103,41 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
     var pos by remember(volumeLevel){mutableStateOf(volumeLevel.toFloat())}
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
         Column(Modifier.weight(1f).padding(start=4.dp,end=10.dp)){
-            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){
+            Row(Modifier.fillMaxWidth().padding(horizontal=4.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
                 Text("VOLUME",color=Color(0xFF9AA7B1),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold)
-                Text("$volumeLevel",color=Cyan,fontWeight=FontWeight.Bold)
+                Text("$volumeLevel",color=Cyan,fontWeight=FontWeight.Bold,style=MaterialTheme.typography.labelLarge)
             }
-            Slider(value=pos,onValueChange={pos=it},onValueChangeFinished={val target=pos.roundToInt().coerceIn(0,max);val diff=target-volumeLevel;if(diff>0)repeat(diff){onVolumeUpClick()}else if(diff<0)repeat(-diff){onVolumeDownClick()}},valueRange=0f..max.toFloat(),steps=if(max>0)max-1 else 0,colors=SliderDefaults.colors(thumbColor=Color.White,activeTrackColor=Cyan,inactiveTrackColor=DefaultButtonColors.DefaultBackgroundStart,activeTickColor=Color.Transparent,inactiveTickColor=Color.Transparent))
+            Spacer(Modifier.height(3.dp))
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(34.dp)
+                    .shadow(7.dp, RoundedCornerShape(17.dp))
+                    .background(Brush.horizontalGradient(listOf(Color(0xFF0D141B), Color(0xFF111C24))), RoundedCornerShape(17.dp))
+                    .border(1.dp, Rim.copy(alpha=.85f), RoundedCornerShape(17.dp))
+                    .padding(horizontal=7.dp),
+                contentAlignment=Alignment.Center
+            ){
+                Slider(
+                    value=pos,
+                    onValueChange={pos=it},
+                    onValueChangeFinished={
+                        val target=pos.roundToInt().coerceIn(0,max)
+                        val diff=target-volumeLevel
+                        if(diff>0)repeat(diff){onVolumeUpClick()}else if(diff<0)repeat(-diff){onVolumeDownClick()}
+                    },
+                    valueRange=0f..max.toFloat(),
+                    steps=0,
+                    modifier=Modifier.fillMaxWidth(),
+                    colors=SliderDefaults.colors(
+                        thumbColor=Color.White,
+                        activeTrackColor=Cyan,
+                        inactiveTrackColor=Color(0xFF24323D),
+                        activeTickColor=Color.Transparent,
+                        inactiveTickColor=Color.Transparent
+                    )
+                )
+            }
         }
         PremiumCircle(if(isMuted)Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp,"Muet",48.dp,onMuteClick)
     }
@@ -130,6 +161,46 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
 
 @Composable
 fun FooterSection(modifier:Modifier=Modifier,onLaunchNetflix:()->Unit,onLaunchYouTube:()->Unit,onLaunchPlex:()->Unit,onLaunchCrunchyroll:()->Unit){
-    Column(modifier.fillMaxWidth().padding(top=10.dp,bottom=10.dp),verticalArrangement=Arrangement.spacedBy(9.dp)){Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(9.dp)){AppTile("NETFLIX",Color(0xFFE50914),Icons.Rounded.Movie,onLaunchNetflix,Modifier.weight(1f));AppTile("YOUTUBE",Color(0xFFFF0033),Icons.Rounded.PlayCircle,onLaunchYouTube,Modifier.weight(1f))};Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(9.dp)){AppTile("PLEX",Color(0xFFE5A900),Icons.Rounded.VideoLibrary,onLaunchPlex,Modifier.weight(1f));AppTile("CRUNCHYROLL",Color(0xFFFF7A00),Icons.Rounded.LiveTv,onLaunchCrunchyroll,Modifier.weight(1f))}}
+    Column(modifier.fillMaxWidth().padding(top=10.dp,bottom=10.dp),verticalArrangement=Arrangement.spacedBy(9.dp)){
+        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(9.dp)){
+            AppTile("NETFLIX",Color(0xFFE50914),"N",onLaunchNetflix,Modifier.weight(1f))
+            AppTile("YOUTUBE",Color(0xFFFF0033),"▶",onLaunchYouTube,Modifier.weight(1f))
+        }
+        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(9.dp)){
+            AppTile("PLEX",Color(0xFFE5A900),"›",onLaunchPlex,Modifier.weight(1f))
+            AppTile("CRUNCHYROLL",Color(0xFFFF7A00),"C",onLaunchCrunchyroll,Modifier.weight(1f))
+        }
+    }
 }
-@Composable private fun AppTile(label:String,accent:Color,icon:ImageVector,onClick:()->Unit,modifier:Modifier=Modifier){Row(modifier.height(62.dp).shadow(7.dp,RoundedCornerShape(16.dp)).background(Brush.horizontalGradient(listOf(Color(0xFF121820),Deep)),RoundedCornerShape(16.dp)).border(1.dp,accent.copy(alpha=.75f),RoundedCornerShape(16.dp)).clickable(onClick=onClick),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.Center){Icon(icon,label,tint=accent,modifier=Modifier.size(27.dp));Spacer(Modifier.width(8.dp));Text(label,color=Color.White,fontWeight=FontWeight.Bold,style=MaterialTheme.typography.labelLarge)}}
+
+@Composable
+private fun AppTile(label:String,accent:Color,mark:String,onClick:()->Unit,modifier:Modifier=Modifier){
+    Row(
+        modifier
+            .height(66.dp)
+            .shadow(8.dp,RoundedCornerShape(17.dp))
+            .background(Brush.horizontalGradient(listOf(Color(0xFF121820),Deep)),RoundedCornerShape(17.dp))
+            .border(1.dp,accent.copy(alpha=.78f),RoundedCornerShape(17.dp))
+            .clickable(onClick=onClick)
+            .padding(horizontal=14.dp),
+        verticalAlignment=Alignment.CenterVertically
+    ){
+        Box(
+            Modifier
+                .size(40.dp)
+                .background(accent.copy(alpha=.10f),RoundedCornerShape(12.dp))
+                .border(1.dp,accent.copy(alpha=.42f),RoundedCornerShape(12.dp)),
+            contentAlignment=Alignment.Center
+        ){
+            Text(
+                text=mark,
+                color=accent,
+                fontSize=24.sp,
+                fontWeight=FontWeight.Black,
+                textAlign=TextAlign.Center
+            )
+        }
+        Spacer(Modifier.width(11.dp))
+        Text(label,color=Color.White,fontWeight=FontWeight.Bold,style=MaterialTheme.typography.labelLarge,maxLines=1)
+    }
+}
