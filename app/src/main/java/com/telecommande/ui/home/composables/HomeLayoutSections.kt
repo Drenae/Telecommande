@@ -3,6 +3,8 @@
 
 package com.telecommande.ui.home.composables
 
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,12 +24,13 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import com.telecommande.R
 import kotlin.math.roundToInt
 
 private val Cyan = Color(0xFF19D7FF)
@@ -77,7 +80,13 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
                 DpadIcon(Icons.Rounded.KeyboardArrowRight,"Droite",dpad*.32f,onRightClick,Modifier.constrainAs(r){end.linkTo(parent.end,2.dp);top.linkTo(parent.top);bottom.linkTo(parent.bottom)})
             }
             Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(44.dp)) { NavPill(Icons.AutoMirrored.Rounded.ArrowBack,"RETOUR",onBackClick); NavPill(Icons.Rounded.Home,"ACCUEIL",onHomeClick) }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                NavPill(Icons.AutoMirrored.Rounded.ArrowBack,"RETOUR",onBackClick)
+                NavPill(Icons.Rounded.Home,"ACCUEIL",onHomeClick)
+            }
             Spacer(Modifier.height(10.dp))
             VolumeControl(volumeLevel,volumeMax,isMuted,onVolumeUpClick,onVolumeDownClick,onMuteClick)
             Spacer(Modifier.height(22.dp))
@@ -91,13 +100,67 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
 @Composable private fun NavPill(icon:ImageVector,label:String,onClick:()->Unit){ Column(horizontalAlignment=Alignment.CenterHorizontally){Box(Modifier.width(92.dp).height(52.dp).shadow(12.dp,RoundedCornerShape(26.dp)).background(Brush.linearGradient(listOf(RaisedTop, RaisedMid, RaisedBottom)),RoundedCornerShape(26.dp)).border(1.dp,ButtonRim,RoundedCornerShape(26.dp)).clickable(onClick=onClick),contentAlignment=Alignment.Center){Icon(icon,label,tint=Color.White,modifier=Modifier.size(26.dp))};Spacer(Modifier.height(4.dp));Text(label,color=Color(0xFFB9C4CC),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold)} }
 
 @Composable private fun VolumeControl(volumeLevel:Int,volumeMax:Int,isMuted:Boolean,onVolumeUpClick:()->Unit,onVolumeDownClick:()->Unit,onMuteClick:()->Unit){
-    val max=volumeMax.takeIf{it>0}?:100; var pos by remember(volumeLevel){mutableStateOf(volumeLevel.toFloat())}
-    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f).padding(start=4.dp,end=10.dp)){Row(Modifier.fillMaxWidth().padding(horizontal=4.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text("VOLUME",color=Color(0xFF9AA7B1),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold);Text("$volumeLevel",color=Cyan,fontWeight=FontWeight.Bold,style=MaterialTheme.typography.labelLarge)};Spacer(Modifier.height(3.dp));Box(Modifier.fillMaxWidth().height(38.dp).shadow(7.dp,RoundedCornerShape(19.dp)).background(Brush.horizontalGradient(listOf(Color(0xFF0D141B),Color(0xFF111C24))),RoundedCornerShape(19.dp)).border(1.dp,Rim,RoundedCornerShape(19.dp)).padding(horizontal=7.dp),contentAlignment=Alignment.Center){Slider(value=pos,onValueChange={pos=it},onValueChangeFinished={val target=pos.roundToInt().coerceIn(0,max);val diff=target-volumeLevel;if(diff>0)repeat(diff){onVolumeUpClick()}else if(diff<0)repeat(-diff){onVolumeDownClick()}},valueRange=0f..max.toFloat(),steps=0,modifier=Modifier.fillMaxWidth(),colors=SliderDefaults.colors(activeTrackColor=Cyan,inactiveTrackColor=Color(0xFF24323D),activeTickColor=Color.Transparent,inactiveTickColor=Color.Transparent),thumb={Box(Modifier.size(22.dp).shadow(7.dp,CircleShape).background(Brush.radialGradient(listOf(Color.White,Cyan)),CircleShape).border(2.dp,Color(0xFF6CC9DA),CircleShape))})}};PremiumCircle(if(isMuted)Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp,"Muet",48.dp,onMuteClick)}
+    val max=volumeMax.takeIf{it>0}?:100
+    var pos by remember(volumeLevel){mutableStateOf(volumeLevel.toFloat())}
+    Row(Modifier.fillMaxWidth(), verticalAlignment=Alignment.Top){
+        Column(Modifier.weight(1f).padding(start=4.dp,end=10.dp)){
+            Row(Modifier.fillMaxWidth().padding(horizontal=4.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
+                Text("VOLUME",color=Color(0xFF9AA7B1),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold)
+                Text("$volumeLevel",color=Cyan,fontWeight=FontWeight.Bold,style=MaterialTheme.typography.labelLarge)
+            }
+            Spacer(Modifier.height(3.dp))
+            Box(Modifier.fillMaxWidth().height(38.dp).shadow(7.dp,RoundedCornerShape(19.dp)).background(Brush.horizontalGradient(listOf(Color(0xFF0D141B),Color(0xFF111C24))),RoundedCornerShape(19.dp)).border(1.dp,Rim,RoundedCornerShape(19.dp)).padding(horizontal=7.dp),contentAlignment=Alignment.Center){
+                Slider(value=pos,onValueChange={pos=it},onValueChangeFinished={val target=pos.roundToInt().coerceIn(0,max);val diff=target-volumeLevel;if(diff>0)repeat(diff){onVolumeUpClick()}else if(diff<0)repeat(-diff){onVolumeDownClick()}},valueRange=0f..max.toFloat(),steps=0,modifier=Modifier.fillMaxWidth(),colors=SliderDefaults.colors(activeTrackColor=Cyan,inactiveTrackColor=Color(0xFF24323D),activeTickColor=Color.Transparent,inactiveTickColor=Color.Transparent),thumb={Box(Modifier.size(22.dp).shadow(7.dp,CircleShape).background(Brush.radialGradient(listOf(Color.White,Cyan)),CircleShape).border(2.dp,Color(0xFF6CC9DA),CircleShape))})
+            }
+        }
+        PremiumCircle(
+            icon = if(isMuted) Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp,
+            desc = "Muet",
+            size = 48.dp,
+            onClick = onMuteClick,
+            modifier = Modifier.padding(top = 20.dp)
+        )
+    }
 }
 
 @Composable private fun MediaControls(rew:()->Unit,play:()->Unit,stop:()->Unit,ff:()->Unit){ Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly){Media(Icons.Rounded.FastRewind,"RETOUR RAPIDE",rew);Media(Icons.Rounded.PlayArrow,"LECTURE / PAUSE",play);Media(Icons.Rounded.Stop,"STOP",stop);Media(Icons.Rounded.FastForward,"AVANCE RAPIDE",ff)} }
 @Composable private fun Media(icon:ImageVector,label:String,onClick:()->Unit){ Column(horizontalAlignment=Alignment.CenterHorizontally){PremiumCircle(icon,label,62.dp,onClick,tint=Color.White);Spacer(Modifier.height(4.dp));Text(label,color=Color(0xFF9AA7B1),style=MaterialTheme.typography.labelSmall,textAlign=TextAlign.Center,maxLines=1)} }
 
 @Composable
-fun FooterSection(modifier:Modifier=Modifier,onLaunchNetflix:()->Unit,onLaunchYouTube:()->Unit,onLaunchPlex:()->Unit,onLaunchCrunchyroll:()->Unit){ Column(modifier.fillMaxWidth().padding(top=10.dp,bottom=10.dp),verticalArrangement=Arrangement.spacedBy(9.dp)){Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(9.dp)){AppTile("NETFLIX",Color(0xFFE50914),"N",onLaunchNetflix,Modifier.weight(1f));AppTile("YOUTUBE",Color(0xFFFF0033),"▶",onLaunchYouTube,Modifier.weight(1f))};Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(9.dp)){AppTile("PLEX",Color(0xFFE5A900),"›",onLaunchPlex,Modifier.weight(1f));AppTile("CRUNCHYROLL",Color(0xFFFF7A00),"C",onLaunchCrunchyroll,Modifier.weight(1f))}} }
-@Composable private fun AppTile(label:String,accent:Color,mark:String,onClick:()->Unit,modifier:Modifier=Modifier){ Row(modifier.height(66.dp).shadow(12.dp,RoundedCornerShape(17.dp)).background(Brush.linearGradient(listOf(Color(0xFF202B34),Color(0xFF111820),Deep)),RoundedCornerShape(17.dp)).border(1.dp,accent.copy(alpha=.48f),RoundedCornerShape(17.dp)).clickable(onClick=onClick).padding(horizontal=14.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(40.dp).background(accent.copy(alpha=.08f),RoundedCornerShape(12.dp)).border(1.dp,accent.copy(alpha=.28f),RoundedCornerShape(12.dp)),contentAlignment=Alignment.Center){Text(text=mark,color=accent,fontSize=24.sp,fontWeight=FontWeight.Black,textAlign=TextAlign.Center)};Spacer(Modifier.width(11.dp));Text(label,color=Color.White,fontWeight=FontWeight.Bold,style=MaterialTheme.typography.labelLarge,maxLines=1)} }
+fun FooterSection(modifier:Modifier=Modifier,onLaunchNetflix:()->Unit,onLaunchYouTube:()->Unit,onLaunchPlex:()->Unit,onLaunchCrunchyroll:()->Unit){
+    Column(modifier.fillMaxWidth().padding(top=10.dp,bottom=10.dp),verticalArrangement=Arrangement.spacedBy(9.dp)){
+        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(9.dp)){
+            AppTile("NETFLIX",Color(0xFFE50914),R.drawable.ic_app_netflix,onLaunchNetflix,Modifier.weight(1f))
+            AppTile("YOUTUBE",Color(0xFFFF0033),R.drawable.ic_app_youtube,onLaunchYouTube,Modifier.weight(1f))
+        }
+        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(9.dp)){
+            AppTile("PLEX",Color(0xFFE5A900),R.drawable.ic_app_plex,onLaunchPlex,Modifier.weight(1f))
+            AppTile("CRUNCHYROLL",Color(0xFFFF7A00),R.drawable.ic_app_crunchy,onLaunchCrunchyroll,Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun AppTile(label:String,accent:Color,@DrawableRes iconRes:Int,onClick:()->Unit,modifier:Modifier=Modifier){
+    Row(
+        modifier.height(66.dp).shadow(12.dp,RoundedCornerShape(17.dp))
+            .background(Brush.linearGradient(listOf(Color(0xFF202B34),Color(0xFF111820),Deep)),RoundedCornerShape(17.dp))
+            .border(1.dp,accent.copy(alpha=.48f),RoundedCornerShape(17.dp))
+            .clickable(onClick=onClick)
+            .padding(horizontal=14.dp),
+        verticalAlignment=Alignment.CenterVertically
+    ){
+        Box(
+            Modifier.size(40.dp).background(accent.copy(alpha=.06f),RoundedCornerShape(12.dp)).border(1.dp,accent.copy(alpha=.22f),RoundedCornerShape(12.dp)),
+            contentAlignment=Alignment.Center
+        ){
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = label,
+                modifier = Modifier.size(30.dp)
+            )
+        }
+        Spacer(Modifier.width(11.dp))
+        Text(label,color=Color.White,fontWeight=FontWeight.Bold,style=MaterialTheme.typography.labelLarge,maxLines=1)
+    }
+}
