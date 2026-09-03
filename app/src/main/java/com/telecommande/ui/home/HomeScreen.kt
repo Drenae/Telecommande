@@ -1,6 +1,5 @@
 package com.telecommande.ui.home
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,11 +17,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.telecommande.R
 import com.telecommande.navigation.Screen
 import com.telecommande.ui.home.composables.ContentSection
 import com.telecommande.ui.home.composables.FooterSection
@@ -65,13 +64,31 @@ fun HomeScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(AppColors.darkBackground)
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFF071018), Color(0xFF090F15), Color(0xFF05080C)),
+                        start = Offset.Zero,
+                        end = Offset.Infinite
+                    )
+                )
         ) {
-            Image(
-                painter = painterResource(R.drawable.remote_background),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.radialGradient(
+                        colors = listOf(Color(0x1A123646), Color(0x080A2230), Color.Transparent),
+                        center = Offset(180f, 430f),
+                        radius = 1050f
+                    )
+                )
+            )
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.radialGradient(
+                        colors = listOf(Color(0x121AD7FF), Color(0x060E2330), Color.Transparent),
+                        center = Offset(900f, 1500f),
+                        radius = 1250f
+                    )
+                )
             )
 
             Column(
