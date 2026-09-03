@@ -1,5 +1,6 @@
 package com.telecommande.ui.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,8 +18,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.telecommande.R
 import com.telecommande.navigation.Screen
 import com.telecommande.ui.home.composables.ContentSection
 import com.telecommande.ui.home.composables.FooterSection
@@ -63,6 +67,13 @@ fun HomeScreen(
                 .padding(paddingValues)
                 .background(AppColors.darkBackground)
         ) {
+            Image(
+                painter = painterResource(R.drawable.remote_background),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
