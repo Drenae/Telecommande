@@ -80,10 +80,7 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
                 DpadIcon(Icons.Rounded.KeyboardArrowRight,"Droite",dpad*.32f,onRightClick,Modifier.constrainAs(r){end.linkTo(parent.end,2.dp);top.linkTo(parent.top);bottom.linkTo(parent.bottom)})
             }
             Spacer(Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 NavPill(Icons.AutoMirrored.Rounded.ArrowBack,"RETOUR",onBackClick)
                 NavPill(Icons.Rounded.Home,"ACCUEIL",onHomeClick)
             }
@@ -104,22 +101,11 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
     var pos by remember(volumeLevel){mutableStateOf(volumeLevel.toFloat())}
     Row(Modifier.fillMaxWidth(), verticalAlignment=Alignment.Top){
         Column(Modifier.weight(1f).padding(start=4.dp,end=10.dp)){
-            Row(Modifier.fillMaxWidth().padding(horizontal=4.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
-                Text("VOLUME",color=Color(0xFF9AA7B1),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold)
-                Text("$volumeLevel",color=Cyan,fontWeight=FontWeight.Bold,style=MaterialTheme.typography.labelLarge)
-            }
+            Row(Modifier.fillMaxWidth().padding(horizontal=4.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text("VOLUME",color=Color(0xFF9AA7B1),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Bold);Text("$volumeLevel",color=Cyan,fontWeight=FontWeight.Bold,style=MaterialTheme.typography.labelLarge)}
             Spacer(Modifier.height(3.dp))
-            Box(Modifier.fillMaxWidth().height(38.dp).shadow(7.dp,RoundedCornerShape(19.dp)).background(Brush.horizontalGradient(listOf(Color(0xFF0D141B),Color(0xFF111C24))),RoundedCornerShape(19.dp)).border(1.dp,Rim,RoundedCornerShape(19.dp)).padding(horizontal=7.dp),contentAlignment=Alignment.Center){
-                Slider(value=pos,onValueChange={pos=it},onValueChangeFinished={val target=pos.roundToInt().coerceIn(0,max);val diff=target-volumeLevel;if(diff>0)repeat(diff){onVolumeUpClick()}else if(diff<0)repeat(-diff){onVolumeDownClick()}},valueRange=0f..max.toFloat(),steps=0,modifier=Modifier.fillMaxWidth(),colors=SliderDefaults.colors(activeTrackColor=Cyan,inactiveTrackColor=Color(0xFF24323D),activeTickColor=Color.Transparent,inactiveTickColor=Color.Transparent),thumb={Box(Modifier.size(22.dp).shadow(7.dp,CircleShape).background(Brush.radialGradient(listOf(Color.White,Cyan)),CircleShape).border(2.dp,Color(0xFF6CC9DA),CircleShape))})
-            }
+            Box(Modifier.fillMaxWidth().height(38.dp).shadow(7.dp,RoundedCornerShape(19.dp)).background(Brush.horizontalGradient(listOf(Color(0xFF0D141B),Color(0xFF111C24))),RoundedCornerShape(19.dp)).border(1.dp,Rim,RoundedCornerShape(19.dp)).padding(horizontal=7.dp),contentAlignment=Alignment.Center){Slider(value=pos,onValueChange={pos=it},onValueChangeFinished={val target=pos.roundToInt().coerceIn(0,max);val diff=target-volumeLevel;if(diff>0)repeat(diff){onVolumeUpClick()}else if(diff<0)repeat(-diff){onVolumeDownClick()}},valueRange=0f..max.toFloat(),steps=0,modifier=Modifier.fillMaxWidth(),colors=SliderDefaults.colors(activeTrackColor=Cyan,inactiveTrackColor=Color(0xFF24323D),activeTickColor=Color.Transparent,inactiveTickColor=Color.Transparent),thumb={Box(Modifier.size(22.dp).shadow(7.dp,CircleShape).background(Brush.radialGradient(listOf(Color.White,Cyan)),CircleShape).border(2.dp,Color(0xFF6CC9DA),CircleShape))})}
         }
-        PremiumCircle(
-            icon = if(isMuted) Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp,
-            desc = "Muet",
-            size = 48.dp,
-            onClick = onMuteClick,
-            modifier = Modifier.padding(top = 20.dp)
-        )
+        PremiumCircle(icon = if(isMuted) Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp, desc = "Muet", size = 48.dp, onClick = onMuteClick, modifier = Modifier.padding(top = 20.dp))
     }
 }
 
@@ -148,19 +134,13 @@ private fun AppTile(label:String,accent:Color,@DrawableRes iconRes:Int,onClick:(
             .border(1.dp,accent.copy(alpha=.48f),RoundedCornerShape(17.dp))
             .clickable(onClick=onClick)
             .padding(horizontal=14.dp),
-        verticalAlignment=Alignment.CenterVertically
+        verticalAlignment=Alignment.CenterVertically,
+        horizontalArrangement=Arrangement.Center
     ){
-        Box(
-            Modifier.size(40.dp).background(accent.copy(alpha=.06f),RoundedCornerShape(12.dp)).border(1.dp,accent.copy(alpha=.22f),RoundedCornerShape(12.dp)),
-            contentAlignment=Alignment.Center
-        ){
-            Image(
-                painter = painterResource(iconRes),
-                contentDescription = label,
-                modifier = Modifier.size(30.dp)
-            )
-        }
-        Spacer(Modifier.width(11.dp))
-        Text(label,color=Color.White,fontWeight=FontWeight.Bold,style=MaterialTheme.typography.labelLarge,maxLines=1)
+        Image(
+            painter = painterResource(iconRes),
+            contentDescription = label,
+            modifier = Modifier.size(100.dp)
+        )
     }
 }
