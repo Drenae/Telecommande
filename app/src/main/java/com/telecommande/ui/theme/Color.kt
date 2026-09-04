@@ -42,7 +42,9 @@ object AppColors {
     val volumePanelStart = Color(0xFF0D141B)
     val volumePanelEnd = Color(0xFF111C24)
     val volumeTrackInactive = Color(0xFF24323D)
-    val volumeThumbBorder = Color(0xFF6CC9DA)
+    val volumeThumbTop = Color(0xFFF8FBFC)
+    val volumeThumbBottom = Color(0xFFBFCBD1)
+    val volumeThumbBorder = Color(0xFF45CFEA)
 
     // Applications
     val netflix = Color(0xFFE50914)
