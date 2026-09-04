@@ -24,15 +24,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.telecommande.R
+import com.telecommande.ui.theme.AppColors
 import kotlin.math.roundToInt
-
-private val Cyan = Color(0xFF19D7FF)
-private val Deep = Color(0xFF070B10)
-private val Rim = Color(0xFF263540)
-private val ButtonRim = Color(0xFF33434F)
-private val RaisedTop = Color(0xFF25333E)
-private val RaisedMid = Color(0xFF151E26)
-private val RaisedBottom = Color(0xFF090D12)
 
 @Composable
 fun HeaderSection(title: String, modifier: Modifier = Modifier, onPowerClick: () -> Unit, isConnected: Boolean, isLoading: Boolean, onStatusIndicatorClick: () -> Unit) {
@@ -45,11 +38,16 @@ fun HeaderSection(title: String, modifier: Modifier = Modifier, onPowerClick: ()
             modifier = Modifier.align(Alignment.CenterStart)
         )
         Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(title, color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(title, color = AppColors.appWhite, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(6.dp).background(if (isConnected) Color(0xFF40E081) else Color.Gray, CircleShape))
+                Box(Modifier.size(6.dp).background(if (isConnected) AppColors.remoteConnected else AppColors.statusGray, CircleShape))
                 Spacer(Modifier.width(6.dp))
-                Text(if (isConnected) "TV CONNECTÉE" else "TV DÉCONNECTÉE", color = if (isConnected) Color(0xFF40E081) else Color.Gray, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                Text(
+                    if (isConnected) "TV CONNECTÉE" else "TV DÉCONNECTÉE",
+                    color = if (isConnected) AppColors.remoteConnected else AppColors.statusGray,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
         StatusIndicator(isConnected, isLoading, onStatusIndicatorClick, Modifier.align(Alignment.CenterEnd))
@@ -80,8 +78,17 @@ fun StatusIndicator(
         modifier
             .size(58.dp)
             .shadow(12.dp, CircleShape)
-            .background(Brush.linearGradient(listOf(RaisedTop, RaisedMid, RaisedBottom)), CircleShape)
-            .border(1.dp, if (isConnected) Color(0xFF208F5B) else ButtonRim, CircleShape)
+            .background(
+                Brush.linearGradient(
+                    listOf(AppColors.remoteRaisedTop, AppColors.remoteRaisedMid, AppColors.remoteRaisedBottom)
+                ),
+                CircleShape
+            )
+            .border(
+                1.dp,
+                if (isConnected) AppColors.remoteConnectedBorder else AppColors.remoteButtonRim,
+                CircleShape
+            )
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -98,13 +105,34 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
     BoxWithConstraints(modifier.fillMaxWidth()) {
         val dpad = (maxWidth * .78f).coerceIn(240.dp, 310.dp)
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            ConstraintLayout(Modifier.size(dpad).shadow(18.dp, CircleShape).background(Brush.radialGradient(listOf(Color(0xFF1B2630), Deep)), CircleShape).border(2.dp, Rim, CircleShape)) {
+            ConstraintLayout(
+                Modifier
+                    .size(dpad)
+                    .shadow(18.dp, CircleShape)
+                    .background(
+                        Brush.radialGradient(
+                            0.0f to AppColors.dpadCenter,
+                            0.58f to AppColors.dpadCenter,
+                            0.82f to AppColors.dpadMid,
+                            1.0f to AppColors.dpadEdge
+                        ),
+                        CircleShape
+                    )
+                    .border(2.dp, AppColors.remoteRim, CircleShape)
+            ) {
                 val (ok, u, d, l, r) = createRefs()
-                PremiumCircle(R.drawable.ok, "OK", dpad * .31f, onOkClick, Modifier.constrainAs(ok) { centerTo(parent) })
-                DpadIcon(R.drawable.dpad_up, "Haut", dpad * .32f, onUpClick, Modifier.constrainAs(u) { top.linkTo(parent.top, 2.dp); start.linkTo(parent.start); end.linkTo(parent.end) })
-                DpadIcon(R.drawable.dpad_down, "Bas", dpad * .32f, onDownClick, Modifier.constrainAs(d) { bottom.linkTo(parent.bottom, 2.dp); start.linkTo(parent.start); end.linkTo(parent.end) })
-                DpadIcon(R.drawable.dpad_left, "Gauche", dpad * .32f, onLeftClick, Modifier.constrainAs(l) { start.linkTo(parent.start, 2.dp); top.linkTo(parent.top); bottom.linkTo(parent.bottom) })
-                DpadIcon(R.drawable.dpad_right, "Droite", dpad * .32f, onRightClick, Modifier.constrainAs(r) { end.linkTo(parent.end, 2.dp); top.linkTo(parent.top); bottom.linkTo(parent.bottom) })
+                PremiumCircle(
+                    R.drawable.ok,
+                    "OK",
+                    dpad * .31f,
+                    onOkClick,
+                    Modifier.constrainAs(ok) { centerTo(parent) },
+                    iconScale = 1f
+                )
+                DpadIcon(R.drawable.dpad_up, "Haut", dpad * .40f, onUpClick, Modifier.constrainAs(u) { top.linkTo(parent.top); start.linkTo(parent.start); end.linkTo(parent.end) })
+                DpadIcon(R.drawable.dpad_down, "Bas", dpad * .40f, onDownClick, Modifier.constrainAs(d) { bottom.linkTo(parent.bottom); start.linkTo(parent.start); end.linkTo(parent.end) })
+                DpadIcon(R.drawable.dpad_left, "Gauche", dpad * .40f, onLeftClick, Modifier.constrainAs(l) { start.linkTo(parent.start); top.linkTo(parent.top); bottom.linkTo(parent.bottom) })
+                DpadIcon(R.drawable.dpad_right, "Droite", dpad * .40f, onRightClick, Modifier.constrainAs(r) { end.linkTo(parent.end); top.linkTo(parent.top); bottom.linkTo(parent.bottom) })
             }
             Spacer(Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -125,26 +153,38 @@ private fun DpadIcon(@DrawableRes iconRes: Int, desc: String, size: Dp, onClick:
         Image(
             painter = painterResource(iconRes),
             contentDescription = desc,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.size(size * .80f)
         )
     }
 }
 
 @Composable
-private fun PremiumCircle(@DrawableRes iconRes: Int, desc: String, size: Dp, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun PremiumCircle(
+    @DrawableRes iconRes: Int,
+    desc: String,
+    size: Dp,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    iconScale: Float = .70f
+) {
     Box(
         modifier
             .size(size)
             .shadow(14.dp, CircleShape)
-            .background(Brush.linearGradient(listOf(RaisedTop, RaisedMid, RaisedBottom)), CircleShape)
-            .border(1.dp, ButtonRim, CircleShape)
+            .background(
+                Brush.linearGradient(
+                    listOf(AppColors.remoteRaisedTop, AppColors.remoteRaisedMid, AppColors.remoteRaisedBottom)
+                ),
+                CircleShape
+            )
+            .border(1.dp, AppColors.remoteButtonRim, CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Image(
             painter = painterResource(iconRes),
             contentDescription = desc,
-            modifier = Modifier.size(size * .70f)
+            modifier = Modifier.size(size * iconScale)
         )
     }
 }
@@ -157,8 +197,13 @@ private fun NavPill(@DrawableRes iconRes: Int, label: String, onClick: () -> Uni
                 .width(92.dp)
                 .height(52.dp)
                 .shadow(12.dp, RoundedCornerShape(26.dp))
-                .background(Brush.linearGradient(listOf(RaisedTop, RaisedMid, RaisedBottom)), RoundedCornerShape(26.dp))
-                .border(1.dp, ButtonRim, RoundedCornerShape(26.dp))
+                .background(
+                    Brush.linearGradient(
+                        listOf(AppColors.remoteRaisedTop, AppColors.remoteRaisedMid, AppColors.remoteRaisedBottom)
+                    ),
+                    RoundedCornerShape(26.dp)
+                )
+                .border(1.dp, AppColors.remoteButtonRim, RoundedCornerShape(26.dp))
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
         ) {
@@ -169,7 +214,7 @@ private fun NavPill(@DrawableRes iconRes: Int, label: String, onClick: () -> Uni
             )
         }
         Spacer(Modifier.height(4.dp))
-        Text(label, color = Color(0xFFB9C4CC), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+        Text(label, color = AppColors.textSecondary, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -180,11 +225,23 @@ private fun VolumeControl(volumeLevel: Int, volumeMax: Int, isMuted: Boolean, on
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
         Column(Modifier.weight(1f).padding(start = 4.dp, end = 10.dp)) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("VOLUME", color = Color(0xFF9AA7B1), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                Text("$volumeLevel", color = Cyan, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+                Text("VOLUME", color = AppColors.remoteTextMuted, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                Text("$volumeLevel", color = AppColors.remoteCyan, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
             }
             Spacer(Modifier.height(3.dp))
-            Box(Modifier.fillMaxWidth().height(38.dp).shadow(7.dp, RoundedCornerShape(19.dp)).background(Brush.horizontalGradient(listOf(Color(0xFF0D141B), Color(0xFF111C24))), RoundedCornerShape(19.dp)).border(1.dp, Rim, RoundedCornerShape(19.dp)).padding(horizontal = 7.dp), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(38.dp)
+                    .shadow(7.dp, RoundedCornerShape(19.dp))
+                    .background(
+                        Brush.horizontalGradient(listOf(AppColors.volumePanelStart, AppColors.volumePanelEnd)),
+                        RoundedCornerShape(19.dp)
+                    )
+                    .border(1.dp, AppColors.remoteRim, RoundedCornerShape(19.dp))
+                    .padding(horizontal = 7.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Slider(
                     value = pos,
                     onValueChange = { pos = it },
@@ -197,8 +254,24 @@ private fun VolumeControl(volumeLevel: Int, volumeMax: Int, isMuted: Boolean, on
                     valueRange = 0f..max.toFloat(),
                     steps = 0,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = SliderDefaults.colors(activeTrackColor = Cyan, inactiveTrackColor = Color(0xFF24323D), activeTickColor = Color.Transparent, inactiveTickColor = Color.Transparent),
-                    thumb = { Box(Modifier.size(22.dp).shadow(7.dp, CircleShape).background(Brush.radialGradient(listOf(Color.White, Cyan)), CircleShape).border(2.dp, Color(0xFF6CC9DA), CircleShape)) }
+                    colors = SliderDefaults.colors(
+                        activeTrackColor = AppColors.remoteCyan,
+                        inactiveTrackColor = AppColors.volumeTrackInactive,
+                        activeTickColor = AppColors.transparent,
+                        inactiveTickColor = AppColors.transparent
+                    ),
+                    thumb = {
+                        Box(
+                            Modifier
+                                .size(22.dp)
+                                .shadow(7.dp, CircleShape)
+                                .background(
+                                    Brush.radialGradient(listOf(AppColors.appWhite, AppColors.remoteCyan)),
+                                    CircleShape
+                                )
+                                .border(2.dp, AppColors.volumeThumbBorder, CircleShape)
+                        )
+                    }
                 )
             }
         }
@@ -231,12 +304,12 @@ private fun Media(@DrawableRes iconRes: Int, label: String, onClick: () -> Unit)
 fun FooterSection(modifier: Modifier = Modifier, onLaunchNetflix: () -> Unit, onLaunchYouTube: () -> Unit, onLaunchPlex: () -> Unit, onLaunchCrunchyroll: () -> Unit) {
     Column(modifier.fillMaxWidth().padding(top = 10.dp, bottom = 10.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-            AppTile("NETFLIX", Color(0xFFE50914), R.drawable.ic_app_netflix, onLaunchNetflix, Modifier.weight(1f))
-            AppTile("YOUTUBE", Color(0xFFFF0033), R.drawable.ic_app_youtube, onLaunchYouTube, Modifier.weight(1f))
+            AppTile("NETFLIX", AppColors.netflix, R.drawable.ic_app_netflix, onLaunchNetflix, Modifier.weight(1f))
+            AppTile("YOUTUBE", AppColors.youtube, R.drawable.ic_app_youtube, onLaunchYouTube, Modifier.weight(1f))
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-            AppTile("PLEX", Color(0xFFE5A900), R.drawable.ic_app_plex, onLaunchPlex, Modifier.weight(1f))
-            AppTile("CRUNCHYROLL", Color(0xFFFF7A00), R.drawable.ic_app_crunchy, onLaunchCrunchyroll, Modifier.weight(1f))
+            AppTile("PLEX", AppColors.plex, R.drawable.ic_app_plex, onLaunchPlex, Modifier.weight(1f))
+            AppTile("CRUNCHYROLL", AppColors.crunchyroll, R.drawable.ic_app_crunchy, onLaunchCrunchyroll, Modifier.weight(1f))
         }
     }
 }
@@ -247,7 +320,10 @@ private fun AppTile(label: String, accent: Color, @DrawableRes iconRes: Int, onC
         modifier
             .height(66.dp)
             .shadow(12.dp, RoundedCornerShape(17.dp))
-            .background(Brush.linearGradient(listOf(Color(0xFF202B34), Color(0xFF111820), Deep)), RoundedCornerShape(17.dp))
+            .background(
+                Brush.linearGradient(listOf(AppColors.surfacePressed, AppColors.surface, AppColors.remoteDeep)),
+                RoundedCornerShape(17.dp)
+            )
             .border(1.dp, accent.copy(alpha = .48f), RoundedCornerShape(17.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp),
