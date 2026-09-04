@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -127,7 +128,7 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
                     dpad * .31f,
                     onOkClick,
                     Modifier.constrainAs(ok) { centerTo(parent) },
-                    iconScale = 1f
+                    iconScale = 1.22f
                 )
                 DpadIcon(R.drawable.dpad_up, "Haut", dpad * .40f, onUpClick, Modifier.constrainAs(u) { top.linkTo(parent.top); start.linkTo(parent.start); end.linkTo(parent.end) })
                 DpadIcon(R.drawable.dpad_down, "Bas", dpad * .40f, onDownClick, Modifier.constrainAs(d) { bottom.linkTo(parent.bottom); start.linkTo(parent.start); end.linkTo(parent.end) })
@@ -181,11 +182,18 @@ private fun PremiumCircle(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(iconRes),
-            contentDescription = desc,
-            modifier = Modifier.size(size * iconScale)
-        )
+        Box(
+            Modifier
+                .fillMaxSize()
+                .clip(CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = desc,
+                modifier = Modifier.size(size * iconScale)
+            )
+        }
     }
 }
 
@@ -263,13 +271,15 @@ private fun VolumeControl(volumeLevel: Int, volumeMax: Int, isMuted: Boolean, on
                     thumb = {
                         Box(
                             Modifier
-                                .size(22.dp)
-                                .shadow(7.dp, CircleShape)
+                                .size(20.dp)
+                                .shadow(4.dp, CircleShape)
                                 .background(
-                                    Brush.radialGradient(listOf(AppColors.appWhite, AppColors.remoteCyan)),
+                                    Brush.verticalGradient(
+                                        listOf(AppColors.volumeThumbTop, AppColors.volumeThumbBottom)
+                                    ),
                                     CircleShape
                                 )
-                                .border(2.dp, AppColors.volumeThumbBorder, CircleShape)
+                                .border(1.5.dp, AppColors.volumeThumbBorder, CircleShape)
                         )
                     }
                 )
