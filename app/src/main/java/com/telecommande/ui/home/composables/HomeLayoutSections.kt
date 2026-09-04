@@ -230,6 +230,13 @@ private fun NavPill(@DrawableRes iconRes: Int, label: String, onClick: () -> Uni
 private fun VolumeControl(volumeLevel: Int, volumeMax: Int, isMuted: Boolean, onVolumeUpClick: () -> Unit, onVolumeDownClick: () -> Unit, onMuteClick: () -> Unit) {
     val max = volumeMax.takeIf { it > 0 } ?: 100
     var pos by remember(volumeLevel) { mutableStateOf(volumeLevel.toFloat()) }
+    val sliderColors = SliderDefaults.colors(
+        activeTrackColor = AppColors.remoteCyan,
+        inactiveTrackColor = AppColors.volumeTrackInactive,
+        activeTickColor = AppColors.transparent,
+        inactiveTickColor = AppColors.transparent
+    )
+
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
         Column(Modifier.weight(1f).padding(start = 4.dp, end = 10.dp)) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -262,12 +269,7 @@ private fun VolumeControl(volumeLevel: Int, volumeMax: Int, isMuted: Boolean, on
                     valueRange = 0f..max.toFloat(),
                     steps = 0,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = SliderDefaults.colors(
-                        activeTrackColor = AppColors.remoteCyan,
-                        inactiveTrackColor = AppColors.volumeTrackInactive,
-                        activeTickColor = AppColors.transparent,
-                        inactiveTickColor = AppColors.transparent
-                    ),
+                    colors = sliderColors,
                     thumb = {
                         Box(
                             Modifier
@@ -280,6 +282,14 @@ private fun VolumeControl(volumeLevel: Int, volumeMax: Int, isMuted: Boolean, on
                                     CircleShape
                                 )
                                 .border(1.5.dp, AppColors.volumeThumbBorder, CircleShape)
+                        )
+                    },
+                    track = { sliderState ->
+                        SliderDefaults.Track(
+                            sliderState = sliderState,
+                            colors = sliderColors,
+                            thumbTrackGapSize = 0.dp,
+                            trackInsideCornerSize = 0.dp
                         )
                     }
                 )
