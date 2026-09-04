@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -79,7 +78,7 @@ fun StatusIndicator(
 
     Box(
         modifier
-            .size(52.dp)
+            .size(58.dp)
             .shadow(12.dp, CircleShape)
             .background(Brush.linearGradient(listOf(RaisedTop, RaisedMid, RaisedBottom)), CircleShape)
             .border(1.dp, if (isConnected) Color(0xFF208F5B) else ButtonRim, CircleShape)
@@ -145,7 +144,7 @@ private fun PremiumCircle(@DrawableRes iconRes: Int, desc: String, size: Dp, onC
         Image(
             painter = painterResource(iconRes),
             contentDescription = desc,
-            modifier = Modifier.size(size * .90f)
+            modifier = Modifier.size(size * .70f)
         )
     }
 }
@@ -225,11 +224,7 @@ private fun MediaControls(rew: () -> Unit, play: () -> Unit, stop: () -> Unit, f
 
 @Composable
 private fun Media(@DrawableRes iconRes: Int, label: String, onClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        PremiumCircle(iconRes, label, 62.dp, onClick)
-        Spacer(Modifier.height(4.dp))
-        Text(label, color = Color(0xFF9AA7B1), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center, maxLines = 1)
-    }
+    PremiumCircle(iconRes, label, 62.dp, onClick)
 }
 
 @Composable
