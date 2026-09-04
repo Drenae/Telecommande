@@ -71,7 +71,7 @@ fun HomeScreen(
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
-                alignment = BiasAlignment(horizontalBias = 0f, verticalBias = -0.82f)
+                alignment = BiasAlignment(horizontalBias = 0f, verticalBias = -0.32f)
             )
 
             Column(
