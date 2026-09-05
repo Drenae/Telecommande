@@ -50,6 +50,8 @@ import com.telecommande.ui.theme.SettingsScreenDimensions
 import com.telecommande.ui.theme.SettingsSectionTitleDimensions
 import com.telecommande.ui.theme.SettingsStateCardDimensions
 import com.telecommande.util.outerRoundedShadow
+import com.telecommande.util.resolveDisplayName
+import com.telecommande.util.technicalName
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -108,7 +110,7 @@ fun SettingsScreen(
     }
 
     tvToRename?.let { tvInfo ->
-        val technicalName = tvInfo.name ?: tvInfo.ipAddress
+        val technicalName = tvInfo.technicalName()
 
         AlertDialog(
             onDismissRequest = { tvToRename = null },
@@ -310,9 +312,7 @@ fun SettingsScreen(
                         items(uiState.pairedTvs, key = { it.keystoreAlias }) { tvInfo ->
                             val isActive = uiState.activeTv?.keystoreAlias == tvInfo.keystoreAlias
                             val connected = isActive && uiState.remoteState.isConnected
-                            val displayName = uiState.tvDisplayNames[tvInfo.keystoreAlias]
-                                ?: tvInfo.name
-                                ?: tvInfo.ipAddress
+                            val displayName = tvInfo.resolveDisplayName(uiState.tvDisplayNames)
 
                             PairedTvItem(
                                 tvInfo = tvInfo,
