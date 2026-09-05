@@ -1,5 +1,6 @@
 package com.telecommande.ui.theme
 
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 object AppColors {
@@ -39,7 +40,7 @@ object AppColors {
     val remoteButtonBorderTop = Color(0xFF555555)
     val remoteButtonBorderBottom = Color(0xFF111111)
 
-    // D-pad : contraste plus doux pour un rendu bombé plutôt qu'enfoncé
+    // D-pad
     val dpadCenter = Color(0xFF24323B)
     val dpadMid = Color(0xFF18242B)
     val dpadEdge = Color(0xFF10171C)
@@ -57,4 +58,32 @@ object AppColors {
     val youtube = Color(0xFFFF0033)
     val plex = Color(0xFFE5A900)
     val crunchyroll = Color(0xFFFF7A00)
+}
+
+object DefaultButtonColors {
+    val defaultBackgroundStart = AppColors.surfaceElevated
+    val defaultBackgroundEnd = AppColors.surface
+    val pressedBackgroundStart = AppColors.surfacePressed
+    val pressedBackgroundEnd = AppColors.surfaceElevated
+    val defaultBorder = AppColors.border
+
+    val defaultShadowLight = Color.Transparent
+    val defaultShadowDark = Color(0x66000000)
+    val pressedShadowLight = Color.Transparent
+    val pressedShadowDark = Color(0x33000000)
+
+    val defaultBackgroundBrush = Brush.linearGradient(
+        colors = listOf(defaultBackgroundStart, defaultBackgroundEnd)
+    )
+    val pressedBackgroundBrush = Brush.linearGradient(
+        colors = listOf(pressedBackgroundStart, pressedBackgroundEnd)
+    )
+}
+
+object AppSliderColors {
+    val thumbColor = AppColors.appWhite
+    val activeTrackColor = AppColors.accent
+    val inactiveTrackColor = AppColors.surfacePressed
+    val activeTickColor = Color.Transparent
+    val inactiveTickColor = Color.Transparent
 }
