@@ -16,9 +16,6 @@ import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.SignalWifiOff
 import androidx.compose.material.icons.rounded.StopCircle
-import androidx.compose.material.icons.rounded.Tv
-import androidx.compose.material.icons.rounded.Wifi
-import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -198,7 +195,7 @@ fun SettingsScreen(
                         actionIconContentColor = AppColors.accent
                     ),
                     title = {
-                        Column {
+                        Column(modifier = Modifier.padding(start = 10.dp)) {
                             Text(
                                 text = "GESTION DES TV",
                                 style = MaterialTheme.typography.labelSmall,
@@ -252,22 +249,6 @@ fun SettingsScreen(
                     ),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    item {
-                        SettingsIntroCard(
-                            pairedCount = uiState.pairedTvs.size,
-                            isSearching = uiState.discoveryState.isDiscovering
-                        )
-                    }
-
-                    item {
-                        Spacer(Modifier.height(4.dp))
-                        SectionTitle(
-                            icon = Icons.Rounded.Add,
-                            title = "Ajouter une TV",
-                            subtitle = "Appareils Android TV détectés sur votre réseau"
-                        )
-                    }
-
                     val discoveredTvs = uiState.discoveryState.discoveredTvs
 
                     if (uiState.discoveryState.isDiscovering && discoveredTvs.isEmpty()) {
@@ -275,8 +256,7 @@ fun SettingsScreen(
                     } else if (discoveredTvs.isEmpty()) {
                         item {
                             DiscoveryEmptyState(
-                                isSearching = uiState.discoveryState.isDiscovering,
-                                onSearch = viewModel::toggleDiscovery
+                                isSearching = uiState.discoveryState.isDiscovering
                             )
                         }
                     } else {
@@ -443,93 +423,6 @@ private fun SettingsActionButton(
 }
 
 @Composable
-private fun SettingsIntroCard(
-    pairedCount: Int,
-    isSearching: Boolean
-) {
-    val shape = RoundedCornerShape(22.dp)
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .outerRoundedShadow(
-                cornerRadius = 22.dp,
-                color = Color.Black,
-                alpha = 0.62f,
-                blurRadius = 7.dp,
-                offsetY = 3.dp
-            )
-            .background(
-                Brush.linearGradient(
-                    colorStops = arrayOf(
-                        0.0f to AppColors.surfaceElevated,
-                        0.65f to AppColors.surface,
-                        1.0f to AppColors.remoteDeep
-                    ),
-                    start = Offset(0f, 0f),
-                    end = Offset(850f, 280f)
-                ),
-                shape
-            )
-            .border(1.dp, AppColors.border.copy(alpha = 0.8f), shape)
-            .padding(18.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(52.dp)
-                .background(AppColors.accentMuted, CircleShape)
-                .border(1.dp, AppColors.accent.copy(alpha = 0.45f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.Tv,
-                contentDescription = null,
-                tint = AppColors.accent,
-                modifier = Modifier.size(28.dp)
-            )
-        }
-
-        Spacer(Modifier.width(14.dp))
-
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = "Vos téléviseurs",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = AppColors.appWhite
-            )
-            Spacer(Modifier.height(2.dp))
-            Text(
-                text = "$pairedCount TV ${if (pairedCount > 1) "enregistrées" else "enregistrée"}",
-                style = MaterialTheme.typography.bodySmall,
-                color = AppColors.textSecondary
-            )
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .background(
-                        if (isSearching) AppColors.statusAmber else AppColors.statusGreen,
-                        CircleShape
-                    )
-            )
-            Text(
-                text = if (isSearching) "SCAN" else "PRÊT",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = if (isSearching) AppColors.statusAmber else AppColors.statusGreen
-            )
-        }
-    }
-}
-
-@Composable
 private fun SectionTitle(
     icon: ImageVector,
     title: String,
@@ -630,27 +523,18 @@ private fun DiscoveryLoadingState() {
 
 @Composable
 private fun DiscoveryEmptyState(
-    isSearching: Boolean,
-    onSearch: () -> Unit
+    isSearching: Boolean
 ) {
     SettingsStateCard(
-        icon = if (isSearching) Icons.Rounded.Wifi else Icons.Rounded.WifiOff,
+        icon = null,
         title = if (isSearching) "Aucune TV détectée pour le moment" else "Recherche arrêtée",
         subtitle = "Vérifiez que la TV est allumée et connectée au même réseau."
-    ) {
-        if (!isSearching) {
-            SettingsPrimaryButton(
-                icon = Icons.Rounded.Search,
-                label = "Rechercher",
-                onClick = onSearch
-            )
-        }
-    }
+    )
 }
 
 @Composable
 private fun SettingsStateCard(
-    icon: ImageVector,
+    icon: ImageVector?,
     title: String,
     subtitle: String,
     action: @Composable () -> Unit = {}
@@ -677,20 +561,23 @@ private fun SettingsStateCard(
             .padding(18.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier
-                .size(46.dp)
-                .background(AppColors.accentMuted.copy(alpha = 0.6f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = AppColors.textSecondary,
-                modifier = Modifier.size(25.dp)
-            )
+        if (icon != null) {
+            Box(
+                modifier = Modifier
+                    .size(46.dp)
+                    .background(AppColors.accentMuted.copy(alpha = 0.6f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = AppColors.textSecondary,
+                    modifier = Modifier.size(25.dp)
+                )
+            }
+            Spacer(Modifier.height(10.dp))
         }
-        Spacer(Modifier.height(10.dp))
+
         Text(
             text = title,
             color = AppColors.appWhite,
@@ -704,8 +591,13 @@ private fun SettingsStateCard(
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center
         )
-        Spacer(Modifier.height(12.dp))
-        action()
+
+        if (action !== {}) {
+            Spacer(Modifier.height(12.dp))
+            action()
+        } else {
+            action()
+        }
     }
 }
 
