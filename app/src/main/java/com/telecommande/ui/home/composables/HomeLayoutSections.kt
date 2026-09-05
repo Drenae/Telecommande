@@ -67,45 +67,28 @@ fun StatusIndicator(
     isConnected: Boolean,
     isLoading: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    @DrawableRes connectedIconRes: Int = R.drawable.status_ok,
-    @DrawableRes disconnectedIconRes: Int = R.drawable.status_unknow
+    modifier: Modifier = Modifier
 ) {
-    val statusIcon = when {
-        isLoading -> R.drawable.status_warning
-        isConnected -> connectedIconRes
-        else -> disconnectedIconRes
-    }
     val description = when {
         isLoading -> "Connexion en cours"
         isConnected -> "Connectée"
         else -> "Déconnectée"
     }
-
-    Box(
-        modifier
-            .size(58.dp)
-            .shadow(12.dp, CircleShape)
-            .background(
-                Brush.linearGradient(
-                    listOf(AppColors.remoteRaisedTop, AppColors.remoteRaisedMid, AppColors.remoteRaisedBottom)
-                ),
-                CircleShape
-            )
-            .border(
-                1.dp,
-                if (isConnected) AppColors.remoteConnectedBorder else AppColors.remoteButtonRim,
-                CircleShape
-            )
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(statusIcon),
-            contentDescription = description,
-            modifier = Modifier.size(46.dp)
-        )
+    val statusTint = when {
+        isLoading -> AppColors.statusAmber
+        isConnected -> AppColors.statusGreen
+        else -> AppColors.statusGray
     }
+
+    PremiumCircle(
+        icon = Icons.Rounded.Tv,
+        desc = description,
+        size = 58.dp,
+        onClick = onClick,
+        modifier = modifier,
+        iconScale = .58f,
+        iconTint = statusTint
+    )
 }
 
 @Composable
@@ -144,7 +127,7 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
             }
             Spacer(Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                NavPill(Icons.Rounded.ArrowBack, "RETOUR", onBackClick)
+                NavPill(Icons.Rounded.ArrowBackIosNew, "RETOUR", onBackClick)
                 NavPill(Icons.Rounded.Home, "ACCUEIL", onHomeClick)
             }
             Spacer(Modifier.height(10.dp))
