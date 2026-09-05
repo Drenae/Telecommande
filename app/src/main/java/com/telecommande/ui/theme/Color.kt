@@ -1,6 +1,5 @@
 package com.telecommande.ui.theme
 
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 object AppColors {
@@ -75,7 +74,7 @@ object AppColors {
     val homeDpadIconGradientBottom = textSecondary
     val homeDpadIconMask = Color.White
 
-    // Home - PremiumCircle
+    // Home - CircleButton
     val premiumCircleShadow = Color.Black
     val premiumCircleGradientTop = remoteButtonTop
     val premiumCircleGradientBottom = remoteButtonBottom
@@ -83,7 +82,7 @@ object AppColors {
     val premiumCircleMainBorderBottom = remoteButtonBorderBottom
     val premiumCircleSecondaryBorder = Color.Black
 
-    // Home - NavPill
+    // Home - RoundedButton
     val navPillShadow = Color.Black
     val navPillGradientTop = remoteButtonTop
     val navPillGradientBottom = remoteButtonBottom
@@ -113,19 +112,10 @@ object AppColors {
     val appTileShadow = Color.Black
     val appTileGradientTop = remoteButtonTop
     val appTileGradientBottom = remoteButtonBottom
-    val netflixAccent = netflix
-    val youtubeAccent = youtube
-    val plexAccent = plex
-    val crunchyrollAccent = crunchyroll
     val netflixBorder = netflix.copy(alpha = 0.58f)
     val youtubeBorder = youtube.copy(alpha = 0.58f)
     val plexBorder = plex.copy(alpha = 0.58f)
     val crunchyrollBorder = crunchyroll.copy(alpha = 0.58f)
-
-    // Home - anciens boutons encore présents dans le projet
-    val legacyHomeBaseButtonIcon = Color.White
-    val legacyHomeDpadButtonIcon = Color.White
-    val legacyHomeAppButtonIcon = Color.White
 
     // Settings - écran et dialogs
     val settingsErrorDialogContainer = surface
@@ -252,21 +242,4 @@ object AppColors {
     // Utilitaires d'ombre
     val outerShadowDefault = Color.Black
     val outerRoundedShadowDefault = Color.Black
-}
-
-object DefaultButtonColors {
-    val defaultBackgroundStart = AppColors.surfaceElevated
-    val defaultBackgroundEnd = AppColors.surface
-    val pressedBackgroundStart = AppColors.surfacePressed
-    val pressedBackgroundEnd = AppColors.surfaceElevated
-    val defaultBorder = AppColors.border
-    val defaultShadowDark = Color(0x66000000)
-    val pressedShadowDark = Color(0x33000000)
-
-    val defaultBackgroundBrush = Brush.linearGradient(
-        colors = listOf(defaultBackgroundStart, defaultBackgroundEnd)
-    )
-    val pressedBackgroundBrush = Brush.linearGradient(
-        colors = listOf(pressedBackgroundStart, pressedBackgroundEnd)
-    )
 }
