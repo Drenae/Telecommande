@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.telecommande.R
 import com.telecommande.ui.theme.AppColors
+import com.telecommande.util.outerRoundedShadow
 import com.telecommande.util.outerShadow
 import kotlin.math.roundToInt
 
@@ -227,27 +228,63 @@ private fun PremiumCircle(
 
 @Composable
 private fun NavPill(@DrawableRes iconRes: Int, label: String, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(26.dp)
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             Modifier
                 .width(92.dp)
                 .height(52.dp)
-                .shadow(12.dp, RoundedCornerShape(26.dp))
+                .outerRoundedShadow(
+                    cornerRadius = 26.dp,
+                    color = Color.Black,
+                    alpha = 0.9f,
+                    blurRadius = 5.dp,
+                    offsetY = 3.dp
+                )
                 .background(
                     Brush.linearGradient(
-                        listOf(AppColors.remoteRaisedTop, AppColors.remoteRaisedMid, AppColors.remoteRaisedBottom)
+                        colorStops = arrayOf(
+                            0.0f to AppColors.remoteButtonTop,
+                            0.35f to AppColors.remoteButtonBottom
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(0f, 500f)
                     ),
-                    RoundedCornerShape(26.dp)
+                    shape
                 )
-                .border(1.dp, AppColors.remoteButtonRim, RoundedCornerShape(26.dp))
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(
+                        colorStops = arrayOf(
+                            0.0f to AppColors.remoteButtonBorderTop,
+                            0.15f to AppColors.remoteButtonBorderBottom
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(0f, 500f)
+                    ),
+                    shape = shape
+                )
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(iconRes),
-                contentDescription = label,
-                modifier = Modifier.size(46.dp)
-            )
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .border(
+                        width = 1.dp,
+                        color = Color.Black,
+                        shape = shape
+                    )
+                    .clip(shape),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(iconRes),
+                    contentDescription = label,
+                    modifier = Modifier.size(46.dp)
+                )
+            }
         }
         Spacer(Modifier.height(4.dp))
         Text(label, color = AppColors.textSecondary, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
