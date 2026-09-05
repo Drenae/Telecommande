@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -29,10 +28,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.telecommande.R
 import com.telecommande.ui.theme.AppColors
+import com.telecommande.ui.theme.AppTileDimensions
+import com.telecommande.ui.theme.HomeDpadDimensions
+import com.telecommande.ui.theme.HomeFooterDimensions
+import com.telecommande.ui.theme.HomeHeaderDimensions
+import com.telecommande.ui.theme.MediaControlDimensions
+import com.telecommande.ui.theme.NavPillDimensions
+import com.telecommande.ui.theme.PremiumCircleDimensions
+import com.telecommande.ui.theme.VolumeControlDimensions
 import com.telecommande.util.outerRoundedShadow
 import com.telecommande.util.outerShadow
 import compose.icons.FontAwesomeIcons
@@ -55,12 +61,15 @@ fun HeaderSection(
     Box(
         modifier
             .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 8.dp)
+            .padding(
+                top = HomeHeaderDimensions.verticalPadding,
+                bottom = HomeHeaderDimensions.verticalPadding
+            )
     ) {
         PremiumCircle(
             icon = Icons.Rounded.PowerSettingsNew,
             desc = "Power",
-            size = 58.dp,
+            size = HomeHeaderDimensions.powerButtonSize,
             onClick = onPowerClick,
             modifier = Modifier.align(Alignment.CenterStart),
             iconTint = if (isConnected) AppColors.statusRed else AppColors.statusGreen
@@ -80,13 +89,13 @@ fun HeaderSection(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     Modifier
-                        .size(6.dp)
+                        .size(HomeHeaderDimensions.statusDotSize)
                         .background(
                             if (isConnected) AppColors.remoteConnected else AppColors.statusGray,
                             CircleShape
                         )
                 )
-                Spacer(Modifier.width(6.dp))
+                Spacer(Modifier.width(HomeHeaderDimensions.statusDotTextSpacing))
                 Text(
                     text = if (isConnected) "TV CONNECTÉE" else "TV DÉCONNECTÉE",
                     color = if (isConnected) AppColors.remoteConnected else AppColors.statusGray,
@@ -127,7 +136,7 @@ fun StatusIndicator(
     PremiumCircle(
         icon = Icons.Rounded.Tv,
         desc = description,
-        size = 58.dp,
+        size = HomeHeaderDimensions.statusButtonSize,
         onClick = onClick,
         modifier = modifier,
         iconScale = .58f,
@@ -157,7 +166,10 @@ fun ContentSection(
     onFastForwardClick: () -> Unit
 ) {
     BoxWithConstraints(modifier.fillMaxWidth()) {
-        val dpad = (maxWidth * .78f).coerceIn(240.dp, 310.dp)
+        val dpad = (maxWidth * .78f).coerceIn(
+            HomeDpadDimensions.minimumSize,
+            HomeDpadDimensions.maximumSize
+        )
 
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -169,8 +181,8 @@ fun ContentSection(
                     .outerShadow(
                         color = Color.Black,
                         alpha = 0.9f,
-                        blurRadius = 5.dp,
-                        offsetY = 3.dp
+                        blurRadius = HomeDpadDimensions.shadowBlurRadius,
+                        offsetY = HomeDpadDimensions.shadowOffsetY
                     )
                     .background(
                         Brush.linearGradient(
@@ -185,7 +197,7 @@ fun ContentSection(
                         CircleShape
                     )
                     .border(
-                        width = 1.dp,
+                        width = HomeDpadDimensions.mainBorderWidth,
                         brush = Brush.linearGradient(
                             colorStops = arrayOf(
                                 0.0f to AppColors.remoteButtonBorderTop,
@@ -259,19 +271,19 @@ fun ContentSection(
                 )
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(HomeDpadDimensions.bottomSpacing))
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 18.dp),
+                    .padding(horizontal = HomeDpadDimensions.navigationHorizontalPadding),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 NavPill(Icons.Rounded.ArrowBackIosNew, "RETOUR", onBackClick)
                 NavPill(Icons.Rounded.Home, "ACCUEIL", onHomeClick)
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(HomeDpadDimensions.navigationToVolumeSpacing))
 
             VolumeControl(
                 volumeLevel = volumeLevel,
@@ -282,7 +294,7 @@ fun ContentSection(
                 onMuteClick = onMuteClick
             )
 
-            Spacer(Modifier.height(22.dp))
+            Spacer(Modifier.height(HomeDpadDimensions.volumeToMediaSpacing))
 
             MediaControls(
                 rew = onRewindClick,
@@ -367,8 +379,8 @@ private fun PremiumCircle(
             .outerShadow(
                 color = Color.Black,
                 alpha = 0.9f,
-                blurRadius = 5.dp,
-                offsetY = 3.dp
+                blurRadius = PremiumCircleDimensions.shadowBlurRadius,
+                offsetY = PremiumCircleDimensions.shadowOffsetY
             )
             .background(
                 Brush.linearGradient(
@@ -382,7 +394,7 @@ private fun PremiumCircle(
                 CircleShape
             )
             .border(
-                width = 1.dp,
+                width = PremiumCircleDimensions.mainBorderWidth,
                 brush = Brush.linearGradient(
                     colorStops = arrayOf(
                         0.0f to AppColors.remoteButtonBorderTop,
@@ -400,7 +412,7 @@ private fun PremiumCircle(
             Modifier
                 .fillMaxSize()
                 .border(
-                    width = 1.dp,
+                    width = PremiumCircleDimensions.secondaryBorderWidth,
                     color = Color.Black,
                     shape = CircleShape
                 )
@@ -423,19 +435,19 @@ private fun NavPill(
     label: String,
     onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(26.dp)
+    val shape = RoundedCornerShape(NavPillDimensions.cornerRadius)
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             Modifier
-                .width(92.dp)
-                .height(52.dp)
+                .width(NavPillDimensions.width)
+                .height(NavPillDimensions.height)
                 .outerRoundedShadow(
-                    cornerRadius = 26.dp,
+                    cornerRadius = NavPillDimensions.cornerRadius,
                     color = Color.Black,
                     alpha = 0.9f,
-                    blurRadius = 5.dp,
-                    offsetY = 3.dp
+                    blurRadius = NavPillDimensions.shadowBlurRadius,
+                    offsetY = NavPillDimensions.shadowOffsetY
                 )
                 .background(
                     Brush.linearGradient(
@@ -449,7 +461,7 @@ private fun NavPill(
                     shape
                 )
                 .border(
-                    width = 1.dp,
+                    width = NavPillDimensions.mainBorderWidth,
                     brush = Brush.linearGradient(
                         colorStops = arrayOf(
                             0.0f to AppColors.remoteButtonBorderTop,
@@ -467,7 +479,7 @@ private fun NavPill(
                 Modifier
                     .fillMaxSize()
                     .border(
-                        width = 1.dp,
+                        width = NavPillDimensions.secondaryBorderWidth,
                         color = Color.Black,
                         shape = shape
                     )
@@ -477,12 +489,12 @@ private fun NavPill(
                 GradientIcon(
                     icon = icon,
                     desc = label,
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier.size(NavPillDimensions.iconSize)
                 )
             }
         }
 
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(NavPillDimensions.labelTopSpacing))
 
         Text(
             text = label,
@@ -519,12 +531,15 @@ private fun VolumeControl(
         Column(
             Modifier
                 .weight(1f)
-                .padding(start = 4.dp, end = 10.dp)
+                .padding(
+                    start = VolumeControlDimensions.contentStartPadding,
+                    end = VolumeControlDimensions.contentEndPadding
+                )
         ) {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 4.dp),
+                    .padding(horizontal = VolumeControlDimensions.labelHorizontalPadding),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -542,20 +557,20 @@ private fun VolumeControl(
                 )
             }
 
-            Spacer(Modifier.height(3.dp))
+            Spacer(Modifier.height(VolumeControlDimensions.labelToSliderSpacing))
 
-            val sliderShape = RoundedCornerShape(19.dp)
+            val sliderShape = RoundedCornerShape(VolumeControlDimensions.sliderCornerRadius)
 
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .height(38.dp)
+                    .height(VolumeControlDimensions.sliderHeight)
                     .outerRoundedShadow(
-                        cornerRadius = 19.dp,
+                        cornerRadius = VolumeControlDimensions.sliderCornerRadius,
                         color = Color.Black,
                         alpha = 0.9f,
-                        blurRadius = 5.dp,
-                        offsetY = 3.dp
+                        blurRadius = VolumeControlDimensions.sliderShadowBlurRadius,
+                        offsetY = VolumeControlDimensions.sliderShadowOffsetY
                     )
                     .background(
                         Brush.linearGradient(
@@ -569,7 +584,7 @@ private fun VolumeControl(
                         sliderShape
                     )
                     .border(
-                        width = 1.dp,
+                        width = VolumeControlDimensions.sliderMainBorderWidth,
                         brush = Brush.linearGradient(
                             colorStops = arrayOf(
                                 0.0f to AppColors.remoteButtonBorderTop,
@@ -580,7 +595,7 @@ private fun VolumeControl(
                         ),
                         shape = sliderShape
                     )
-                    .padding(horizontal = 7.dp),
+                    .padding(horizontal = VolumeControlDimensions.sliderHorizontalPadding),
                 contentAlignment = Alignment.Center
             ) {
                 Slider(
@@ -603,12 +618,12 @@ private fun VolumeControl(
                     thumb = {
                         Box(
                             Modifier
-                                .size(20.dp)
+                                .size(VolumeControlDimensions.thumbSize)
                                 .outerShadow(
                                     color = Color.Black,
                                     alpha = 0.9f,
-                                    blurRadius = 4.dp,
-                                    offsetY = 2.dp
+                                    blurRadius = VolumeControlDimensions.thumbShadowBlurRadius,
+                                    offsetY = VolumeControlDimensions.thumbShadowOffsetY
                                 )
                                 .background(
                                     Brush.linearGradient(
@@ -622,7 +637,7 @@ private fun VolumeControl(
                                     CircleShape
                                 )
                                 .border(
-                                    width = 1.5.dp,
+                                    width = VolumeControlDimensions.thumbBorderWidth,
                                     color = AppColors.remoteCyan,
                                     shape = CircleShape
                                 )
@@ -632,8 +647,8 @@ private fun VolumeControl(
                         SliderDefaults.Track(
                             sliderState = sliderState,
                             colors = sliderColors,
-                            thumbTrackGapSize = 0.dp,
-                            trackInsideCornerSize = 0.dp
+                            thumbTrackGapSize = VolumeControlDimensions.trackThumbGapSize,
+                            trackInsideCornerSize = VolumeControlDimensions.trackInsideCornerSize
                         )
                     }
                 )
@@ -643,9 +658,9 @@ private fun VolumeControl(
         PremiumCircle(
             icon = if (isMuted) Icons.Rounded.VolumeOff else Icons.Rounded.VolumeUp,
             desc = "Muet",
-            size = 48.dp,
+            size = VolumeControlDimensions.muteButtonSize,
             onClick = onMuteClick,
-            modifier = Modifier.padding(top = 20.dp)
+            modifier = Modifier.padding(top = VolumeControlDimensions.muteButtonTopPadding)
         )
     }
 }
@@ -677,7 +692,7 @@ private fun Media(
     PremiumCircle(
         icon = icon,
         desc = label,
-        size = 62.dp,
+        size = MediaControlDimensions.buttonSize,
         onClick = onClick
     )
 }
@@ -693,12 +708,15 @@ fun FooterSection(
     Column(
         modifier
             .fillMaxWidth()
-            .padding(top = 10.dp, bottom = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(9.dp)
+            .padding(
+                top = HomeFooterDimensions.verticalPadding,
+                bottom = HomeFooterDimensions.verticalPadding
+            ),
+        verticalArrangement = Arrangement.spacedBy(HomeFooterDimensions.rowSpacing)
     ) {
         Row(
             Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(9.dp)
+            horizontalArrangement = Arrangement.spacedBy(HomeFooterDimensions.rowSpacing)
         ) {
             AppTile(
                 label = "NETFLIX",
@@ -718,7 +736,7 @@ fun FooterSection(
 
         Row(
             Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(9.dp)
+            horizontalArrangement = Arrangement.spacedBy(HomeFooterDimensions.rowSpacing)
         ) {
             AppTile(
                 label = "PLEX",
@@ -746,17 +764,17 @@ private fun AppTile(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(17.dp)
+    val shape = RoundedCornerShape(AppTileDimensions.cornerRadius)
 
     Row(
         modifier
-            .height(66.dp)
+            .height(AppTileDimensions.height)
             .outerRoundedShadow(
-                cornerRadius = 17.dp,
+                cornerRadius = AppTileDimensions.cornerRadius,
                 color = Color.Black,
                 alpha = 0.9f,
-                blurRadius = 5.dp,
-                offsetY = 3.dp
+                blurRadius = AppTileDimensions.shadowBlurRadius,
+                offsetY = AppTileDimensions.shadowOffsetY
             )
             .background(
                 Brush.linearGradient(
@@ -770,19 +788,19 @@ private fun AppTile(
                 shape
             )
             .border(
-                width = 1.dp,
+                width = AppTileDimensions.mainBorderWidth,
                 color = accent.copy(alpha = .58f),
                 shape = shape
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp),
+            .padding(horizontal = AppTileDimensions.horizontalPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
         Image(
             painter = painterResource(iconRes),
             contentDescription = label,
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier.size(AppTileDimensions.logoSize)
         )
     }
 }
