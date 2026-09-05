@@ -166,17 +166,36 @@ fun ContentSection(
             ConstraintLayout(
                 Modifier
                     .size(dpad)
-                    .shadow(18.dp, CircleShape)
+                    .outerShadow(
+                        color = Color.Black,
+                        alpha = 0.9f,
+                        blurRadius = 5.dp,
+                        offsetY = 3.dp
+                    )
                     .background(
-                        Brush.radialGradient(
-                            0.0f to AppColors.dpadCenter,
-                            0.58f to AppColors.dpadCenter,
-                            0.82f to AppColors.dpadMid,
-                            1.0f to AppColors.dpadEdge
+                        Brush.linearGradient(
+                            colorStops = arrayOf(
+                                0.0f to AppColors.remoteButtonTop,
+                                0.42f to AppColors.dpadMid,
+                                1.0f to AppColors.remoteButtonBottom
+                            ),
+                            start = Offset(0f, 0f),
+                            end = Offset(0f, 700f)
                         ),
                         CircleShape
                     )
-                    .border(2.dp, AppColors.remoteRim, CircleShape)
+                    .border(
+                        width = 1.dp,
+                        brush = Brush.linearGradient(
+                            colorStops = arrayOf(
+                                0.0f to AppColors.remoteButtonBorderTop,
+                                0.18f to AppColors.remoteButtonBorderBottom
+                            ),
+                            start = Offset(0f, 0f),
+                            end = Offset(0f, 700f)
+                        ),
+                        shape = CircleShape
+                    )
             ) {
                 val (ok, u, d, l, r) = createRefs()
 
@@ -700,24 +719,33 @@ private fun AppTile(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val shape = RoundedCornerShape(17.dp)
+
     Row(
         modifier
             .height(66.dp)
-            .shadow(12.dp, RoundedCornerShape(17.dp))
+            .outerRoundedShadow(
+                cornerRadius = 17.dp,
+                color = Color.Black,
+                alpha = 0.9f,
+                blurRadius = 5.dp,
+                offsetY = 3.dp
+            )
             .background(
                 Brush.linearGradient(
-                    listOf(
-                        AppColors.surfacePressed,
-                        AppColors.surface,
-                        AppColors.remoteDeep
-                    )
+                    colorStops = arrayOf(
+                        0.0f to AppColors.remoteButtonTop,
+                        0.35f to AppColors.remoteButtonBottom
+                    ),
+                    start = Offset(0f, 0f),
+                    end = Offset(0f, 500f)
                 ),
-                RoundedCornerShape(17.dp)
+                shape
             )
             .border(
-                1.dp,
-                accent.copy(alpha = .48f),
-                RoundedCornerShape(17.dp)
+                width = 1.dp,
+                color = accent.copy(alpha = .58f),
+                shape = shape
             )
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp),
