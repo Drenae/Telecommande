@@ -8,13 +8,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import com.telecommande.ui.theme.ShadowModifierDimensions
 
 fun Modifier.outerShadow(
     color: Color = Color.Black,
     alpha: Float = 0.85f,
-    blurRadius: Dp = 6.dp,
-    offsetY: Dp = 3.dp
+    blurRadius: Dp = ShadowModifierDimensions.defaultBlurRadius,
+    offsetY: Dp = ShadowModifierDimensions.defaultOffsetY
 ): Modifier = this.then(
     Modifier.drawBehind {
         val shadowColor = color.copy(alpha = alpha).toArgb()
@@ -41,8 +41,8 @@ fun Modifier.outerRoundedShadow(
     cornerRadius: Dp,
     color: Color = Color.Black,
     alpha: Float = 0.85f,
-    blurRadius: Dp = 6.dp,
-    offsetY: Dp = 3.dp
+    blurRadius: Dp = ShadowModifierDimensions.defaultBlurRadius,
+    offsetY: Dp = ShadowModifierDimensions.defaultOffsetY
 ): Modifier = this.then(
     Modifier.drawBehind {
         val shadowColor = color.copy(alpha = alpha).toArgb()
