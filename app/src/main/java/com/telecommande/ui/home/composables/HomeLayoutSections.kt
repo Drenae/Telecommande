@@ -35,6 +35,12 @@ import com.telecommande.R
 import com.telecommande.ui.theme.AppColors
 import com.telecommande.util.outerRoundedShadow
 import com.telecommande.util.outerShadow
+import compose.icons.FontAwesomeIcons
+import compose.icons.fontawesomeicons.Solid
+import compose.icons.fontawesomeicons.solid.CaretDown
+import compose.icons.fontawesomeicons.solid.CaretLeft
+import compose.icons.fontawesomeicons.solid.CaretRight
+import compose.icons.fontawesomeicons.solid.CaretUp
 import kotlin.math.roundToInt
 
 @Composable
@@ -186,7 +192,7 @@ fun ContentSection(
                 )
 
                 DpadIcon(
-                    icon = Icons.Rounded.ArrowDropDown,
+                    icon = FontAwesomeIcons.Solid.CaretUp,
                     desc = "Haut",
                     size = dpad * .40f,
                     onClick = onUpClick,
@@ -194,12 +200,11 @@ fun ContentSection(
                         top.linkTo(parent.top)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
-                    },
-                    rotation = 180f
+                    }
                 )
 
                 DpadIcon(
-                    icon = Icons.Rounded.ArrowDropDown,
+                    icon = FontAwesomeIcons.Solid.CaretDown,
                     desc = "Bas",
                     size = dpad * .40f,
                     onClick = onDownClick,
@@ -207,12 +212,11 @@ fun ContentSection(
                         bottom.linkTo(parent.bottom)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
-                    },
-                    rotation = 0f
+                    }
                 )
 
                 DpadIcon(
-                    icon = Icons.Rounded.ArrowDropDown,
+                    icon = FontAwesomeIcons.Solid.CaretLeft,
                     desc = "Gauche",
                     size = dpad * .40f,
                     onClick = onLeftClick,
@@ -220,12 +224,11 @@ fun ContentSection(
                         start.linkTo(parent.start)
                         top.linkTo(parent.top)
                         bottom.linkTo(parent.bottom)
-                    },
-                    rotation = 90f
+                    }
                 )
 
                 DpadIcon(
-                    icon = Icons.Rounded.ArrowDropDown,
+                    icon = FontAwesomeIcons.Solid.CaretRight,
                     desc = "Droite",
                     size = dpad * .40f,
                     onClick = onRightClick,
@@ -233,8 +236,7 @@ fun ContentSection(
                         end.linkTo(parent.end)
                         top.linkTo(parent.top)
                         bottom.linkTo(parent.bottom)
-                    },
-                    rotation = -90f
+                    }
                 )
             }
 
@@ -316,8 +318,7 @@ private fun DpadIcon(
     desc: String,
     size: Dp,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    rotation: Float = 0f
+    modifier: Modifier = Modifier
 ) {
     IconButton(
         onClick = onClick,
@@ -326,9 +327,7 @@ private fun DpadIcon(
         GradientIcon(
             icon = icon,
             desc = desc,
-            modifier = Modifier
-                .size(size * .62f)
-                .graphicsLayer(rotationZ = rotation)
+            modifier = Modifier.size(size * .72f)
         )
     }
 }
