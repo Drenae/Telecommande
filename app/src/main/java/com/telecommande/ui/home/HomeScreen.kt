@@ -28,7 +28,7 @@ import com.telecommande.ui.home.composables.ContentSection
 import com.telecommande.ui.home.composables.FooterSection
 import com.telecommande.ui.home.composables.HeaderSection
 import com.telecommande.ui.theme.AppColors
-import com.telecommande.ui.theme.ScreenPaddings
+import com.telecommande.ui.theme.HomeScreenDimensions
 
 @Composable
 fun HomeScreen(
@@ -77,7 +77,10 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = ScreenPaddings.Horizontal, vertical = ScreenPaddings.Horizontal / 2),
+                    .padding(
+                        horizontal = HomeScreenDimensions.horizontalPadding,
+                        vertical = HomeScreenDimensions.verticalPadding
+                    ),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 HeaderSection(
