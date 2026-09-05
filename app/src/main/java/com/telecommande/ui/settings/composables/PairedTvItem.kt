@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import com.telecommande.data.model.PairedTvInfo
 import com.telecommande.ui.theme.AppColors
@@ -44,9 +43,9 @@ fun PairedTvItem(
     modifier: Modifier = Modifier
 ) {
     val statusColor = when {
-        isConnectedToThisTv -> AppColors.statusGreen
-        isActive -> AppColors.statusAmber
-        else -> AppColors.textSecondary
+        isConnectedToThisTv -> AppColors.pairedTvItemConnectedStatus
+        isActive -> AppColors.pairedTvItemActiveStatus
+        else -> AppColors.pairedTvItemInactiveStatus
     }
     val technicalName = tvInfo.name ?: tvInfo.ipAddress
     val shape = RoundedCornerShape(PairedTvItemDimensions.cornerRadius)
@@ -56,7 +55,7 @@ fun PairedTvItem(
             .fillMaxWidth()
             .outerRoundedShadow(
                 cornerRadius = PairedTvItemDimensions.cornerRadius,
-                color = Color.Black,
+                color = AppColors.pairedTvItemShadow,
                 alpha = 0.58f,
                 blurRadius = PairedTvItemDimensions.shadowBlurRadius,
                 offsetY = PairedTvItemDimensions.shadowOffsetY
@@ -65,15 +64,15 @@ fun PairedTvItem(
                 Brush.linearGradient(
                     if (isActive) {
                         listOf(
-                            AppColors.accentMuted.copy(alpha = 0.9f),
-                            AppColors.surface,
-                            AppColors.remoteDeep
+                            AppColors.pairedTvItemActiveGradientTop,
+                            AppColors.pairedTvItemActiveGradientMiddle,
+                            AppColors.pairedTvItemActiveGradientBottom
                         )
                     } else {
                         listOf(
-                            AppColors.surfaceElevated,
-                            AppColors.surface,
-                            AppColors.remoteDeep
+                            AppColors.pairedTvItemInactiveGradientTop,
+                            AppColors.pairedTvItemInactiveGradientMiddle,
+                            AppColors.pairedTvItemInactiveGradientBottom
                         )
                     }
                 ),
@@ -82,9 +81,9 @@ fun PairedTvItem(
             .border(
                 width = PairedTvItemDimensions.mainBorderWidth,
                 color = if (isActive) {
-                    AppColors.accent.copy(alpha = 0.65f)
+                    AppColors.pairedTvItemActiveBorder
                 } else {
-                    AppColors.border.copy(alpha = 0.9f)
+                    AppColors.pairedTvItemInactiveBorder
                 },
                 shape = shape
             )
@@ -102,18 +101,18 @@ fun PairedTvItem(
                 .size(PairedTvItemDimensions.tvIconContainerSize)
                 .background(
                     if (isActive) {
-                        AppColors.accentMuted
+                        AppColors.pairedTvItemActiveIconBackground
                     } else {
-                        AppColors.surfacePressed
+                        AppColors.pairedTvItemInactiveIconBackground
                     },
                     CircleShape
                 )
                 .border(
                     width = PairedTvItemDimensions.tvIconContainerBorderWidth,
                     color = if (isActive) {
-                        AppColors.accent.copy(alpha = 0.5f)
+                        AppColors.pairedTvItemActiveIconBorder
                     } else {
-                        AppColors.border
+                        AppColors.pairedTvItemInactiveIconBorder
                     },
                     shape = CircleShape
                 ),
@@ -122,7 +121,11 @@ fun PairedTvItem(
             Icon(
                 imageVector = Icons.Rounded.Tv,
                 contentDescription = null,
-                tint = if (isActive) AppColors.accent else AppColors.textSecondary,
+                tint = if (isActive) {
+                    AppColors.pairedTvItemActiveIcon
+                } else {
+                    AppColors.pairedTvItemInactiveIcon
+                },
                 modifier = Modifier.size(PairedTvItemDimensions.tvIconSize)
             )
         }
@@ -134,21 +137,21 @@ fun PairedTvItem(
                 text = displayName,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = AppColors.appWhite
+                color = AppColors.pairedTvItemTitle
             )
 
             if (displayName != technicalName) {
                 Text(
                     text = technicalName,
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.textSecondary
+                    color = AppColors.pairedTvItemTechnicalName
                 )
             }
 
             Text(
                 text = tvInfo.ipAddress,
                 style = MaterialTheme.typography.bodySmall,
-                color = AppColors.textSecondary
+                color = AppColors.pairedTvItemIpAddress
             )
 
             if (isActive) {
@@ -177,7 +180,7 @@ fun PairedTvItem(
                 modifier = Modifier
                     .size(PairedTvItemDimensions.actionContainerSize)
                     .background(
-                        AppColors.accentMuted.copy(alpha = 0.7f),
+                        AppColors.pairedTvItemRenameBackground,
                         RoundedCornerShape(PairedTvItemDimensions.actionContainerCornerRadius)
                     ),
                 contentAlignment = Alignment.Center
@@ -185,7 +188,7 @@ fun PairedTvItem(
                 Icon(
                     imageVector = Icons.Rounded.Edit,
                     contentDescription = "Renommer $displayName",
-                    tint = AppColors.accent,
+                    tint = AppColors.pairedTvItemRenameIcon,
                     modifier = Modifier.size(PairedTvItemDimensions.renameIconSize)
                 )
             }
@@ -196,7 +199,7 @@ fun PairedTvItem(
                 modifier = Modifier
                     .size(PairedTvItemDimensions.actionContainerSize)
                     .background(
-                        AppColors.statusRed.copy(alpha = 0.1f),
+                        AppColors.pairedTvItemForgetBackground,
                         RoundedCornerShape(PairedTvItemDimensions.actionContainerCornerRadius)
                     ),
                 contentAlignment = Alignment.Center
@@ -204,7 +207,7 @@ fun PairedTvItem(
                 Icon(
                     imageVector = Icons.Rounded.DeleteOutline,
                     contentDescription = "Oublier $displayName",
-                    tint = AppColors.statusRed.copy(alpha = 0.9f),
+                    tint = AppColors.pairedTvItemForgetIcon,
                     modifier = Modifier.size(PairedTvItemDimensions.forgetIconSize)
                 )
             }
