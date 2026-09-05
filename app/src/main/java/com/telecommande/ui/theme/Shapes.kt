@@ -1,11 +1,16 @@
 package com.telecommande.ui.theme
 
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
-import androidx.compose.ui.unit.dp
 
 val Shapes = Shapes(
-    small = RoundedCornerShape(4.dp),
-    medium = RoundedCornerShape(8.dp),
-    large = RoundedCornerShape(16.dp)
+    small = RoundedCornerShape(MaterialShapeDimensions.smallCornerRadius),
+    medium = RoundedCornerShape(MaterialShapeDimensions.mediumCornerRadius),
+    large = RoundedCornerShape(MaterialShapeDimensions.largeCornerRadius)
 )
+
+object HomeButtonShapes {
+    val baseButton = CircleShape
+    val appButton = RoundedCornerShape(MaterialShapeDimensions.largeCornerRadius)
+}
