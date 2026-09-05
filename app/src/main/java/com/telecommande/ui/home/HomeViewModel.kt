@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.telecommande.core.protocol.TvCommand
 import com.telecommande.data.repository.SettingsRepository
 import com.telecommande.ui.manager.RemoteManager
+import com.telecommande.util.resolveDisplayName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -34,9 +35,8 @@ class HomeViewModel @Inject constructor(
         settingsRepository.activeTvInfoFlow,
         settingsRepository.tvDisplayNamesFlow
     ) { managerState, activeTvInfo, displayNames ->
-        val displayName = activeTvInfo?.let { tv ->
-            displayNames[tv.keystoreAlias] ?: tv.name ?: tv.ipAddress
-        } ?: managerState.activeTvName
+        val displayName = activeTvInfo?.resolveDisplayName(displayNames)
+            ?: managerState.activeTvName
 
         HomeUiState(
             isConnected = managerState.isConnected,
