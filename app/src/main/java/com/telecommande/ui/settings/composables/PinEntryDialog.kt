@@ -36,6 +36,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.telecommande.core.discovery.DiscoveredTv
 import com.telecommande.ui.theme.AppColors
 import com.telecommande.ui.theme.PinEntryDialogDimensions
+import com.telecommande.util.normalizePairingPin
 
 @Composable
 fun PinEntryDialog(
@@ -81,9 +82,7 @@ fun PinEntryDialog(
                 OutlinedTextField(
                     value = pinValue,
                     onValueChange = { rawValue ->
-                        val normalizedValue = rawValue
-                            .filter { it.isLetterOrDigit() }
-                            .uppercase()
+                        val normalizedValue = rawValue.normalizePairingPin()
                         pinValue = normalizedValue
                         onPinChange(normalizedValue)
                     },
