@@ -27,9 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.telecommande.data.model.PairedTvInfo
 import com.telecommande.ui.theme.AppColors
+import com.telecommande.ui.theme.PairedTvItemDimensions
 import com.telecommande.util.outerRoundedShadow
 
 @Composable
@@ -49,17 +49,17 @@ fun PairedTvItem(
         else -> AppColors.textSecondary
     }
     val technicalName = tvInfo.name ?: tvInfo.ipAddress
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(PairedTvItemDimensions.cornerRadius)
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .outerRoundedShadow(
-                cornerRadius = 18.dp,
+                cornerRadius = PairedTvItemDimensions.cornerRadius,
                 color = Color.Black,
                 alpha = 0.58f,
-                blurRadius = 5.dp,
-                offsetY = 2.dp
+                blurRadius = PairedTvItemDimensions.shadowBlurRadius,
+                offsetY = PairedTvItemDimensions.shadowOffsetY
             )
             .background(
                 Brush.linearGradient(
@@ -80,7 +80,7 @@ fun PairedTvItem(
                 shape
             )
             .border(
-                width = 1.dp,
+                width = PairedTvItemDimensions.mainBorderWidth,
                 color = if (isActive) {
                     AppColors.accent.copy(alpha = 0.65f)
                 } else {
@@ -89,12 +89,17 @@ fun PairedTvItem(
                 shape = shape
             )
             .clickable(onClick = onConnectClick)
-            .padding(start = 14.dp, top = 13.dp, bottom = 13.dp, end = 5.dp),
+            .padding(
+                start = PairedTvItemDimensions.contentStartPadding,
+                top = PairedTvItemDimensions.contentTopPadding,
+                bottom = PairedTvItemDimensions.contentBottomPadding,
+                end = PairedTvItemDimensions.contentEndPadding
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(46.dp)
+                .size(PairedTvItemDimensions.tvIconContainerSize)
                 .background(
                     if (isActive) {
                         AppColors.accentMuted
@@ -104,7 +109,7 @@ fun PairedTvItem(
                     CircleShape
                 )
                 .border(
-                    width = 1.dp,
+                    width = PairedTvItemDimensions.tvIconContainerBorderWidth,
                     color = if (isActive) {
                         AppColors.accent.copy(alpha = 0.5f)
                     } else {
@@ -118,11 +123,11 @@ fun PairedTvItem(
                 imageVector = Icons.Rounded.Tv,
                 contentDescription = null,
                 tint = if (isActive) AppColors.accent else AppColors.textSecondary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(PairedTvItemDimensions.tvIconSize)
             )
         }
 
-        Spacer(modifier = Modifier.width(13.dp))
+        Spacer(modifier = Modifier.width(PairedTvItemDimensions.tvTextSpacing))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -149,14 +154,14 @@ fun PairedTvItem(
             if (isActive) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 5.dp)
+                    modifier = Modifier.padding(top = PairedTvItemDimensions.statusTopPadding)
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(8.dp)
+                            .size(PairedTvItemDimensions.statusDotSize)
                             .background(statusColor, CircleShape)
                     )
-                    Spacer(Modifier.width(6.dp))
+                    Spacer(Modifier.width(PairedTvItemDimensions.statusTextSpacing))
                     Text(
                         text = if (isConnectedToThisTv) "Connectée" else "TV active",
                         style = MaterialTheme.typography.labelMedium,
@@ -170,15 +175,18 @@ fun PairedTvItem(
         IconButton(onClick = onRenameClick) {
             Box(
                 modifier = Modifier
-                    .size(34.dp)
-                    .background(AppColors.accentMuted.copy(alpha = 0.7f), RoundedCornerShape(11.dp)),
+                    .size(PairedTvItemDimensions.actionContainerSize)
+                    .background(
+                        AppColors.accentMuted.copy(alpha = 0.7f),
+                        RoundedCornerShape(PairedTvItemDimensions.actionContainerCornerRadius)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Edit,
                     contentDescription = "Renommer $displayName",
                     tint = AppColors.accent,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(PairedTvItemDimensions.renameIconSize)
                 )
             }
         }
@@ -186,15 +194,18 @@ fun PairedTvItem(
         IconButton(onClick = onForgetClick) {
             Box(
                 modifier = Modifier
-                    .size(34.dp)
-                    .background(AppColors.statusRed.copy(alpha = 0.1f), RoundedCornerShape(11.dp)),
+                    .size(PairedTvItemDimensions.actionContainerSize)
+                    .background(
+                        AppColors.statusRed.copy(alpha = 0.1f),
+                        RoundedCornerShape(PairedTvItemDimensions.actionContainerCornerRadius)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Rounded.DeleteOutline,
                     contentDescription = "Oublier $displayName",
                     tint = AppColors.statusRed.copy(alpha = 0.9f),
-                    modifier = Modifier.size(19.dp)
+                    modifier = Modifier.size(PairedTvItemDimensions.forgetIconSize)
                 )
             }
         }
