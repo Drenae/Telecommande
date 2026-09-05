@@ -471,14 +471,15 @@ private fun EmptyPairedState(onSearch: () -> Unit) {
     SettingsStateCard(
         icon = Icons.Rounded.SignalWifiOff,
         title = "Aucune TV enregistrée",
-        subtitle = "Ajoutez une TV présente sur le même réseau Wi-Fi."
-    ) {
-        SettingsPrimaryButton(
-            icon = Icons.Rounded.Add,
-            label = "Ajouter une TV",
-            onClick = onSearch
-        )
-    }
+        subtitle = "Ajoutez une TV présente sur le même réseau Wi-Fi.",
+        action = {
+            SettingsPrimaryButton(
+                icon = Icons.Rounded.Add,
+                label = "Ajouter une TV",
+                onClick = onSearch
+            )
+        }
+    )
 }
 
 @Composable
@@ -537,7 +538,7 @@ private fun SettingsStateCard(
     icon: ImageVector?,
     title: String,
     subtitle: String,
-    action: @Composable () -> Unit = {}
+    action: (@Composable () -> Unit)? = null
 ) {
     val shape = RoundedCornerShape(18.dp)
 
@@ -592,11 +593,9 @@ private fun SettingsStateCard(
             textAlign = TextAlign.Center
         )
 
-        if (action !== {}) {
+        action?.let {
             Spacer(Modifier.height(12.dp))
-            action()
-        } else {
-            action()
+            it()
         }
     }
 }
