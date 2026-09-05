@@ -58,9 +58,9 @@ fun PinEntryDialog(
     AlertDialog(
         onDismissRequest = { if (!isLoading) onDismiss() },
         shape = RoundedCornerShape(PinEntryDialogDimensions.cornerRadius),
-        containerColor = AppColors.surfaceElevated,
-        titleContentColor = AppColors.appWhite,
-        textContentColor = AppColors.textSecondary,
+        containerColor = AppColors.pinDialogContainer,
+        titleContentColor = AppColors.pinDialogTitle,
+        textContentColor = AppColors.pinDialogText,
         title = {
             Column {
                 Text(
@@ -70,7 +70,7 @@ fun PinEntryDialog(
                 Text(
                     text = tvToPair.friendlyName ?: tvToPair.ipAddress ?: "TV Android",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = AppColors.accent
+                    color = AppColors.pinDialogTvName
                 )
             }
         },
@@ -115,8 +115,8 @@ fun PinEntryDialog(
                 },
                 enabled = !isLoading && pinValue.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AppColors.accent,
-                    contentColor = AppColors.appBlack
+                    containerColor = AppColors.pinDialogConfirmBackground,
+                    contentColor = AppColors.pinDialogConfirmContent
                 )
             ) {
                 if (isLoading) {
@@ -124,7 +124,7 @@ fun PinEntryDialog(
                         CircularProgressIndicator(
                             modifier = Modifier.size(PinEntryDialogDimensions.loadingIndicatorSize),
                             strokeWidth = PinEntryDialogDimensions.loadingIndicatorStrokeWidth,
-                            color = AppColors.appBlack
+                            color = AppColors.pinDialogLoadingIndicator
                         )
                         Spacer(Modifier.size(PinEntryDialogDimensions.loadingTextSpacing))
                         Text("Vérification")
