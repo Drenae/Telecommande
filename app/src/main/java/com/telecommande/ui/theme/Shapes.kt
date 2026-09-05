@@ -12,5 +12,5 @@ val Shapes = Shapes(
 
 object HomeButtonShapes {
     val baseButton = CircleShape
-    val appButton = RoundedCornerShape(HomeAppButtonSpecs.defaultCornerRadius)
+    val appButton = RoundedCornerShape(LegacyHomeAppButtonDimensions.defaultCornerRadius)
 }
