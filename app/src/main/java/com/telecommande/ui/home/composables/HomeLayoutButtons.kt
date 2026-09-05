@@ -25,44 +25,179 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
-import com.telecommande.ui.theme.ComponentDimensions
 import com.telecommande.ui.theme.DefaultButtonColors
 import com.telecommande.ui.theme.HomeAppButtonSpecs
 import com.telecommande.ui.theme.HomeBaseButtonSpecs
+import com.telecommande.ui.theme.HomeButtonShapes
 import com.telecommande.ui.theme.HomeDpadButtonSpecs
 
 @Composable
-fun HomeBaseButton(onClick: () -> Unit, vectorIcon: ImageVector? = null, drawableIconRes: Int? = null, textLabel: String? = null, contentDescription: String, modifier: Modifier = Modifier, size: Dp = HomeBaseButtonSpecs.DefaultSize, defaultBackgroundColorBrush: Brush = DefaultButtonColors.DefaultBackgroundBrush, pressedBackgroundColorBrush: Brush = DefaultButtonColors.PressedBackgroundBrush, shape: Shape = HomeBaseButtonSpecs.DefaultShape, iconTint: Color = Color.White, iconPadding: Dp = HomeBaseButtonSpecs.DefaultIconPadding, borderWidth: Dp = HomeBaseButtonSpecs.DefaultBorderWidth, borderColor: Color = DefaultButtonColors.DefaultBorder, defaultElevation: Dp = HomeBaseButtonSpecs.DefaultElevation, pressedElevation: Dp = HomeBaseButtonSpecs.PressedElevation, shadowColorDark: Color = DefaultButtonColors.DefaultShadowDark, pressedShadowColorDark: Color = DefaultButtonColors.PressedShadowDark) {
+fun HomeBaseButton(
+    onClick: () -> Unit,
+    vectorIcon: ImageVector? = null,
+    drawableIconRes: Int? = null,
+    textLabel: String? = null,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    size: Dp = HomeBaseButtonSpecs.defaultSize,
+    defaultBackgroundColorBrush: Brush = DefaultButtonColors.defaultBackgroundBrush,
+    pressedBackgroundColorBrush: Brush = DefaultButtonColors.pressedBackgroundBrush,
+    shape: Shape = HomeButtonShapes.baseButton,
+    iconTint: Color = Color.White,
+    iconPadding: Dp = HomeBaseButtonSpecs.defaultIconPadding,
+    borderWidth: Dp = HomeBaseButtonSpecs.defaultBorderWidth,
+    borderColor: Color = DefaultButtonColors.defaultBorder,
+    defaultElevation: Dp = HomeBaseButtonSpecs.defaultElevation,
+    pressedElevation: Dp = HomeBaseButtonSpecs.pressedElevation,
+    shadowColorDark: Color = DefaultButtonColors.defaultShadowDark,
+    pressedShadowColorDark: Color = DefaultButtonColors.pressedShadowDark
+) {
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (pressed) .92f else 1f, label = "remoteScale")
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) .92f else 1f,
+        label = "remoteScale"
+    )
     val brush = if (pressed) pressedBackgroundColorBrush else defaultBackgroundColorBrush
     val elevation = if (pressed) pressedElevation else defaultElevation
     val shadow = if (pressed) pressedShadowColorDark else shadowColorDark
-    IconButton(onClick = onClick, modifier = modifier.size(size), interactionSource = source) {
-        Box(Modifier.size(size).scale(scale).shadow(elevation, shape, spotColor = shadow, ambientColor = shadow).background(brush, shape).border(borderWidth, borderColor, shape), contentAlignment = Alignment.Center) {
-            if (textLabel != null) Text(textLabel, color = if (iconTint == Color.Unspecified) MaterialTheme.colorScheme.primary else iconTint, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
-            else vectorIcon?.let { Icon(it, contentDescription, tint = iconTint, modifier = Modifier.size(size - iconPadding * 2)) }
+
+    IconButton(
+        onClick = onClick,
+        modifier = modifier.size(size),
+        interactionSource = source
+    ) {
+        Box(
+            modifier = Modifier
+                .size(size)
+                .scale(scale)
+                .shadow(
+                    elevation = elevation,
+                    shape = shape,
+                    spotColor = shadow,
+                    ambientColor = shadow
+                )
+                .background(brush, shape)
+                .border(borderWidth, borderColor, shape),
+            contentAlignment = Alignment.Center
+        ) {
+            if (textLabel != null) {
+                Text(
+                    text = textLabel,
+                    color = if (iconTint == Color.Unspecified) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        iconTint
+                    },
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black
+                )
+            } else {
+                vectorIcon?.let {
+                    Icon(
+                        imageVector = it,
+                        contentDescription = contentDescription,
+                        tint = iconTint,
+                        modifier = Modifier.size(size - iconPadding * 2)
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-fun HomeDpadButton(onClick: () -> Unit, vectorIcon: ImageVector? = null, drawableIconRes: Int? = null, contentDescription: String, modifier: Modifier = Modifier, size: Dp = HomeDpadButtonSpecs.DefaultSize, iconTint: Color = Color.White, iconPadding: Dp) {
+fun HomeDpadButton(
+    onClick: () -> Unit,
+    vectorIcon: ImageVector? = null,
+    drawableIconRes: Int? = null,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    size: Dp = HomeDpadButtonSpecs.defaultSize,
+    iconTint: Color = Color.White,
+    iconPadding: Dp
+) {
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (pressed) .82f else 1f, label = "dpadScale")
-    IconButton(onClick = onClick, modifier = modifier.size(size), interactionSource = source) {
-        Box(Modifier.size(size).scale(scale), contentAlignment = Alignment.Center) { vectorIcon?.let { Icon(it, contentDescription, tint = iconTint, modifier = Modifier.size(size - iconPadding * 2)) } }
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) .82f else 1f,
+        label = "dpadScale"
+    )
+
+    IconButton(
+        onClick = onClick,
+        modifier = modifier.size(size),
+        interactionSource = source
+    ) {
+        Box(
+            modifier = Modifier
+                .size(size)
+                .scale(scale),
+            contentAlignment = Alignment.Center
+        ) {
+            vectorIcon?.let {
+                Icon(
+                    imageVector = it,
+                    contentDescription = contentDescription,
+                    tint = iconTint,
+                    modifier = Modifier.size(size - iconPadding * 2)
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun HomeAppButton(onClick: () -> Unit, vectorIcon: ImageVector, contentDescription: String, modifier: Modifier = Modifier, shape: Shape, defaultBackgroundBrush: Brush = HomeAppButtonSpecs.DefaultBackgroundBrush, pressedBackgroundBrush: Brush = HomeAppButtonSpecs.PressedBackgroundBrush, iconTint: Color = Color.White, iconSize: Dp = ComponentDimensions.AppLauncherIconSize) {
+fun HomeAppButton(
+    onClick: () -> Unit,
+    vectorIcon: ImageVector,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    shape: Shape = HomeButtonShapes.appButton,
+    defaultBackgroundBrush: Brush = DefaultButtonColors.defaultBackgroundBrush,
+    pressedBackgroundBrush: Brush = DefaultButtonColors.pressedBackgroundBrush,
+    iconTint: Color = Color.White,
+    iconSize: Dp = HomeAppButtonSpecs.defaultIconSize
+) {
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (pressed) .96f else 1f, label = "appScale")
-    Box(modifier.scale(scale).shadow(if (pressed) HomeBaseButtonSpecs.PressedElevation else HomeBaseButtonSpecs.DefaultElevation, shape).background(if (pressed) pressedBackgroundBrush else defaultBackgroundBrush, shape).border(HomeBaseButtonSpecs.DefaultBorderWidth, DefaultButtonColors.DefaultBorder, shape).clickable(onClick = onClick, interactionSource = source, indication = null), contentAlignment = Alignment.Center) {
-        Icon(vectorIcon, contentDescription, tint = iconTint, modifier = Modifier.size(iconSize))
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) .96f else 1f,
+        label = "appScale"
+    )
+
+    Box(
+        modifier = modifier
+            .scale(scale)
+            .shadow(
+                elevation = if (pressed) {
+                    HomeBaseButtonSpecs.pressedElevation
+                } else {
+                    HomeBaseButtonSpecs.defaultElevation
+                },
+                shape = shape
+            )
+            .background(
+                brush = if (pressed) pressedBackgroundBrush else defaultBackgroundBrush,
+                shape = shape
+            )
+            .border(
+                width = HomeBaseButtonSpecs.defaultBorderWidth,
+                color = DefaultButtonColors.defaultBorder,
+                shape = shape
+            )
+            .clickable(
+                onClick = onClick,
+                interactionSource = source,
+                indication = null
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = vectorIcon,
+            contentDescription = contentDescription,
+            tint = iconTint,
+            modifier = Modifier.size(iconSize)
+        )
     }
 }
