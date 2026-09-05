@@ -236,5 +236,6 @@ object HomeDpadButtonSpecs {
 }
 
 object HomeAppButtonSpecs {
+    val defaultCornerRadius: Dp = 12.dp
     val defaultIconSize: Dp = 32.dp
 }
