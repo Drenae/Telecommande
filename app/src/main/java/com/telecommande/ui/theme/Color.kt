@@ -21,30 +21,17 @@ object AppColors {
     val statusRed = Color(0xFFFF5B5B)
     val statusGray = Color(0xFF808080)
 
-    // Télécommande
+    // Télécommande - couleurs réellement partagées
     val remoteCyan = Color(0xFF19D7FF)
     val remoteDeep = Color(0xFF070B10)
-    val remoteRim = Color(0xFF263540)
-    val remoteButtonRim = Color(0xFF33434F)
-    val remoteRaisedTop = Color(0xFF25333E)
-    val remoteRaisedMid = Color(0xFF151E26)
-    val remoteRaisedBottom = Color(0xFF090D12)
     val remoteConnected = Color(0xFF40E081)
-    val remoteConnectedBorder = Color(0xFF208F5B)
     val remoteTextMuted = Color(0xFF9AA7B1)
     val remoteButtonTop = Color(0xFF1B1D27)
     val remoteButtonBottom = Color(0xFF05070B)
     val remoteButtonBorderTop = Color(0xFF555555)
     val remoteButtonBorderBottom = Color(0xFF111111)
-    val dpadCenter = Color(0xFF24323B)
     val dpadMid = Color(0xFF18242B)
-    val dpadEdge = Color(0xFF10171C)
-    val volumePanelStart = Color(0xFF0D141B)
-    val volumePanelEnd = Color(0xFF111C24)
     val volumeTrackInactive = Color(0xFF24323D)
-    val volumeThumbTop = Color(0xFFF8FBFC)
-    val volumeThumbBottom = Color(0xFFBFCBD1)
-    val volumeThumbBorder = Color(0xFF45CFEA)
     val netflix = Color(0xFFE50914)
     val youtube = Color(0xFFFF0033)
     val plex = Color(0xFFE5A900)
@@ -273,9 +260,7 @@ object DefaultButtonColors {
     val pressedBackgroundStart = AppColors.surfacePressed
     val pressedBackgroundEnd = AppColors.surfaceElevated
     val defaultBorder = AppColors.border
-    val defaultShadowLight = Color.Transparent
     val defaultShadowDark = Color(0x66000000)
-    val pressedShadowLight = Color.Transparent
     val pressedShadowDark = Color(0x33000000)
 
     val defaultBackgroundBrush = Brush.linearGradient(
@@ -284,12 +269,4 @@ object DefaultButtonColors {
     val pressedBackgroundBrush = Brush.linearGradient(
         colors = listOf(pressedBackgroundStart, pressedBackgroundEnd)
     )
-}
-
-object AppSliderColors {
-    val thumbColor = AppColors.appWhite
-    val activeTrackColor = AppColors.accent
-    val inactiveTrackColor = AppColors.surfacePressed
-    val activeTickColor = Color.Transparent
-    val inactiveTickColor = Color.Transparent
 }
