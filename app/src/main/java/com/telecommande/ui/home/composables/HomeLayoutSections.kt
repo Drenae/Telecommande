@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.telecommande.R
 import com.telecommande.ui.theme.AppColors
-import com.telecommande.utils.outerShadow
+import com.telecommande.util.outerShadow
 import kotlin.math.roundToInt
 
 @Composable
