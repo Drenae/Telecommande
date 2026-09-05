@@ -33,6 +33,12 @@ object AppColors {
     val remoteConnectedBorder = Color(0xFF208F5B)
     val remoteTextMuted = Color(0xFF9AA7B1)
 
+    // Boutons premium
+    val remoteButtonTop = Color(0xFF1B1D27)
+    val remoteButtonBottom = Color(0xFF05070B)
+    val remoteButtonBorderTop = Color(0xFF555555)
+    val remoteButtonBorderBottom = Color(0xFF111111)
+
     // D-pad : contraste plus doux pour un rendu bombé plutôt qu'enfoncé
     val dpadCenter = Color(0xFF24323B)
     val dpadMid = Color(0xFF18242B)
