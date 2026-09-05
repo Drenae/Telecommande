@@ -8,10 +8,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
+import com.telecommande.ui.theme.AppColors
 import com.telecommande.ui.theme.ShadowModifierDimensions
 
 fun Modifier.outerShadow(
-    color: Color = Color.Black,
+    color: Color = AppColors.outerShadowDefault,
     alpha: Float = 0.85f,
     blurRadius: Dp = ShadowModifierDimensions.defaultBlurRadius,
     offsetY: Dp = ShadowModifierDimensions.defaultOffsetY
@@ -39,7 +40,7 @@ fun Modifier.outerShadow(
 
 fun Modifier.outerRoundedShadow(
     cornerRadius: Dp,
-    color: Color = Color.Black,
+    color: Color = AppColors.outerRoundedShadowDefault,
     alpha: Float = 0.85f,
     blurRadius: Dp = ShadowModifierDimensions.defaultBlurRadius,
     offsetY: Dp = ShadowModifierDimensions.defaultOffsetY
