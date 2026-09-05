@@ -222,7 +222,7 @@ object PinEntryDialogDimensions {
     val loadingTextSpacing: Dp = 8.dp
 }
 
-object HomeBaseButtonSpecs {
+object LegacyHomeBaseButtonDimensions {
     val defaultSize: Dp = 74.dp
     val defaultIconPadding: Dp = 16.dp
     val pressedIconReduction: Dp = 2.dp
@@ -231,11 +231,11 @@ object HomeBaseButtonSpecs {
     val pressedElevation: Dp = 1.dp
 }
 
-object HomeDpadButtonSpecs {
+object LegacyHomeDpadButtonDimensions {
     val defaultSize: Dp = 50.dp
 }
 
-object HomeAppButtonSpecs {
+object LegacyHomeAppButtonDimensions {
     val defaultCornerRadius: Dp = 12.dp
     val defaultIconSize: Dp = 32.dp
 }
