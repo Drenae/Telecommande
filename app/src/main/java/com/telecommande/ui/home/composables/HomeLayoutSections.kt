@@ -72,7 +72,11 @@ fun HeaderSection(
             size = HomeHeaderDimensions.powerButtonSize,
             onClick = onPowerClick,
             modifier = Modifier.align(Alignment.CenterStart),
-            iconTint = if (isConnected) AppColors.statusRed else AppColors.statusGreen
+            iconTint = if (isConnected) {
+                AppColors.homePowerConnectedIcon
+            } else {
+                AppColors.homePowerDisconnectedIcon
+            }
         )
 
         Column(
@@ -81,7 +85,7 @@ fun HeaderSection(
         ) {
             Text(
                 text = title,
-                color = AppColors.appWhite,
+                color = AppColors.homeHeaderTitle,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -91,14 +95,22 @@ fun HeaderSection(
                     Modifier
                         .size(HomeHeaderDimensions.statusDotSize)
                         .background(
-                            if (isConnected) AppColors.remoteConnected else AppColors.statusGray,
+                            if (isConnected) {
+                                AppColors.homeHeaderConnectedStatus
+                            } else {
+                                AppColors.homeHeaderDisconnectedStatus
+                            },
                             CircleShape
                         )
                 )
                 Spacer(Modifier.width(HomeHeaderDimensions.statusDotTextSpacing))
                 Text(
                     text = if (isConnected) "TV CONNECTÉE" else "TV DÉCONNECTÉE",
-                    color = if (isConnected) AppColors.remoteConnected else AppColors.statusGray,
+                    color = if (isConnected) {
+                        AppColors.homeHeaderConnectedStatus
+                    } else {
+                        AppColors.homeHeaderDisconnectedStatus
+                    },
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -128,9 +140,9 @@ fun StatusIndicator(
     }
 
     val statusTint = when {
-        isLoading -> AppColors.statusAmber
-        isConnected -> AppColors.statusGreen
-        else -> AppColors.statusGray
+        isLoading -> AppColors.homeStatusLoadingIcon
+        isConnected -> AppColors.homeStatusConnectedIcon
+        else -> AppColors.homeStatusDisconnectedIcon
     }
 
     PremiumCircle(
@@ -179,7 +191,7 @@ fun ContentSection(
                 Modifier
                     .size(dpad)
                     .outerShadow(
-                        color = Color.Black,
+                        color = AppColors.homeDpadShadow,
                         alpha = 0.9f,
                         blurRadius = HomeDpadDimensions.shadowBlurRadius,
                         offsetY = HomeDpadDimensions.shadowOffsetY
@@ -187,9 +199,9 @@ fun ContentSection(
                     .background(
                         Brush.linearGradient(
                             colorStops = arrayOf(
-                                0.0f to AppColors.remoteButtonTop,
-                                0.42f to AppColors.dpadMid,
-                                1.0f to AppColors.remoteButtonBottom
+                                0.0f to AppColors.homeDpadGradientTop,
+                                0.42f to AppColors.homeDpadGradientMiddle,
+                                1.0f to AppColors.homeDpadGradientBottom
                             ),
                             start = Offset(0f, 0f),
                             end = Offset(0f, 700f)
@@ -200,8 +212,8 @@ fun ContentSection(
                         width = HomeDpadDimensions.mainBorderWidth,
                         brush = Brush.linearGradient(
                             colorStops = arrayOf(
-                                0.0f to AppColors.remoteButtonBorderTop,
-                                0.18f to AppColors.remoteButtonBorderBottom
+                                0.0f to AppColors.homeDpadBorderTop,
+                                0.18f to AppColors.homeDpadBorderBottom
                             ),
                             start = Offset(0f, 0f),
                             end = Offset(0f, 700f)
@@ -313,7 +325,10 @@ private fun GradientIcon(
     modifier: Modifier = Modifier,
     tint: Color? = null,
     brush: Brush = Brush.verticalGradient(
-        listOf(AppColors.appWhite, AppColors.textSecondary)
+        listOf(
+            AppColors.homeDpadIconGradientTop,
+            AppColors.homeDpadIconGradientBottom
+        )
     )
 ) {
     if (tint != null) {
@@ -327,7 +342,7 @@ private fun GradientIcon(
         Icon(
             imageVector = icon,
             contentDescription = desc,
-            tint = Color.White,
+            tint = AppColors.homeDpadIconMask,
             modifier = modifier
                 .graphicsLayer(alpha = 0.99f)
                 .drawWithCache {
@@ -377,7 +392,7 @@ private fun PremiumCircle(
         modifier
             .size(size)
             .outerShadow(
-                color = Color.Black,
+                color = AppColors.premiumCircleShadow,
                 alpha = 0.9f,
                 blurRadius = PremiumCircleDimensions.shadowBlurRadius,
                 offsetY = PremiumCircleDimensions.shadowOffsetY
@@ -385,8 +400,8 @@ private fun PremiumCircle(
             .background(
                 Brush.linearGradient(
                     colorStops = arrayOf(
-                        0.0f to AppColors.remoteButtonTop,
-                        0.35f to AppColors.remoteButtonBottom
+                        0.0f to AppColors.premiumCircleGradientTop,
+                        0.35f to AppColors.premiumCircleGradientBottom
                     ),
                     start = Offset(0f, 0f),
                     end = Offset(0f, 500f)
@@ -397,8 +412,8 @@ private fun PremiumCircle(
                 width = PremiumCircleDimensions.mainBorderWidth,
                 brush = Brush.linearGradient(
                     colorStops = arrayOf(
-                        0.0f to AppColors.remoteButtonBorderTop,
-                        0.15f to AppColors.remoteButtonBorderBottom
+                        0.0f to AppColors.premiumCircleMainBorderTop,
+                        0.15f to AppColors.premiumCircleMainBorderBottom
                     ),
                     start = Offset(0f, 0f),
                     end = Offset(0f, 500f)
@@ -413,7 +428,7 @@ private fun PremiumCircle(
                 .fillMaxSize()
                 .border(
                     width = PremiumCircleDimensions.secondaryBorderWidth,
-                    color = Color.Black,
+                    color = AppColors.premiumCircleSecondaryBorder,
                     shape = CircleShape
                 )
                 .clip(CircleShape),
@@ -444,7 +459,7 @@ private fun NavPill(
                 .height(NavPillDimensions.height)
                 .outerRoundedShadow(
                     cornerRadius = NavPillDimensions.cornerRadius,
-                    color = Color.Black,
+                    color = AppColors.navPillShadow,
                     alpha = 0.9f,
                     blurRadius = NavPillDimensions.shadowBlurRadius,
                     offsetY = NavPillDimensions.shadowOffsetY
@@ -452,8 +467,8 @@ private fun NavPill(
                 .background(
                     Brush.linearGradient(
                         colorStops = arrayOf(
-                            0.0f to AppColors.remoteButtonTop,
-                            0.35f to AppColors.remoteButtonBottom
+                            0.0f to AppColors.navPillGradientTop,
+                            0.35f to AppColors.navPillGradientBottom
                         ),
                         start = Offset(0f, 0f),
                         end = Offset(0f, 500f)
@@ -464,8 +479,8 @@ private fun NavPill(
                     width = NavPillDimensions.mainBorderWidth,
                     brush = Brush.linearGradient(
                         colorStops = arrayOf(
-                            0.0f to AppColors.remoteButtonBorderTop,
-                            0.15f to AppColors.remoteButtonBorderBottom
+                            0.0f to AppColors.navPillMainBorderTop,
+                            0.15f to AppColors.navPillMainBorderBottom
                         ),
                         start = Offset(0f, 0f),
                         end = Offset(0f, 500f)
@@ -480,7 +495,7 @@ private fun NavPill(
                     .fillMaxSize()
                     .border(
                         width = NavPillDimensions.secondaryBorderWidth,
-                        color = Color.Black,
+                        color = AppColors.navPillSecondaryBorder,
                         shape = shape
                     )
                     .clip(shape),
@@ -498,7 +513,7 @@ private fun NavPill(
 
         Text(
             text = label,
-            color = AppColors.textSecondary,
+            color = AppColors.navPillLabel,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold
         )
@@ -518,10 +533,10 @@ private fun VolumeControl(
     var pos by remember(volumeLevel) { mutableStateOf(volumeLevel.toFloat()) }
 
     val sliderColors = SliderDefaults.colors(
-        activeTrackColor = AppColors.remoteCyan,
-        inactiveTrackColor = AppColors.volumeTrackInactive,
-        activeTickColor = AppColors.transparent,
-        inactiveTickColor = AppColors.transparent
+        activeTrackColor = AppColors.volumeActiveTrack,
+        inactiveTrackColor = AppColors.volumeInactiveTrack,
+        activeTickColor = AppColors.volumeActiveTick,
+        inactiveTickColor = AppColors.volumeInactiveTick
     )
 
     Row(
@@ -545,13 +560,13 @@ private fun VolumeControl(
             ) {
                 Text(
                     text = "VOLUME",
-                    color = AppColors.remoteTextMuted,
+                    color = AppColors.volumeLabel,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "$volumeLevel",
-                    color = AppColors.remoteCyan,
+                    color = AppColors.volumeValue,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.labelLarge
                 )
@@ -567,7 +582,7 @@ private fun VolumeControl(
                     .height(VolumeControlDimensions.sliderHeight)
                     .outerRoundedShadow(
                         cornerRadius = VolumeControlDimensions.sliderCornerRadius,
-                        color = Color.Black,
+                        color = AppColors.volumeSliderShadow,
                         alpha = 0.9f,
                         blurRadius = VolumeControlDimensions.sliderShadowBlurRadius,
                         offsetY = VolumeControlDimensions.sliderShadowOffsetY
@@ -575,8 +590,8 @@ private fun VolumeControl(
                     .background(
                         Brush.linearGradient(
                             colorStops = arrayOf(
-                                0.0f to AppColors.remoteButtonTop,
-                                0.35f to AppColors.remoteButtonBottom
+                                0.0f to AppColors.volumeSliderGradientTop,
+                                0.35f to AppColors.volumeSliderGradientBottom
                             ),
                             start = Offset(0f, 0f),
                             end = Offset(0f, 500f)
@@ -587,8 +602,8 @@ private fun VolumeControl(
                         width = VolumeControlDimensions.sliderMainBorderWidth,
                         brush = Brush.linearGradient(
                             colorStops = arrayOf(
-                                0.0f to AppColors.remoteButtonBorderTop,
-                                0.15f to AppColors.remoteButtonBorderBottom
+                                0.0f to AppColors.volumeSliderBorderTop,
+                                0.15f to AppColors.volumeSliderBorderBottom
                             ),
                             start = Offset(0f, 0f),
                             end = Offset(0f, 500f)
@@ -620,7 +635,7 @@ private fun VolumeControl(
                             Modifier
                                 .size(VolumeControlDimensions.thumbSize)
                                 .outerShadow(
-                                    color = Color.Black,
+                                    color = AppColors.volumeThumbShadow,
                                     alpha = 0.9f,
                                     blurRadius = VolumeControlDimensions.thumbShadowBlurRadius,
                                     offsetY = VolumeControlDimensions.thumbShadowOffsetY
@@ -628,8 +643,8 @@ private fun VolumeControl(
                                 .background(
                                     Brush.linearGradient(
                                         colorStops = arrayOf(
-                                            0.0f to AppColors.remoteButtonTop,
-                                            0.45f to AppColors.remoteButtonBottom
+                                            0.0f to AppColors.volumeThumbGradientTop,
+                                            0.45f to AppColors.volumeThumbGradientBottom
                                         ),
                                         start = Offset(0f, 0f),
                                         end = Offset(0f, 120f)
@@ -638,7 +653,7 @@ private fun VolumeControl(
                                 )
                                 .border(
                                     width = VolumeControlDimensions.thumbBorderWidth,
-                                    color = AppColors.remoteCyan,
+                                    color = AppColors.volumeThumbBorder,
                                     shape = CircleShape
                                 )
                         )
@@ -720,14 +735,14 @@ fun FooterSection(
         ) {
             AppTile(
                 label = "NETFLIX",
-                accent = AppColors.netflix,
+                borderColor = AppColors.netflixBorder,
                 iconRes = R.drawable.ic_app_netflix,
                 onClick = onLaunchNetflix,
                 modifier = Modifier.weight(1f)
             )
             AppTile(
                 label = "YOUTUBE",
-                accent = AppColors.youtube,
+                borderColor = AppColors.youtubeBorder,
                 iconRes = R.drawable.ic_app_youtube,
                 onClick = onLaunchYouTube,
                 modifier = Modifier.weight(1f)
@@ -740,14 +755,14 @@ fun FooterSection(
         ) {
             AppTile(
                 label = "PLEX",
-                accent = AppColors.plex,
+                borderColor = AppColors.plexBorder,
                 iconRes = R.drawable.ic_app_plex,
                 onClick = onLaunchPlex,
                 modifier = Modifier.weight(1f)
             )
             AppTile(
                 label = "CRUNCHYROLL",
-                accent = AppColors.crunchyroll,
+                borderColor = AppColors.crunchyrollBorder,
                 iconRes = R.drawable.ic_app_crunchy,
                 onClick = onLaunchCrunchyroll,
                 modifier = Modifier.weight(1f)
@@ -759,7 +774,7 @@ fun FooterSection(
 @Composable
 private fun AppTile(
     label: String,
-    accent: Color,
+    borderColor: Color,
     @DrawableRes iconRes: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -771,7 +786,7 @@ private fun AppTile(
             .height(AppTileDimensions.height)
             .outerRoundedShadow(
                 cornerRadius = AppTileDimensions.cornerRadius,
-                color = Color.Black,
+                color = AppColors.appTileShadow,
                 alpha = 0.9f,
                 blurRadius = AppTileDimensions.shadowBlurRadius,
                 offsetY = AppTileDimensions.shadowOffsetY
@@ -779,8 +794,8 @@ private fun AppTile(
             .background(
                 Brush.linearGradient(
                     colorStops = arrayOf(
-                        0.0f to AppColors.remoteButtonTop,
-                        0.35f to AppColors.remoteButtonBottom
+                        0.0f to AppColors.appTileGradientTop,
+                        0.35f to AppColors.appTileGradientBottom
                     ),
                     start = Offset(0f, 0f),
                     end = Offset(0f, 500f)
@@ -789,7 +804,7 @@ private fun AppTile(
             )
             .border(
                 width = AppTileDimensions.mainBorderWidth,
-                color = accent.copy(alpha = .58f),
+                color = borderColor,
                 shape = shape
             )
             .clickable(onClick = onClick)
