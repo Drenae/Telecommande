@@ -58,7 +58,7 @@ fun HomeScreen(
     }
 
     Scaffold(
-        containerColor = AppColors.darkBackground,
+        containerColor = AppColors.homeScreenScaffoldBackground,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Box(
