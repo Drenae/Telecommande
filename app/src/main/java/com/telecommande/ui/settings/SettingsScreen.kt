@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -79,9 +78,9 @@ fun SettingsScreen(
                 viewModel.clearDiscoveryErrorMessageFromVm()
                 viewModel.acknowledgePairingError()
             },
-            containerColor = AppColors.surface,
-            titleContentColor = AppColors.appWhite,
-            textContentColor = AppColors.textSecondary,
+            containerColor = AppColors.settingsErrorDialogContainer,
+            titleContentColor = AppColors.settingsErrorDialogTitle,
+            textContentColor = AppColors.settingsErrorDialogText,
             title = { Text("Erreur") },
             text = { Text(errorMessage) },
             confirmButton = {
@@ -91,7 +90,7 @@ fun SettingsScreen(
                         viewModel.acknowledgePairingError()
                     }
                 ) {
-                    Text("OK", color = AppColors.accent)
+                    Text("OK", color = AppColors.settingsErrorDialogConfirm)
                 }
             }
         )
@@ -113,16 +112,16 @@ fun SettingsScreen(
 
         AlertDialog(
             onDismissRequest = { tvToRename = null },
-            containerColor = AppColors.surface,
-            titleContentColor = AppColors.appWhite,
-            textContentColor = AppColors.textSecondary,
+            containerColor = AppColors.settingsRenameDialogContainer,
+            titleContentColor = AppColors.settingsRenameDialogTitle,
+            textContentColor = AppColors.settingsRenameDialogText,
             title = { Text("Renommer la TV") },
             text = {
                 Column {
                     Text(
                         text = "Nom réel : $technicalName",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.textSecondary
+                        color = AppColors.settingsRenameTechnicalName
                     )
                     Spacer(Modifier.height(SettingsDialogDimensions.renameTechnicalNameSpacing))
                     OutlinedTextField(
@@ -137,7 +136,7 @@ fun SettingsScreen(
                     Text(
                         text = "Ce nom est uniquement visuel. Le nom réel de la TV reste inchangé pour la connexion.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.textSecondary
+                        color = AppColors.settingsRenameHelpText
                     )
                 }
             },
@@ -148,8 +147,8 @@ fun SettingsScreen(
                         tvToRename = null
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = AppColors.accent,
-                        contentColor = AppColors.appBlack
+                        containerColor = AppColors.settingsRenameConfirmBackground,
+                        contentColor = AppColors.settingsRenameConfirmContent
                     )
                 ) {
                     Text("Enregistrer")
@@ -164,11 +163,14 @@ fun SettingsScreen(
                                 tvToRename = null
                             }
                         ) {
-                            Text("Nom d'origine", color = AppColors.textSecondary)
+                            Text(
+                                "Nom d'origine",
+                                color = AppColors.settingsRenameDismissText
+                            )
                         }
                     }
                     TextButton(onClick = { tvToRename = null }) {
-                        Text("Annuler", color = AppColors.textSecondary)
+                        Text("Annuler", color = AppColors.settingsRenameDismissText)
                     }
                 }
             }
@@ -181,9 +183,9 @@ fun SettingsScreen(
             .background(
                 Brush.linearGradient(
                     colorStops = arrayOf(
-                        0.0f to AppColors.darkBackground,
-                        0.55f to AppColors.surface,
-                        1.0f to AppColors.remoteDeep
+                        0.0f to AppColors.settingsBackgroundTop,
+                        0.55f to AppColors.settingsBackgroundMiddle,
+                        1.0f to AppColors.settingsBackgroundBottom
                     ),
                     start = Offset(0f, 0f),
                     end = Offset(900f, 1800f)
@@ -191,15 +193,15 @@ fun SettingsScreen(
             )
     ) {
         Scaffold(
-            containerColor = Color.Transparent,
+            containerColor = AppColors.settingsScaffoldBackground,
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        titleContentColor = AppColors.appWhite,
-                        navigationIconContentColor = AppColors.appWhite,
-                        actionIconContentColor = AppColors.accent
+                        containerColor = AppColors.settingsTopBarBackground,
+                        titleContentColor = AppColors.settingsTopBarTitle,
+                        navigationIconContentColor = AppColors.settingsTopBarNavigationIcon,
+                        actionIconContentColor = AppColors.settingsTopBarActionIcon
                     ),
                     title = {
                         Column(
@@ -211,13 +213,13 @@ fun SettingsScreen(
                                 text = "GESTION DES TV",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = AppColors.accent
+                                color = AppColors.settingsTopBarEyebrow
                             )
                             Text(
                                 text = "Paramètres",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.SemiBold,
-                                color = AppColors.appWhite
+                                color = AppColors.settingsTopBarHeading
                             )
                         }
                     },
@@ -245,8 +247,8 @@ fun SettingsScreen(
                 if (uiState.isLoadingOverall && uiState.pairingStep !is PairingStep.PinRequested) {
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth(),
-                        color = AppColors.accent,
-                        trackColor = AppColors.surfaceElevated
+                        color = AppColors.settingsLoadingIndicator,
+                        trackColor = AppColors.settingsLoadingTrack
                     )
                 }
 
@@ -356,20 +358,23 @@ private fun SettingsIconButton(
             .size(SettingsIconButtonDimensions.size)
             .outerRoundedShadow(
                 cornerRadius = SettingsIconButtonDimensions.cornerRadius,
-                color = Color.Black,
+                color = AppColors.settingsIconButtonShadow,
                 alpha = 0.72f,
                 blurRadius = SettingsIconButtonDimensions.shadowBlurRadius,
                 offsetY = SettingsIconButtonDimensions.shadowOffsetY
             )
             .background(
                 Brush.linearGradient(
-                    listOf(AppColors.remoteButtonTop, AppColors.remoteButtonBottom)
+                    listOf(
+                        AppColors.settingsIconButtonGradientTop,
+                        AppColors.settingsIconButtonGradientBottom
+                    )
                 ),
                 shape
             )
             .border(
                 width = SettingsIconButtonDimensions.mainBorderWidth,
-                color = AppColors.remoteButtonBorderTop.copy(alpha = 0.55f),
+                color = AppColors.settingsIconButtonBorder,
                 shape = shape
             )
             .clickable(onClick = onClick),
@@ -378,7 +383,7 @@ private fun SettingsIconButton(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = AppColors.appWhite,
+            tint = AppColors.settingsIconButtonIcon,
             modifier = Modifier.size(SettingsIconButtonDimensions.iconSize)
         )
     }
@@ -397,23 +402,26 @@ private fun SettingsActionButton(
             .height(SettingsActionButtonDimensions.height)
             .outerRoundedShadow(
                 cornerRadius = SettingsActionButtonDimensions.cornerRadius,
-                color = Color.Black,
+                color = AppColors.settingsActionButtonShadow,
                 alpha = 0.72f,
                 blurRadius = SettingsActionButtonDimensions.shadowBlurRadius,
                 offsetY = SettingsActionButtonDimensions.shadowOffsetY
             )
             .background(
                 Brush.linearGradient(
-                    listOf(AppColors.surfaceElevated, AppColors.remoteButtonBottom)
+                    listOf(
+                        AppColors.settingsActionButtonGradientTop,
+                        AppColors.settingsActionButtonGradientBottom
+                    )
                 ),
                 shape
             )
             .border(
                 width = SettingsActionButtonDimensions.mainBorderWidth,
                 color = if (isSearching) {
-                    AppColors.statusAmber.copy(alpha = 0.7f)
+                    AppColors.settingsActionButtonSearchingBorder
                 } else {
-                    AppColors.accent.copy(alpha = 0.6f)
+                    AppColors.settingsActionButtonIdleBorder
                 },
                 shape = shape
             )
@@ -425,12 +433,16 @@ private fun SettingsActionButton(
         Icon(
             imageVector = if (isSearching) Icons.Rounded.StopCircle else Icons.Rounded.Search,
             contentDescription = null,
-            tint = if (isSearching) AppColors.statusAmber else AppColors.accent,
+            tint = if (isSearching) {
+                AppColors.settingsActionButtonSearchingIcon
+            } else {
+                AppColors.settingsActionButtonIdleIcon
+            },
             modifier = Modifier.size(SettingsActionButtonDimensions.iconSize)
         )
         Text(
             text = if (isSearching) "ARRÊTER" else "RECHERCHER",
-            color = AppColors.appWhite,
+            color = AppColors.settingsActionButtonText,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold
         )
@@ -456,7 +468,7 @@ private fun SectionTitle(
             modifier = Modifier
                 .size(SettingsSectionTitleDimensions.iconContainerSize)
                 .background(
-                    AppColors.accentMuted.copy(alpha = 0.65f),
+                    AppColors.settingsSectionIconBackground,
                     RoundedCornerShape(SettingsSectionTitleDimensions.iconContainerCornerRadius)
                 ),
             contentAlignment = Alignment.Center
@@ -464,7 +476,7 @@ private fun SectionTitle(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = AppColors.accent,
+                tint = AppColors.settingsSectionIcon,
                 modifier = Modifier.size(SettingsSectionTitleDimensions.iconSize)
             )
         }
@@ -476,12 +488,12 @@ private fun SectionTitle(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = AppColors.appWhite
+                color = AppColors.settingsSectionTitle
             )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = AppColors.textSecondary
+                color = AppColors.settingsSectionSubtitle
             )
         }
     }
@@ -512,15 +524,15 @@ private fun DiscoveryLoadingState() {
             .fillMaxWidth()
             .outerRoundedShadow(
                 cornerRadius = DiscoveryLoadingDimensions.cornerRadius,
-                color = Color.Black,
+                color = AppColors.discoveryLoadingShadow,
                 alpha = 0.5f,
                 blurRadius = DiscoveryLoadingDimensions.shadowBlurRadius,
                 offsetY = DiscoveryLoadingDimensions.shadowOffsetY
             )
-            .background(AppColors.surface.copy(alpha = 0.92f), shape)
+            .background(AppColors.discoveryLoadingBackground, shape)
             .border(
                 width = DiscoveryLoadingDimensions.mainBorderWidth,
-                color = AppColors.border,
+                color = AppColors.discoveryLoadingBorder,
                 shape = shape
             )
             .padding(DiscoveryLoadingDimensions.contentPadding),
@@ -528,19 +540,19 @@ private fun DiscoveryLoadingState() {
     ) {
         CircularProgressIndicator(
             modifier = Modifier.size(DiscoveryLoadingDimensions.progressSize),
-            color = AppColors.accent,
+            color = AppColors.discoveryLoadingProgress,
             strokeWidth = DiscoveryLoadingDimensions.progressStrokeWidth
         )
         Spacer(Modifier.width(DiscoveryLoadingDimensions.progressTextSpacing))
         Column {
             Text(
                 text = "Recherche en cours",
-                color = AppColors.appWhite,
+                color = AppColors.discoveryLoadingTitle,
                 fontWeight = FontWeight.Medium
             )
             Text(
                 text = "Analyse du réseau local…",
-                color = AppColors.textSecondary,
+                color = AppColors.discoveryLoadingSubtitle,
                 style = MaterialTheme.typography.bodySmall
             )
         }
@@ -572,20 +584,23 @@ private fun SettingsStateCard(
             .fillMaxWidth()
             .outerRoundedShadow(
                 cornerRadius = SettingsStateCardDimensions.cornerRadius,
-                color = Color.Black,
+                color = AppColors.settingsStateCardShadow,
                 alpha = 0.52f,
                 blurRadius = SettingsStateCardDimensions.shadowBlurRadius,
                 offsetY = SettingsStateCardDimensions.shadowOffsetY
             )
             .background(
                 Brush.linearGradient(
-                    listOf(AppColors.surfaceElevated, AppColors.surface)
+                    listOf(
+                        AppColors.settingsStateCardGradientTop,
+                        AppColors.settingsStateCardGradientBottom
+                    )
                 ),
                 shape
             )
             .border(
                 width = SettingsStateCardDimensions.mainBorderWidth,
-                color = AppColors.border,
+                color = AppColors.settingsStateCardBorder,
                 shape = shape
             )
             .padding(SettingsStateCardDimensions.contentPadding),
@@ -595,13 +610,13 @@ private fun SettingsStateCard(
             Box(
                 modifier = Modifier
                     .size(SettingsStateCardDimensions.iconContainerSize)
-                    .background(AppColors.accentMuted.copy(alpha = 0.6f), CircleShape),
+                    .background(AppColors.settingsStateCardIconBackground, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = AppColors.textSecondary,
+                    tint = AppColors.settingsStateCardIcon,
                     modifier = Modifier.size(SettingsStateCardDimensions.iconSize)
                 )
             }
@@ -610,14 +625,14 @@ private fun SettingsStateCard(
 
         Text(
             text = title,
-            color = AppColors.appWhite,
+            color = AppColors.settingsStateCardTitle,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(SettingsStateCardDimensions.titleSubtitleSpacing))
         Text(
             text = subtitle,
-            color = AppColors.textSecondary,
+            color = AppColors.settingsStateCardSubtitle,
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center
         )
@@ -640,7 +655,7 @@ private fun SettingsPrimaryButton(
     Row(
         modifier = Modifier
             .height(SettingsPrimaryButtonDimensions.height)
-            .background(AppColors.accent, shape)
+            .background(AppColors.settingsPrimaryButtonBackground, shape)
             .clickable(onClick = onClick)
             .padding(horizontal = SettingsPrimaryButtonDimensions.horizontalPadding),
         verticalAlignment = Alignment.CenterVertically,
@@ -649,12 +664,12 @@ private fun SettingsPrimaryButton(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = AppColors.appBlack,
+            tint = AppColors.settingsPrimaryButtonIcon,
             modifier = Modifier.size(SettingsPrimaryButtonDimensions.iconSize)
         )
         Text(
             text = label,
-            color = AppColors.appBlack,
+            color = AppColors.settingsPrimaryButtonText,
             fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.labelLarge
         )
