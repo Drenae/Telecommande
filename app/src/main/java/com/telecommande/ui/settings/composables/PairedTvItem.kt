@@ -30,6 +30,7 @@ import com.telecommande.data.model.PairedTvInfo
 import com.telecommande.ui.theme.AppColors
 import com.telecommande.ui.theme.PairedTvItemDimensions
 import com.telecommande.util.outerRoundedShadow
+import com.telecommande.util.technicalName
 
 @Composable
 fun PairedTvItem(
@@ -47,7 +48,7 @@ fun PairedTvItem(
         isActive -> AppColors.pairedTvItemActiveStatus
         else -> AppColors.pairedTvItemInactiveStatus
     }
-    val technicalName = tvInfo.name ?: tvInfo.ipAddress
+    val technicalName = tvInfo.technicalName()
     val shape = RoundedCornerShape(PairedTvItemDimensions.cornerRadius)
 
     Row(
