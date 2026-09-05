@@ -9,18 +9,18 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = AppColors.accent,
-    onPrimary = AppColors.appBlack,
-    primaryContainer = AppColors.accentMuted,
-    onPrimaryContainer = AppColors.appWhite,
-    background = AppColors.darkBackground,
-    onBackground = AppColors.appWhite,
-    surface = AppColors.surface,
-    onSurface = AppColors.appWhite,
-    surfaceVariant = AppColors.surfaceElevated,
-    onSurfaceVariant = AppColors.textSecondary,
-    outline = AppColors.border,
-    error = AppColors.statusRed
+    primary = AppColors.materialPrimary,
+    onPrimary = AppColors.materialOnPrimary,
+    primaryContainer = AppColors.materialPrimaryContainer,
+    onPrimaryContainer = AppColors.materialOnPrimaryContainer,
+    background = AppColors.materialBackground,
+    onBackground = AppColors.materialOnBackground,
+    surface = AppColors.materialSurface,
+    onSurface = AppColors.materialOnSurface,
+    surfaceVariant = AppColors.materialSurfaceVariant,
+    onSurfaceVariant = AppColors.materialOnSurfaceVariant,
+    outline = AppColors.materialOutline,
+    error = AppColors.materialError
 )
 
 @Composable
