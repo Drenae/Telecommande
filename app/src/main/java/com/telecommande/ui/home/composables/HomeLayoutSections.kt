@@ -544,21 +544,41 @@ private fun VolumeControl(
 
             Spacer(Modifier.height(3.dp))
 
+            val sliderShape = RoundedCornerShape(19.dp)
+
             Box(
                 Modifier
                     .fillMaxWidth()
                     .height(38.dp)
-                    .shadow(7.dp, RoundedCornerShape(19.dp))
+                    .outerRoundedShadow(
+                        cornerRadius = 19.dp,
+                        color = Color.Black,
+                        alpha = 0.9f,
+                        blurRadius = 5.dp,
+                        offsetY = 3.dp
+                    )
                     .background(
-                        Brush.horizontalGradient(
-                            listOf(AppColors.volumePanelStart, AppColors.volumePanelEnd)
+                        Brush.linearGradient(
+                            colorStops = arrayOf(
+                                0.0f to AppColors.remoteButtonTop,
+                                0.35f to AppColors.remoteButtonBottom
+                            ),
+                            start = Offset(0f, 0f),
+                            end = Offset(0f, 500f)
                         ),
-                        RoundedCornerShape(19.dp)
+                        sliderShape
                     )
                     .border(
-                        1.dp,
-                        AppColors.remoteRim,
-                        RoundedCornerShape(19.dp)
+                        width = 1.dp,
+                        brush = Brush.linearGradient(
+                            colorStops = arrayOf(
+                                0.0f to AppColors.remoteButtonBorderTop,
+                                0.15f to AppColors.remoteButtonBorderBottom
+                            ),
+                            start = Offset(0f, 0f),
+                            end = Offset(0f, 500f)
+                        ),
+                        shape = sliderShape
                     )
                     .padding(horizontal = 7.dp),
                 contentAlignment = Alignment.Center
@@ -584,20 +604,27 @@ private fun VolumeControl(
                         Box(
                             Modifier
                                 .size(20.dp)
-                                .shadow(4.dp, CircleShape)
+                                .outerShadow(
+                                    color = Color.Black,
+                                    alpha = 0.9f,
+                                    blurRadius = 4.dp,
+                                    offsetY = 2.dp
+                                )
                                 .background(
-                                    Brush.verticalGradient(
-                                        listOf(
-                                            AppColors.volumeThumbTop,
-                                            AppColors.volumeThumbBottom
-                                        )
+                                    Brush.linearGradient(
+                                        colorStops = arrayOf(
+                                            0.0f to AppColors.remoteButtonTop,
+                                            0.45f to AppColors.remoteButtonBottom
+                                        ),
+                                        start = Offset(0f, 0f),
+                                        end = Offset(0f, 120f)
                                     ),
                                     CircleShape
                                 )
                                 .border(
-                                    1.5.dp,
-                                    AppColors.volumeThumbBorder,
-                                    CircleShape
+                                    width = 1.5.dp,
+                                    color = AppColors.remoteCyan,
+                                    shape = CircleShape
                                 )
                         )
                     },
