@@ -50,6 +50,23 @@ object AppColors {
     val plex = Color(0xFFE5A900)
     val crunchyroll = Color(0xFFFF7A00)
 
+    // Material theme
+    val materialPrimary = accent
+    val materialOnPrimary = appBlack
+    val materialPrimaryContainer = accentMuted
+    val materialOnPrimaryContainer = appWhite
+    val materialBackground = darkBackground
+    val materialOnBackground = appWhite
+    val materialSurface = surface
+    val materialOnSurface = appWhite
+    val materialSurfaceVariant = surfaceElevated
+    val materialOnSurfaceVariant = textSecondary
+    val materialOutline = border
+    val materialError = statusRed
+
+    // Home - écran
+    val homeScreenScaffoldBackground = darkBackground
+
     // Home - Header
     val homeHeaderTitle = appWhite
     val homeHeaderConnectedStatus = remoteConnected
@@ -113,6 +130,15 @@ object AppColors {
     val youtubeAccent = youtube
     val plexAccent = plex
     val crunchyrollAccent = crunchyroll
+    val netflixBorder = netflix.copy(alpha = 0.58f)
+    val youtubeBorder = youtube.copy(alpha = 0.58f)
+    val plexBorder = plex.copy(alpha = 0.58f)
+    val crunchyrollBorder = crunchyroll.copy(alpha = 0.58f)
+
+    // Home - anciens boutons encore présents dans le projet
+    val legacyHomeBaseButtonIcon = Color.White
+    val legacyHomeDpadButtonIcon = Color.White
+    val legacyHomeAppButtonIcon = Color.White
 
     // Settings - écran et dialogs
     val settingsErrorDialogContainer = surface
