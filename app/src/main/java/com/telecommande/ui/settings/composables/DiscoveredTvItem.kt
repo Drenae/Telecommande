@@ -25,9 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.telecommande.core.discovery.DiscoveredTv
 import com.telecommande.ui.theme.AppColors
+import com.telecommande.ui.theme.DiscoveredTvItemDimensions
 import com.telecommande.util.outerRoundedShadow
 
 @Composable
@@ -36,17 +36,17 @@ fun DiscoveredTvItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(DiscoveredTvItemDimensions.cornerRadius)
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .outerRoundedShadow(
-                cornerRadius = 18.dp,
+                cornerRadius = DiscoveredTvItemDimensions.cornerRadius,
                 color = Color.Black,
                 alpha = 0.55f,
-                blurRadius = 5.dp,
-                offsetY = 2.dp
+                blurRadius = DiscoveredTvItemDimensions.shadowBlurRadius,
+                offsetY = DiscoveredTvItemDimensions.shadowOffsetY
             )
             .background(
                 Brush.linearGradient(
@@ -59,20 +59,20 @@ fun DiscoveredTvItem(
                 shape
             )
             .border(
-                width = 1.dp,
+                width = DiscoveredTvItemDimensions.mainBorderWidth,
                 color = AppColors.border.copy(alpha = 0.9f),
                 shape = shape
             )
             .clickable(onClick = onClick)
-            .padding(14.dp),
+            .padding(DiscoveredTvItemDimensions.contentPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(46.dp)
+                .size(DiscoveredTvItemDimensions.tvIconContainerSize)
                 .background(AppColors.accentMuted.copy(alpha = 0.75f), CircleShape)
                 .border(
-                    width = 1.dp,
+                    width = DiscoveredTvItemDimensions.tvIconContainerBorderWidth,
                     color = AppColors.accent.copy(alpha = 0.35f),
                     shape = CircleShape
                 ),
@@ -82,11 +82,11 @@ fun DiscoveredTvItem(
                 imageVector = Icons.Rounded.Tv,
                 contentDescription = null,
                 tint = AppColors.accent,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(DiscoveredTvItemDimensions.tvIconSize)
             )
         }
 
-        Spacer(modifier = Modifier.width(13.dp))
+        Spacer(modifier = Modifier.width(DiscoveredTvItemDimensions.tvTextSpacing))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -107,15 +107,18 @@ fun DiscoveredTvItem(
 
         Box(
             modifier = Modifier
-                .size(34.dp)
-                .background(AppColors.accentMuted, RoundedCornerShape(11.dp)),
+                .size(DiscoveredTvItemDimensions.actionContainerSize)
+                .background(
+                    AppColors.accentMuted,
+                    RoundedCornerShape(DiscoveredTvItemDimensions.actionContainerCornerRadius)
+                ),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Rounded.Add,
                 contentDescription = "Appairer cette TV",
                 tint = AppColors.accent,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(DiscoveredTvItemDimensions.actionIconSize)
             )
         }
     }
