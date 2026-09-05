@@ -26,10 +26,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import com.telecommande.ui.theme.DefaultButtonColors
-import com.telecommande.ui.theme.HomeAppButtonSpecs
-import com.telecommande.ui.theme.HomeBaseButtonSpecs
 import com.telecommande.ui.theme.HomeButtonShapes
-import com.telecommande.ui.theme.HomeDpadButtonSpecs
+import com.telecommande.ui.theme.LegacyHomeAppButtonDimensions
+import com.telecommande.ui.theme.LegacyHomeBaseButtonDimensions
+import com.telecommande.ui.theme.LegacyHomeDpadButtonDimensions
 
 @Composable
 fun HomeBaseButton(
@@ -39,16 +39,16 @@ fun HomeBaseButton(
     textLabel: String? = null,
     contentDescription: String,
     modifier: Modifier = Modifier,
-    size: Dp = HomeBaseButtonSpecs.defaultSize,
+    size: Dp = LegacyHomeBaseButtonDimensions.defaultSize,
     defaultBackgroundColorBrush: Brush = DefaultButtonColors.defaultBackgroundBrush,
     pressedBackgroundColorBrush: Brush = DefaultButtonColors.pressedBackgroundBrush,
     shape: Shape = HomeButtonShapes.baseButton,
     iconTint: Color = Color.White,
-    iconPadding: Dp = HomeBaseButtonSpecs.defaultIconPadding,
-    borderWidth: Dp = HomeBaseButtonSpecs.defaultBorderWidth,
+    iconPadding: Dp = LegacyHomeBaseButtonDimensions.defaultIconPadding,
+    borderWidth: Dp = LegacyHomeBaseButtonDimensions.defaultBorderWidth,
     borderColor: Color = DefaultButtonColors.defaultBorder,
-    defaultElevation: Dp = HomeBaseButtonSpecs.defaultElevation,
-    pressedElevation: Dp = HomeBaseButtonSpecs.pressedElevation,
+    defaultElevation: Dp = LegacyHomeBaseButtonDimensions.defaultElevation,
+    pressedElevation: Dp = LegacyHomeBaseButtonDimensions.pressedElevation,
     shadowColorDark: Color = DefaultButtonColors.defaultShadowDark,
     pressedShadowColorDark: Color = DefaultButtonColors.pressedShadowDark
 ) {
@@ -113,7 +113,7 @@ fun HomeDpadButton(
     drawableIconRes: Int? = null,
     contentDescription: String,
     modifier: Modifier = Modifier,
-    size: Dp = HomeDpadButtonSpecs.defaultSize,
+    size: Dp = LegacyHomeDpadButtonDimensions.defaultSize,
     iconTint: Color = Color.White,
     iconPadding: Dp
 ) {
@@ -157,7 +157,7 @@ fun HomeAppButton(
     defaultBackgroundBrush: Brush = DefaultButtonColors.defaultBackgroundBrush,
     pressedBackgroundBrush: Brush = DefaultButtonColors.pressedBackgroundBrush,
     iconTint: Color = Color.White,
-    iconSize: Dp = HomeAppButtonSpecs.defaultIconSize
+    iconSize: Dp = LegacyHomeAppButtonDimensions.defaultIconSize
 ) {
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
@@ -171,9 +171,9 @@ fun HomeAppButton(
             .scale(scale)
             .shadow(
                 elevation = if (pressed) {
-                    HomeBaseButtonSpecs.pressedElevation
+                    LegacyHomeBaseButtonDimensions.pressedElevation
                 } else {
-                    HomeBaseButtonSpecs.defaultElevation
+                    LegacyHomeBaseButtonDimensions.defaultElevation
                 },
                 shape = shape
             )
@@ -182,7 +182,7 @@ fun HomeAppButton(
                 shape = shape
             )
             .border(
-                width = HomeBaseButtonSpecs.defaultBorderWidth,
+                width = LegacyHomeBaseButtonDimensions.defaultBorderWidth,
                 color = DefaultButtonColors.defaultBorder,
                 shape = shape
             )
