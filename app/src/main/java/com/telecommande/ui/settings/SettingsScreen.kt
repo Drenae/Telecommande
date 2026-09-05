@@ -1,45 +1,26 @@
 package com.telecommande.ui.settings
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.SignalWifiOff
-import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material.icons.filled.WifiOff
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.AddToTv
+import androidx.compose.material.icons.rounded.ArrowBackIosNew
+import androidx.compose.material.icons.rounded.Devices
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.SignalWifiOff
+import androidx.compose.material.icons.rounded.StopCircle
+import androidx.compose.material.icons.rounded.Tv
+import androidx.compose.material.icons.rounded.Wifi
+import androidx.compose.material.icons.rounded.WifiOff
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -50,6 +31,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,11 +47,15 @@ import com.telecommande.ui.settings.composables.DiscoveredTvItem
 import com.telecommande.ui.settings.composables.PairedTvItem
 import com.telecommande.ui.settings.composables.PinEntryDialog
 import com.telecommande.ui.theme.AppColors
+import com.telecommande.util.outerRoundedShadow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(
+    navController: NavController,
+    viewModel: SettingsViewModel = hiltViewModel()
+) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -83,97 +72,672 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
 
     uiState.errorDialogContent?.let { errorMessage ->
         AlertDialog(
-            onDismissRequest = { viewModel.clearDiscoveryErrorMessageFromVm(); viewModel.acknowledgePairingError() },
-            title = { Text("Erreur") }, text = { Text(errorMessage) },
-            confirmButton = { TextButton(onClick = { viewModel.clearDiscoveryErrorMessageFromVm(); viewModel.acknowledgePairingError() }) { Text("OK") } }
+            onDismissRequest = {
+                viewModel.clearDiscoveryErrorMessageFromVm()
+                viewModel.acknowledgePairingError()
+            },
+            containerColor = AppColors.surface,
+            titleContentColor = AppColors.appWhite,
+            textContentColor = AppColors.textSecondary,
+            title = { Text("Erreur") },
+            text = { Text(errorMessage) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.clearDiscoveryErrorMessageFromVm()
+                        viewModel.acknowledgePairingError()
+                    }
+                ) {
+                    Text("OK", color = AppColors.accent)
+                }
+            }
         )
     }
 
     uiState.showPinEntryDialogForTv?.let {
-        PinEntryDialog(it, uiState.currentPinInput, viewModel::onPinChanged, viewModel::onSubmitPin, viewModel::onCancelPinEntryOrPairing, uiState.isPinDialogLoading)
+        PinEntryDialog(
+            it,
+            uiState.currentPinInput,
+            viewModel::onPinChanged,
+            viewModel::onSubmitPin,
+            viewModel::onCancelPinEntryOrPairing,
+            uiState.isPinDialogLoading
+        )
     }
 
     tvToRename?.let { tvInfo ->
         val technicalName = tvInfo.name ?: tvInfo.ipAddress
+
         AlertDialog(
-            onDismissRequest = { tvToRename = null }, title = { Text("Renommer la TV") },
-            text = { Column {
-                Text("Nom réel : $technicalName", style = MaterialTheme.typography.bodySmall, color = AppColors.textSecondary)
-                Spacer(Modifier.height(12.dp))
-                OutlinedTextField(renameValue, { renameValue = it.take(32) }, Modifier.fillMaxWidth(), label = { Text("Nom affiché") }, placeholder = { Text("Salon, Chambre…") }, singleLine = true)
-                Spacer(Modifier.height(8.dp))
-                Text("Ce nom est uniquement visuel. Le nom réel de la TV reste inchangé pour la connexion.", style = MaterialTheme.typography.bodySmall, color = AppColors.textSecondary)
-            } },
-            confirmButton = { Button(onClick = { viewModel.renameTv(tvInfo, renameValue); tvToRename = null }) { Text("Enregistrer") } },
-            dismissButton = { Row {
-                if (uiState.tvDisplayNames.containsKey(tvInfo.keystoreAlias)) TextButton(onClick = { viewModel.renameTv(tvInfo, null); tvToRename = null }) { Text("Nom d'origine") }
-                TextButton(onClick = { tvToRename = null }) { Text("Annuler") }
-            } }
+            onDismissRequest = { tvToRename = null },
+            containerColor = AppColors.surface,
+            titleContentColor = AppColors.appWhite,
+            textContentColor = AppColors.textSecondary,
+            title = { Text("Renommer la TV") },
+            text = {
+                Column {
+                    Text(
+                        text = "Nom réel : $technicalName",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppColors.textSecondary
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = renameValue,
+                        onValueChange = { renameValue = it.take(32) },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Nom affiché") },
+                        placeholder = { Text("Salon, Chambre…") },
+                        singleLine = true
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "Ce nom est uniquement visuel. Le nom réel de la TV reste inchangé pour la connexion.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppColors.textSecondary
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.renameTv(tvInfo, renameValue)
+                        tvToRename = null
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AppColors.accent,
+                        contentColor = AppColors.appBlack
+                    )
+                ) {
+                    Text("Enregistrer")
+                }
+            },
+            dismissButton = {
+                Row {
+                    if (uiState.tvDisplayNames.containsKey(tvInfo.keystoreAlias)) {
+                        TextButton(
+                            onClick = {
+                                viewModel.renameTv(tvInfo, null)
+                                tvToRename = null
+                            }
+                        ) {
+                            Text("Nom d'origine", color = AppColors.textSecondary)
+                        }
+                    }
+                    TextButton(onClick = { tvToRename = null }) {
+                        Text("Annuler", color = AppColors.textSecondary)
+                    }
+                }
+            }
         )
     }
 
-    Scaffold(
-        containerColor = AppColors.darkBackground, snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = { TopAppBar(
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = AppColors.darkBackground, titleContentColor = AppColors.appWhite, navigationIconContentColor = AppColors.appWhite, actionIconContentColor = AppColors.accent),
-            title = { Text("Choisir une TV", fontWeight = FontWeight.SemiBold) },
-            navigationIcon = { IconButton(onClick = navController::popBackStack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Retour") } },
-            actions = { IconButton(onClick = viewModel::toggleDiscovery) { Icon(if (uiState.discoveryState.isDiscovering) Icons.Default.WifiOff else Icons.Default.Add, if (uiState.discoveryState.isDiscovering) "Arrêter la recherche" else "Ajouter une TV") } }
-        ) }
-    ) { paddingValues ->
-        Column(Modifier.fillMaxSize().padding(paddingValues)) {
-            if (uiState.isLoadingOverall && uiState.pairingStep !is PairingStep.PinRequested) LinearProgressIndicator(Modifier.fillMaxWidth(), color = AppColors.accent, trackColor = AppColors.surfaceElevated)
-            LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                item { SectionTitle("Ajouter une TV", "TV Android détectées sur le réseau local") }
-                val discoveredTvs = uiState.discoveryState.discoveredTvs
-                if (uiState.discoveryState.isDiscovering && discoveredTvs.isEmpty()) item { DiscoveryLoadingState() }
-                else if (discoveredTvs.isEmpty()) item { DiscoveryEmptyState(uiState.discoveryState.isDiscovering, viewModel::toggleDiscovery) }
-                else items(discoveredTvs, key = { it.serviceName }) { tv ->
-                    DiscoveredTvItem(
-                        tv = tv,
-                        onClick = {
-                            if (tv.ipAddress != null) viewModel.onDeviceSelected(tv)
-                            else Toast.makeText(context, "Adresse IP non disponible pour cette TV.", Toast.LENGTH_SHORT).show()
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(
+                Brush.linearGradient(
+                    colorStops = arrayOf(
+                        0.0f to AppColors.darkBackground,
+                        0.55f to AppColors.surface,
+                        1.0f to AppColors.remoteDeep
+                    ),
+                    start = Offset(0f, 0f),
+                    end = Offset(900f, 1800f)
+                )
+            )
+    ) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            topBar = {
+                TopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = AppColors.appWhite,
+                        navigationIconContentColor = AppColors.appWhite,
+                        actionIconContentColor = AppColors.accent
+                    ),
+                    title = {
+                        Column {
+                            Text(
+                                text = "GESTION DES TV",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.accent
+                            )
+                            Text(
+                                text = "Paramètres",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = AppColors.appWhite
+                            )
                         }
+                    },
+                    navigationIcon = {
+                        SettingsIconButton(
+                            icon = Icons.Rounded.ArrowBackIosNew,
+                            contentDescription = "Retour",
+                            onClick = navController::popBackStack
+                        )
+                    },
+                    actions = {
+                        SettingsActionButton(
+                            isSearching = uiState.discoveryState.isDiscovering,
+                            onClick = viewModel::toggleDiscovery
+                        )
+                    }
+                )
+            }
+        ) { paddingValues ->
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                if (uiState.isLoadingOverall && uiState.pairingStep !is PairingStep.PinRequested) {
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = AppColors.accent,
+                        trackColor = AppColors.surfaceElevated
                     )
                 }
 
-                item { Spacer(Modifier.height(18.dp)); SectionTitle("Mes TV", if (uiState.pairedTvs.isEmpty()) "Aucune TV appairée" else "Touchez une TV pour la rendre active") }
-                if (uiState.pairedTvs.isEmpty()) item { EmptyPairedState(viewModel::toggleDiscovery) }
-                else items(uiState.pairedTvs, key = { it.keystoreAlias }) { tvInfo ->
-                    val isActive = uiState.activeTv?.keystoreAlias == tvInfo.keystoreAlias
-                    val connected = isActive && uiState.remoteState.isConnected
-                    val displayName = uiState.tvDisplayNames[tvInfo.keystoreAlias] ?: tvInfo.name ?: tvInfo.ipAddress
-                    PairedTvItem(tvInfo, displayName, isActive, connected,
-                        onConnectClick = { if (!isActive || !connected) viewModel.setTvAsActive(tvInfo) else scope.launch { snackbarHostState.showSnackbar("$displayName est déjà connectée.") } },
-                        onRenameClick = { tvToRename = tvInfo; renameValue = uiState.tvDisplayNames[tvInfo.keystoreAlias] ?: "" },
-                        onForgetClick = { viewModel.forgetTv(tvInfo) })
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 10.dp,
+                        bottom = 28.dp
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    item {
+                        SettingsIntroCard(
+                            pairedCount = uiState.pairedTvs.size,
+                            isSearching = uiState.discoveryState.isDiscovering
+                        )
+                    }
+
+                    item {
+                        Spacer(Modifier.height(4.dp))
+                        SectionTitle(
+                            icon = Icons.Rounded.AddToTv,
+                            title = "Ajouter une TV",
+                            subtitle = "Appareils Android TV détectés sur votre réseau"
+                        )
+                    }
+
+                    val discoveredTvs = uiState.discoveryState.discoveredTvs
+
+                    if (uiState.discoveryState.isDiscovering && discoveredTvs.isEmpty()) {
+                        item { DiscoveryLoadingState() }
+                    } else if (discoveredTvs.isEmpty()) {
+                        item {
+                            DiscoveryEmptyState(
+                                isSearching = uiState.discoveryState.isDiscovering,
+                                onSearch = viewModel::toggleDiscovery
+                            )
+                        }
+                    } else {
+                        items(discoveredTvs, key = { it.serviceName }) { tv ->
+                            DiscoveredTvItem(
+                                tv = tv,
+                                onClick = {
+                                    if (tv.ipAddress != null) {
+                                        viewModel.onDeviceSelected(tv)
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Adresse IP non disponible pour cette TV.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    item {
+                        Spacer(Modifier.height(8.dp))
+                        SectionTitle(
+                            icon = Icons.Rounded.Devices,
+                            title = "Mes TV",
+                            subtitle = if (uiState.pairedTvs.isEmpty()) {
+                                "Aucune TV enregistrée"
+                            } else {
+                                "Touchez une TV pour la rendre active"
+                            }
+                        )
+                    }
+
+                    if (uiState.pairedTvs.isEmpty()) {
+                        item { EmptyPairedState(viewModel::toggleDiscovery) }
+                    } else {
+                        items(uiState.pairedTvs, key = { it.keystoreAlias }) { tvInfo ->
+                            val isActive = uiState.activeTv?.keystoreAlias == tvInfo.keystoreAlias
+                            val connected = isActive && uiState.remoteState.isConnected
+                            val displayName = uiState.tvDisplayNames[tvInfo.keystoreAlias]
+                                ?: tvInfo.name
+                                ?: tvInfo.ipAddress
+
+                            PairedTvItem(
+                                tvInfo = tvInfo,
+                                displayName = displayName,
+                                isActive = isActive,
+                                isConnectedToThisTv = connected,
+                                onConnectClick = {
+                                    if (!isActive || !connected) {
+                                        viewModel.setTvAsActive(tvInfo)
+                                    } else {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                "$displayName est déjà connectée."
+                                            )
+                                        }
+                                    }
+                                },
+                                onRenameClick = {
+                                    tvToRename = tvInfo
+                                    renameValue = uiState.tvDisplayNames[tvInfo.keystoreAlias] ?: ""
+                                },
+                                onForgetClick = { viewModel.forgetTv(tvInfo) }
+                            )
+                        }
+                    }
                 }
-                item { Spacer(Modifier.height(16.dp)) }
             }
         }
     }
 }
 
-@Composable private fun SectionTitle(title: String, subtitle: String) { Column(Modifier.padding(horizontal = 2.dp, vertical = 6.dp)) {
-    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = AppColors.appWhite)
-    Text(subtitle, style = MaterialTheme.typography.bodySmall, color = AppColors.textSecondary)
-} }
+@Composable
+private fun SettingsIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit
+) {
+    val shape = RoundedCornerShape(14.dp)
 
-@Composable private fun EmptyPairedState(onSearch: () -> Unit) { Surface(Modifier.fillMaxWidth().padding(top = 6.dp), shape = RoundedCornerShape(16.dp), color = AppColors.surface) { Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-    Icon(Icons.Default.SignalWifiOff, null, tint = AppColors.textSecondary, modifier = Modifier.size(30.dp)); Spacer(Modifier.height(10.dp))
-    Text("Aucune TV enregistrée", color = AppColors.appWhite, fontWeight = FontWeight.Medium)
-    Text("Ajoutez une TV présente sur le même réseau Wi-Fi.", color = AppColors.textSecondary, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
-    Spacer(Modifier.height(14.dp)); Button(onClick = onSearch, colors = ButtonDefaults.buttonColors(containerColor = AppColors.accent, contentColor = AppColors.appBlack)) { Icon(Icons.Default.Add, null); Spacer(Modifier.size(8.dp)); Text("Ajouter une TV") }
-} } }
+    Box(
+        modifier = Modifier
+            .padding(start = 10.dp)
+            .size(44.dp)
+            .outerRoundedShadow(
+                cornerRadius = 14.dp,
+                color = Color.Black,
+                alpha = 0.72f,
+                blurRadius = 5.dp,
+                offsetY = 2.dp
+            )
+            .background(
+                Brush.linearGradient(
+                    listOf(AppColors.remoteButtonTop, AppColors.remoteButtonBottom)
+                ),
+                shape
+            )
+            .border(1.dp, AppColors.remoteButtonBorderTop.copy(alpha = 0.55f), shape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = AppColors.appWhite,
+            modifier = Modifier.size(22.dp)
+        )
+    }
+}
 
-@Composable private fun DiscoveryLoadingState() { Box(Modifier.fillMaxWidth().padding(vertical = 28.dp), contentAlignment = Alignment.Center) { Column(horizontalAlignment = Alignment.CenterHorizontally) {
-    CircularProgressIndicator(color = AppColors.accent); Spacer(Modifier.height(10.dp)); Text("Recherche en cours...", color = AppColors.textSecondary)
-} } }
+@Composable
+private fun SettingsActionButton(
+    isSearching: Boolean,
+    onClick: () -> Unit
+) {
+    val shape = RoundedCornerShape(18.dp)
 
-@Composable private fun DiscoveryEmptyState(isSearching: Boolean, onSearch: () -> Unit) { Surface(Modifier.fillMaxWidth().padding(top = 6.dp), shape = RoundedCornerShape(16.dp), color = AppColors.surface) { Column(Modifier.padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-    Icon(if (isSearching) Icons.Default.Wifi else Icons.Default.WifiOff, null, tint = AppColors.textSecondary, modifier = Modifier.size(28.dp)); Spacer(Modifier.height(8.dp))
-    Text(if (isSearching) "Aucune TV détectée pour le moment" else "Recherche arrêtée", color = AppColors.appWhite, fontWeight = FontWeight.Medium)
-    Text("Vérifiez que la TV est allumée et connectée au même réseau.", color = AppColors.textSecondary, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
-    if (!isSearching) { Spacer(Modifier.height(12.dp)); Button(onClick = onSearch, colors = ButtonDefaults.buttonColors(containerColor = AppColors.accent, contentColor = AppColors.appBlack)) { Text("Rechercher") } }
-} } }
+    Row(
+        modifier = Modifier
+            .padding(end = 12.dp)
+            .height(42.dp)
+            .outerRoundedShadow(
+                cornerRadius = 18.dp,
+                color = Color.Black,
+                alpha = 0.72f,
+                blurRadius = 5.dp,
+                offsetY = 2.dp
+            )
+            .background(
+                Brush.linearGradient(
+                    listOf(AppColors.surfaceElevated, AppColors.remoteButtonBottom)
+                ),
+                shape
+            )
+            .border(
+                width = 1.dp,
+                color = if (isSearching) {
+                    AppColors.statusAmber.copy(alpha = 0.7f)
+                } else {
+                    AppColors.accent.copy(alpha = 0.6f)
+                },
+                shape = shape
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(7.dp)
+    ) {
+        Icon(
+            imageVector = if (isSearching) Icons.Rounded.StopCircle else Icons.Rounded.Search,
+            contentDescription = null,
+            tint = if (isSearching) AppColors.statusAmber else AppColors.accent,
+            modifier = Modifier.size(19.dp)
+        )
+        Text(
+            text = if (isSearching) "ARRÊTER" else "RECHERCHER",
+            color = AppColors.appWhite,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun SettingsIntroCard(
+    pairedCount: Int,
+    isSearching: Boolean
+) {
+    val shape = RoundedCornerShape(22.dp)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .outerRoundedShadow(
+                cornerRadius = 22.dp,
+                color = Color.Black,
+                alpha = 0.62f,
+                blurRadius = 7.dp,
+                offsetY = 3.dp
+            )
+            .background(
+                Brush.linearGradient(
+                    colorStops = arrayOf(
+                        0.0f to AppColors.surfaceElevated,
+                        0.65f to AppColors.surface,
+                        1.0f to AppColors.remoteDeep
+                    ),
+                    start = Offset(0f, 0f),
+                    end = Offset(850f, 280f)
+                ),
+                shape
+            )
+            .border(1.dp, AppColors.border.copy(alpha = 0.8f), shape)
+            .padding(18.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(52.dp)
+                .background(AppColors.accentMuted, CircleShape)
+                .border(1.dp, AppColors.accent.copy(alpha = 0.45f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Tv,
+                contentDescription = null,
+                tint = AppColors.accent,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+
+        Spacer(Modifier.width(14.dp))
+
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = "Vos téléviseurs",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = AppColors.appWhite
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = "$pairedCount TV ${if (pairedCount > 1) "enregistrées" else "enregistrée"}",
+                style = MaterialTheme.typography.bodySmall,
+                color = AppColors.textSecondary
+            )
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .background(
+                        if (isSearching) AppColors.statusAmber else AppColors.statusGreen,
+                        CircleShape
+                    )
+            )
+            Text(
+                text = if (isSearching) "SCAN" else "PRÊT",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = if (isSearching) AppColors.statusAmber else AppColors.statusGreen
+            )
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(
+    icon: ImageVector,
+    title: String,
+    subtitle: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 2.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(34.dp)
+                .background(AppColors.accentMuted.copy(alpha = 0.65f), RoundedCornerShape(10.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = AppColors.accent,
+                modifier = Modifier.size(19.dp)
+            )
+        }
+
+        Spacer(Modifier.width(10.dp))
+
+        Column {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = AppColors.appWhite
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = AppColors.textSecondary
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyPairedState(onSearch: () -> Unit) {
+    SettingsStateCard(
+        icon = Icons.Rounded.SignalWifiOff,
+        title = "Aucune TV enregistrée",
+        subtitle = "Ajoutez une TV présente sur le même réseau Wi-Fi."
+    ) {
+        SettingsPrimaryButton(
+            icon = Icons.Rounded.Add,
+            label = "Ajouter une TV",
+            onClick = onSearch
+        )
+    }
+}
+
+@Composable
+private fun DiscoveryLoadingState() {
+    val shape = RoundedCornerShape(18.dp)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .outerRoundedShadow(
+                cornerRadius = 18.dp,
+                color = Color.Black,
+                alpha = 0.5f,
+                blurRadius = 5.dp,
+                offsetY = 2.dp
+            )
+            .background(AppColors.surface.copy(alpha = 0.92f), shape)
+            .border(1.dp, AppColors.border, shape)
+            .padding(18.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(26.dp),
+            color = AppColors.accent,
+            strokeWidth = 2.5.dp
+        )
+        Spacer(Modifier.width(14.dp))
+        Column {
+            Text(
+                text = "Recherche en cours",
+                color = AppColors.appWhite,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = "Analyse du réseau local…",
+                color = AppColors.textSecondary,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    }
+}
+
+@Composable
+private fun DiscoveryEmptyState(
+    isSearching: Boolean,
+    onSearch: () -> Unit
+) {
+    SettingsStateCard(
+        icon = if (isSearching) Icons.Rounded.Wifi else Icons.Rounded.WifiOff,
+        title = if (isSearching) "Aucune TV détectée pour le moment" else "Recherche arrêtée",
+        subtitle = "Vérifiez que la TV est allumée et connectée au même réseau."
+    ) {
+        if (!isSearching) {
+            SettingsPrimaryButton(
+                icon = Icons.Rounded.Search,
+                label = "Rechercher",
+                onClick = onSearch
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsStateCard(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    action: @Composable () -> Unit = {}
+) {
+    val shape = RoundedCornerShape(18.dp)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .outerRoundedShadow(
+                cornerRadius = 18.dp,
+                color = Color.Black,
+                alpha = 0.52f,
+                blurRadius = 5.dp,
+                offsetY = 2.dp
+            )
+            .background(
+                Brush.linearGradient(
+                    listOf(AppColors.surfaceElevated, AppColors.surface)
+                ),
+                shape
+            )
+            .border(1.dp, AppColors.border, shape)
+            .padding(18.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(46.dp)
+                .background(AppColors.accentMuted.copy(alpha = 0.6f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = AppColors.textSecondary,
+                modifier = Modifier.size(25.dp)
+            )
+        }
+        Spacer(Modifier.height(10.dp))
+        Text(
+            text = title,
+            color = AppColors.appWhite,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(3.dp))
+        Text(
+            text = subtitle,
+            color = AppColors.textSecondary,
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(12.dp))
+        action()
+    }
+}
+
+@Composable
+private fun SettingsPrimaryButton(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit
+) {
+    val shape = RoundedCornerShape(14.dp)
+
+    Row(
+        modifier = Modifier
+            .height(42.dp)
+            .background(AppColors.accent, shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 15.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(7.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = AppColors.appBlack,
+            modifier = Modifier.size(19.dp)
+        )
+        Text(
+            text = label,
+            color = AppColors.appBlack,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.labelLarge
+        )
+    }
+}
