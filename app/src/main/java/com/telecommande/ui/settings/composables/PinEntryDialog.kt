@@ -33,10 +33,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import com.telecommande.core.discovery.DiscoveredTv
 import com.telecommande.ui.theme.AppColors
-import com.telecommande.ui.theme.TvManagementSpecs
+import com.telecommande.ui.theme.PinEntryDialogDimensions
 
 @Composable
 fun PinEntryDialog(
@@ -58,7 +57,7 @@ fun PinEntryDialog(
 
     AlertDialog(
         onDismissRequest = { if (!isLoading) onDismiss() },
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(PinEntryDialogDimensions.cornerRadius),
         containerColor = AppColors.surfaceElevated,
         titleContentColor = AppColors.appWhite,
         textContentColor = AppColors.textSecondary,
@@ -78,7 +77,7 @@ fun PinEntryDialog(
         text = {
             Column(horizontalAlignment = Alignment.Start) {
                 Text("Saisissez le code affiché sur votre TV (lettres et chiffres).")
-                Spacer(modifier = Modifier.height(TvManagementSpecs.PinDialogVerticalSpacer))
+                Spacer(modifier = Modifier.height(PinEntryDialogDimensions.fieldTopSpacing))
                 OutlinedTextField(
                     value = pinValue,
                     onValueChange = { rawValue ->
@@ -123,11 +122,11 @@ fun PinEntryDialog(
                 if (isLoading) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(PinEntryDialogDimensions.loadingIndicatorSize),
+                            strokeWidth = PinEntryDialogDimensions.loadingIndicatorStrokeWidth,
                             color = AppColors.appBlack
                         )
-                        Spacer(Modifier.size(8.dp))
+                        Spacer(Modifier.size(PinEntryDialogDimensions.loadingTextSpacing))
                         Text("Vérification")
                     }
                 } else {
@@ -140,6 +139,6 @@ fun PinEntryDialog(
                 Text("Annuler")
             }
         },
-        modifier = Modifier.padding(TvManagementSpecs.PinDialogOverallPadding)
+        modifier = Modifier.padding(PinEntryDialogDimensions.overallPadding)
     )
 }
