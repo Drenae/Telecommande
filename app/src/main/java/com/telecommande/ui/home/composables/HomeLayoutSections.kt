@@ -18,12 +18,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +36,7 @@ import com.telecommande.ui.theme.MediaControlDimensions
 import com.telecommande.ui.theme.NavPillDimensions
 import com.telecommande.ui.theme.PremiumCircleDimensions
 import com.telecommande.ui.theme.VolumeControlDimensions
+import com.telecommande.util.GradientIcon
 import com.telecommande.util.outerRoundedShadow
 import com.telecommande.util.outerShadow
 import compose.icons.FontAwesomeIcons
@@ -319,46 +317,6 @@ fun ContentSection(
 }
 
 @Composable
-private fun GradientIcon(
-    icon: ImageVector,
-    desc: String,
-    modifier: Modifier = Modifier,
-    tint: Color? = null,
-    brush: Brush = Brush.verticalGradient(
-        listOf(
-            AppColors.homeDpadIconGradientTop,
-            AppColors.homeDpadIconGradientBottom
-        )
-    )
-) {
-    if (tint != null) {
-        Icon(
-            imageVector = icon,
-            contentDescription = desc,
-            tint = tint,
-            modifier = modifier
-        )
-    } else {
-        Icon(
-            imageVector = icon,
-            contentDescription = desc,
-            tint = AppColors.homeDpadIconMask,
-            modifier = modifier
-                .graphicsLayer(alpha = 0.99f)
-                .drawWithCache {
-                    onDrawWithContent {
-                        drawContent()
-                        drawRect(
-                            brush = brush,
-                            blendMode = BlendMode.SrcAtop
-                        )
-                    }
-                }
-        )
-    }
-}
-
-@Composable
 private fun DpadIcon(
     icon: ImageVector,
     desc: String,
@@ -372,7 +330,7 @@ private fun DpadIcon(
     ) {
         GradientIcon(
             icon = icon,
-            desc = desc,
+            contentDescription = desc,
             modifier = Modifier.size(size * .72f)
         )
     }
@@ -436,7 +394,7 @@ private fun PremiumCircle(
         ) {
             GradientIcon(
                 icon = icon,
-                desc = desc,
+                contentDescription = desc,
                 modifier = Modifier.size(size * iconScale),
                 tint = iconTint
             )
@@ -503,7 +461,7 @@ private fun NavPill(
             ) {
                 GradientIcon(
                     icon = icon,
-                    desc = label,
+                    contentDescription = label,
                     modifier = Modifier.size(NavPillDimensions.iconSize)
                 )
             }
