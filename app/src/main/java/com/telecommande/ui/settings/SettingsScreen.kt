@@ -34,7 +34,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.telecommande.data.model.PairedTvInfo
@@ -43,6 +42,14 @@ import com.telecommande.ui.settings.composables.DiscoveredTvItem
 import com.telecommande.ui.settings.composables.PairedTvItem
 import com.telecommande.ui.settings.composables.PinEntryDialog
 import com.telecommande.ui.theme.AppColors
+import com.telecommande.ui.theme.DiscoveryLoadingDimensions
+import com.telecommande.ui.theme.SettingsActionButtonDimensions
+import com.telecommande.ui.theme.SettingsDialogDimensions
+import com.telecommande.ui.theme.SettingsIconButtonDimensions
+import com.telecommande.ui.theme.SettingsPrimaryButtonDimensions
+import com.telecommande.ui.theme.SettingsScreenDimensions
+import com.telecommande.ui.theme.SettingsSectionTitleDimensions
+import com.telecommande.ui.theme.SettingsStateCardDimensions
 import com.telecommande.util.outerRoundedShadow
 import kotlinx.coroutines.launch
 
@@ -117,7 +124,7 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = AppColors.textSecondary
                     )
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(SettingsDialogDimensions.renameTechnicalNameSpacing))
                     OutlinedTextField(
                         value = renameValue,
                         onValueChange = { renameValue = it.take(32) },
@@ -126,7 +133,7 @@ fun SettingsScreen(
                         placeholder = { Text("Salon, Chambre…") },
                         singleLine = true
                     )
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(SettingsDialogDimensions.renameHelpTextSpacing))
                     Text(
                         text = "Ce nom est uniquement visuel. Le nom réel de la TV reste inchangé pour la connexion.",
                         style = MaterialTheme.typography.bodySmall,
@@ -195,7 +202,11 @@ fun SettingsScreen(
                         actionIconContentColor = AppColors.accent
                     ),
                     title = {
-                        Column(modifier = Modifier.padding(start = 10.dp)) {
+                        Column(
+                            modifier = Modifier.padding(
+                                start = SettingsScreenDimensions.topBarTitleStartPadding
+                            )
+                        ) {
                             Text(
                                 text = "GESTION DES TV",
                                 style = MaterialTheme.typography.labelSmall,
@@ -242,12 +253,12 @@ fun SettingsScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = 10.dp,
-                        bottom = 28.dp
+                        start = SettingsScreenDimensions.listStartPadding,
+                        end = SettingsScreenDimensions.listEndPadding,
+                        top = SettingsScreenDimensions.listTopPadding,
+                        bottom = SettingsScreenDimensions.listBottomPadding
                     ),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(SettingsScreenDimensions.listItemSpacing)
                 ) {
                     val discoveredTvs = uiState.discoveryState.discoveredTvs
 
@@ -279,7 +290,7 @@ fun SettingsScreen(
                     }
 
                     item {
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(SettingsScreenDimensions.pairedSectionTopSpacing))
                         SectionTitle(
                             icon = Icons.Rounded.Devices,
                             title = "Mes TV",
@@ -337,18 +348,18 @@ private fun SettingsIconButton(
     contentDescription: String,
     onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(14.dp)
+    val shape = RoundedCornerShape(SettingsIconButtonDimensions.cornerRadius)
 
     Box(
         modifier = Modifier
-            .padding(start = 10.dp)
-            .size(44.dp)
+            .padding(start = SettingsIconButtonDimensions.startPadding)
+            .size(SettingsIconButtonDimensions.size)
             .outerRoundedShadow(
-                cornerRadius = 14.dp,
+                cornerRadius = SettingsIconButtonDimensions.cornerRadius,
                 color = Color.Black,
                 alpha = 0.72f,
-                blurRadius = 5.dp,
-                offsetY = 2.dp
+                blurRadius = SettingsIconButtonDimensions.shadowBlurRadius,
+                offsetY = SettingsIconButtonDimensions.shadowOffsetY
             )
             .background(
                 Brush.linearGradient(
@@ -356,7 +367,11 @@ private fun SettingsIconButton(
                 ),
                 shape
             )
-            .border(1.dp, AppColors.remoteButtonBorderTop.copy(alpha = 0.55f), shape)
+            .border(
+                width = SettingsIconButtonDimensions.mainBorderWidth,
+                color = AppColors.remoteButtonBorderTop.copy(alpha = 0.55f),
+                shape = shape
+            )
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -364,7 +379,7 @@ private fun SettingsIconButton(
             imageVector = icon,
             contentDescription = contentDescription,
             tint = AppColors.appWhite,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(SettingsIconButtonDimensions.iconSize)
         )
     }
 }
@@ -374,18 +389,18 @@ private fun SettingsActionButton(
     isSearching: Boolean,
     onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(SettingsActionButtonDimensions.cornerRadius)
 
     Row(
         modifier = Modifier
-            .padding(end = 12.dp)
-            .height(42.dp)
+            .padding(end = SettingsActionButtonDimensions.endPadding)
+            .height(SettingsActionButtonDimensions.height)
             .outerRoundedShadow(
-                cornerRadius = 18.dp,
+                cornerRadius = SettingsActionButtonDimensions.cornerRadius,
                 color = Color.Black,
                 alpha = 0.72f,
-                blurRadius = 5.dp,
-                offsetY = 2.dp
+                blurRadius = SettingsActionButtonDimensions.shadowBlurRadius,
+                offsetY = SettingsActionButtonDimensions.shadowOffsetY
             )
             .background(
                 Brush.linearGradient(
@@ -394,7 +409,7 @@ private fun SettingsActionButton(
                 shape
             )
             .border(
-                width = 1.dp,
+                width = SettingsActionButtonDimensions.mainBorderWidth,
                 color = if (isSearching) {
                     AppColors.statusAmber.copy(alpha = 0.7f)
                 } else {
@@ -403,15 +418,15 @@ private fun SettingsActionButton(
                 shape = shape
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp),
+            .padding(horizontal = SettingsActionButtonDimensions.horizontalPadding),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(7.dp)
+        horizontalArrangement = Arrangement.spacedBy(SettingsActionButtonDimensions.contentSpacing)
     ) {
         Icon(
             imageVector = if (isSearching) Icons.Rounded.StopCircle else Icons.Rounded.Search,
             contentDescription = null,
             tint = if (isSearching) AppColors.statusAmber else AppColors.accent,
-            modifier = Modifier.size(19.dp)
+            modifier = Modifier.size(SettingsActionButtonDimensions.iconSize)
         )
         Text(
             text = if (isSearching) "ARRÊTER" else "RECHERCHER",
@@ -431,24 +446,30 @@ private fun SectionTitle(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 2.dp, vertical = 4.dp),
+            .padding(
+                horizontal = SettingsSectionTitleDimensions.horizontalPadding,
+                vertical = SettingsSectionTitleDimensions.verticalPadding
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(34.dp)
-                .background(AppColors.accentMuted.copy(alpha = 0.65f), RoundedCornerShape(10.dp)),
+                .size(SettingsSectionTitleDimensions.iconContainerSize)
+                .background(
+                    AppColors.accentMuted.copy(alpha = 0.65f),
+                    RoundedCornerShape(SettingsSectionTitleDimensions.iconContainerCornerRadius)
+                ),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = AppColors.accent,
-                modifier = Modifier.size(19.dp)
+                modifier = Modifier.size(SettingsSectionTitleDimensions.iconSize)
             )
         }
 
-        Spacer(Modifier.width(10.dp))
+        Spacer(Modifier.width(SettingsSectionTitleDimensions.contentSpacing))
 
         Column {
             Text(
@@ -484,29 +505,33 @@ private fun EmptyPairedState(onSearch: () -> Unit) {
 
 @Composable
 private fun DiscoveryLoadingState() {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(DiscoveryLoadingDimensions.cornerRadius)
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .outerRoundedShadow(
-                cornerRadius = 18.dp,
+                cornerRadius = DiscoveryLoadingDimensions.cornerRadius,
                 color = Color.Black,
                 alpha = 0.5f,
-                blurRadius = 5.dp,
-                offsetY = 2.dp
+                blurRadius = DiscoveryLoadingDimensions.shadowBlurRadius,
+                offsetY = DiscoveryLoadingDimensions.shadowOffsetY
             )
             .background(AppColors.surface.copy(alpha = 0.92f), shape)
-            .border(1.dp, AppColors.border, shape)
-            .padding(18.dp),
+            .border(
+                width = DiscoveryLoadingDimensions.mainBorderWidth,
+                color = AppColors.border,
+                shape = shape
+            )
+            .padding(DiscoveryLoadingDimensions.contentPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
         CircularProgressIndicator(
-            modifier = Modifier.size(26.dp),
+            modifier = Modifier.size(DiscoveryLoadingDimensions.progressSize),
             color = AppColors.accent,
-            strokeWidth = 2.5.dp
+            strokeWidth = DiscoveryLoadingDimensions.progressStrokeWidth
         )
-        Spacer(Modifier.width(14.dp))
+        Spacer(Modifier.width(DiscoveryLoadingDimensions.progressTextSpacing))
         Column {
             Text(
                 text = "Recherche en cours",
@@ -540,17 +565,17 @@ private fun SettingsStateCard(
     subtitle: String,
     action: (@Composable () -> Unit)? = null
 ) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(SettingsStateCardDimensions.cornerRadius)
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .outerRoundedShadow(
-                cornerRadius = 18.dp,
+                cornerRadius = SettingsStateCardDimensions.cornerRadius,
                 color = Color.Black,
                 alpha = 0.52f,
-                blurRadius = 5.dp,
-                offsetY = 2.dp
+                blurRadius = SettingsStateCardDimensions.shadowBlurRadius,
+                offsetY = SettingsStateCardDimensions.shadowOffsetY
             )
             .background(
                 Brush.linearGradient(
@@ -558,14 +583,18 @@ private fun SettingsStateCard(
                 ),
                 shape
             )
-            .border(1.dp, AppColors.border, shape)
-            .padding(18.dp),
+            .border(
+                width = SettingsStateCardDimensions.mainBorderWidth,
+                color = AppColors.border,
+                shape = shape
+            )
+            .padding(SettingsStateCardDimensions.contentPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (icon != null) {
             Box(
                 modifier = Modifier
-                    .size(46.dp)
+                    .size(SettingsStateCardDimensions.iconContainerSize)
                     .background(AppColors.accentMuted.copy(alpha = 0.6f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
@@ -573,10 +602,10 @@ private fun SettingsStateCard(
                     imageVector = icon,
                     contentDescription = null,
                     tint = AppColors.textSecondary,
-                    modifier = Modifier.size(25.dp)
+                    modifier = Modifier.size(SettingsStateCardDimensions.iconSize)
                 )
             }
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(SettingsStateCardDimensions.iconBottomSpacing))
         }
 
         Text(
@@ -585,7 +614,7 @@ private fun SettingsStateCard(
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center
         )
-        Spacer(Modifier.height(3.dp))
+        Spacer(Modifier.height(SettingsStateCardDimensions.titleSubtitleSpacing))
         Text(
             text = subtitle,
             color = AppColors.textSecondary,
@@ -594,7 +623,7 @@ private fun SettingsStateCard(
         )
 
         action?.let {
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(SettingsStateCardDimensions.actionTopSpacing))
             it()
         }
     }
@@ -606,22 +635,22 @@ private fun SettingsPrimaryButton(
     label: String,
     onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(14.dp)
+    val shape = RoundedCornerShape(SettingsPrimaryButtonDimensions.cornerRadius)
 
     Row(
         modifier = Modifier
-            .height(42.dp)
+            .height(SettingsPrimaryButtonDimensions.height)
             .background(AppColors.accent, shape)
             .clickable(onClick = onClick)
-            .padding(horizontal = 15.dp),
+            .padding(horizontal = SettingsPrimaryButtonDimensions.horizontalPadding),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(7.dp)
+        horizontalArrangement = Arrangement.spacedBy(SettingsPrimaryButtonDimensions.contentSpacing)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             tint = AppColors.appBlack,
-            modifier = Modifier.size(19.dp)
+            modifier = Modifier.size(SettingsPrimaryButtonDimensions.iconSize)
         )
         Text(
             text = label,
