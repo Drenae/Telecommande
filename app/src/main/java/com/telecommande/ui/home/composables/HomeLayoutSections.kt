@@ -18,10 +18,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -120,10 +123,10 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
                     Modifier.constrainAs(ok) { centerTo(parent) },
                     iconScale = .62f
                 )
-                DpadIcon(R.drawable.dpad_up, "Haut", dpad * .40f, onUpClick, Modifier.constrainAs(u) { top.linkTo(parent.top); start.linkTo(parent.start); end.linkTo(parent.end) })
-                DpadIcon(R.drawable.dpad_down, "Bas", dpad * .40f, onDownClick, Modifier.constrainAs(d) { bottom.linkTo(parent.bottom); start.linkTo(parent.start); end.linkTo(parent.end) })
-                DpadIcon(R.drawable.dpad_left, "Gauche", dpad * .40f, onLeftClick, Modifier.constrainAs(l) { start.linkTo(parent.start); top.linkTo(parent.top); bottom.linkTo(parent.bottom) })
-                DpadIcon(R.drawable.dpad_right, "Droite", dpad * .40f, onRightClick, Modifier.constrainAs(r) { end.linkTo(parent.end); top.linkTo(parent.top); bottom.linkTo(parent.bottom) })
+                DpadIcon(Icons.Rounded.KeyboardArrowUp, "Haut", dpad * .40f, onUpClick, Modifier.constrainAs(u) { top.linkTo(parent.top); start.linkTo(parent.start); end.linkTo(parent.end) })
+                DpadIcon(Icons.Rounded.KeyboardArrowDown, "Bas", dpad * .40f, onDownClick, Modifier.constrainAs(d) { bottom.linkTo(parent.bottom); start.linkTo(parent.start); end.linkTo(parent.end) })
+                DpadIcon(Icons.Rounded.KeyboardArrowLeft, "Gauche", dpad * .40f, onLeftClick, Modifier.constrainAs(l) { start.linkTo(parent.start); top.linkTo(parent.top); bottom.linkTo(parent.bottom) })
+                DpadIcon(Icons.Rounded.KeyboardArrowRight, "Droite", dpad * .40f, onRightClick, Modifier.constrainAs(r) { end.linkTo(parent.end); top.linkTo(parent.top); bottom.linkTo(parent.bottom) })
             }
             Spacer(Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -139,12 +142,46 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
 }
 
 @Composable
-private fun DpadIcon(@DrawableRes iconRes: Int, desc: String, size: Dp, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    IconButton(onClick = onClick, modifier = modifier.size(size)) {
-        Image(
-            painter = painterResource(iconRes),
+private fun GradientIcon(
+    icon: ImageVector,
+    desc: String,
+    modifier: Modifier = Modifier,
+    tint: Color? = null,
+    brush: Brush = Brush.verticalGradient(
+        listOf(AppColors.appWhite, AppColors.textSecondary)
+    )
+) {
+    if (tint != null) {
+        Icon(
+            imageVector = icon,
             contentDescription = desc,
-            modifier = Modifier.size(size * .80f)
+            tint = tint,
+            modifier = modifier
+        )
+    } else {
+        Icon(
+            imageVector = icon,
+            contentDescription = desc,
+            tint = Color.White,
+            modifier = modifier
+                .graphicsLayer(alpha = 0.99f)
+                .drawWithCache {
+                    onDrawWithContent {
+                        drawContent()
+                        drawRect(brush = brush, blendMode = BlendMode.SrcAtop)
+                    }
+                }
+        )
+    }
+}
+
+@Composable
+private fun DpadIcon(icon: ImageVector, desc: String, size: Dp, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    IconButton(onClick = onClick, modifier = modifier.size(size)) {
+        GradientIcon(
+            icon = icon,
+            desc = desc,
+            modifier = Modifier.size(size * .62f)
         )
     }
 }
@@ -157,7 +194,7 @@ private fun PremiumCircle(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     iconScale: Float = .60f,
-    iconTint: Color = AppColors.appWhite
+    iconTint: Color? = null
 ) {
     Box(
         modifier
@@ -205,9 +242,9 @@ private fun PremiumCircle(
                 .clip(CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = desc,
+            GradientIcon(
+                icon = icon,
+                desc = desc,
                 tint = iconTint,
                 modifier = Modifier.size(size * iconScale)
             )
@@ -268,10 +305,9 @@ private fun NavPill(icon: ImageVector, label: String, onClick: () -> Unit) {
                     .clip(shape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = label,
-                    tint = AppColors.appWhite,
+                GradientIcon(
+                    icon = icon,
+                    desc = label,
                     modifier = Modifier.size(36.dp)
                 )
             }
