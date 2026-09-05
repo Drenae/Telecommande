@@ -11,6 +11,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +22,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -35,11 +38,12 @@ import kotlin.math.roundToInt
 fun HeaderSection(title: String, modifier: Modifier = Modifier, onPowerClick: () -> Unit, isConnected: Boolean, isLoading: Boolean, onStatusIndicatorClick: () -> Unit) {
     Box(modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp)) {
         PremiumCircle(
-            iconRes = if (isConnected) R.drawable.power_off else R.drawable.power_up,
+            icon = Icons.Rounded.PowerSettingsNew,
             desc = "Power",
             size = 58.dp,
             onClick = onPowerClick,
-            modifier = Modifier.align(Alignment.CenterStart)
+            modifier = Modifier.align(Alignment.CenterStart),
+            iconTint = if (isConnected) AppColors.statusRed else AppColors.statusGreen
         )
         Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(title, color = AppColors.appWhite, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -126,12 +130,12 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
             ) {
                 val (ok, u, d, l, r) = createRefs()
                 PremiumCircle(
-                    R.drawable.ok,
+                    Icons.Rounded.Check,
                     "OK",
                     dpad * .31f,
                     onOkClick,
                     Modifier.constrainAs(ok) { centerTo(parent) },
-                    iconScale = 1.22f
+                    iconScale = .62f
                 )
                 DpadIcon(R.drawable.dpad_up, "Haut", dpad * .40f, onUpClick, Modifier.constrainAs(u) { top.linkTo(parent.top); start.linkTo(parent.start); end.linkTo(parent.end) })
                 DpadIcon(R.drawable.dpad_down, "Bas", dpad * .40f, onDownClick, Modifier.constrainAs(d) { bottom.linkTo(parent.bottom); start.linkTo(parent.start); end.linkTo(parent.end) })
@@ -140,8 +144,8 @@ fun ContentSection(modifier: Modifier = Modifier, onOkClick: () -> Unit, onUpCli
             }
             Spacer(Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                NavPill(R.drawable.back, "RETOUR", onBackClick)
-                NavPill(R.drawable.home, "ACCUEIL", onHomeClick)
+                NavPill(Icons.Rounded.ArrowBack, "RETOUR", onBackClick)
+                NavPill(Icons.Rounded.Home, "ACCUEIL", onHomeClick)
             }
             Spacer(Modifier.height(10.dp))
             VolumeControl(volumeLevel, volumeMax, isMuted, onVolumeUpClick, onVolumeDownClick, onMuteClick)
@@ -164,12 +168,13 @@ private fun DpadIcon(@DrawableRes iconRes: Int, desc: String, size: Dp, onClick:
 
 @Composable
 private fun PremiumCircle(
-    @DrawableRes iconRes: Int,
+    icon: ImageVector,
     desc: String,
     size: Dp,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    iconScale: Float = .70f
+    iconScale: Float = .60f,
+    iconTint: Color = AppColors.appWhite
 ) {
     Box(
         modifier
@@ -217,9 +222,10 @@ private fun PremiumCircle(
                 .clip(CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(iconRes),
+            Icon(
+                imageVector = icon,
                 contentDescription = desc,
+                tint = iconTint,
                 modifier = Modifier.size(size * iconScale)
             )
         }
@@ -227,7 +233,7 @@ private fun PremiumCircle(
 }
 
 @Composable
-private fun NavPill(@DrawableRes iconRes: Int, label: String, onClick: () -> Unit) {
+private fun NavPill(icon: ImageVector, label: String, onClick: () -> Unit) {
     val shape = RoundedCornerShape(26.dp)
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -279,10 +285,11 @@ private fun NavPill(@DrawableRes iconRes: Int, label: String, onClick: () -> Uni
                     .clip(shape),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(iconRes),
+                Icon(
+                    imageVector = icon,
                     contentDescription = label,
-                    modifier = Modifier.size(46.dp)
+                    tint = AppColors.appWhite,
+                    modifier = Modifier.size(36.dp)
                 )
             }
         }
@@ -361,7 +368,7 @@ private fun VolumeControl(volumeLevel: Int, volumeMax: Int, isMuted: Boolean, on
             }
         }
         PremiumCircle(
-            iconRes = if (isMuted) R.drawable.mute else R.drawable.volume,
+            icon = if (isMuted) Icons.Rounded.VolumeOff else Icons.Rounded.VolumeUp,
             desc = "Muet",
             size = 48.dp,
             onClick = onMuteClick,
@@ -373,16 +380,16 @@ private fun VolumeControl(volumeLevel: Int, volumeMax: Int, isMuted: Boolean, on
 @Composable
 private fun MediaControls(rew: () -> Unit, play: () -> Unit, stop: () -> Unit, ff: () -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-        Media(R.drawable.fast_rewind, "RETOUR RAPIDE", rew)
-        Media(R.drawable.play, "LECTURE / PAUSE", play)
-        Media(R.drawable.stop, "STOP", stop)
-        Media(R.drawable.fast_forward, "AVANCE RAPIDE", ff)
+        Media(Icons.Rounded.FastRewind, "RETOUR RAPIDE", rew)
+        Media(Icons.Rounded.PlayArrow, "LECTURE / PAUSE", play)
+        Media(Icons.Rounded.Stop, "STOP", stop)
+        Media(Icons.Rounded.FastForward, "AVANCE RAPIDE", ff)
     }
 }
 
 @Composable
-private fun Media(@DrawableRes iconRes: Int, label: String, onClick: () -> Unit) {
-    PremiumCircle(iconRes, label, 62.dp, onClick)
+private fun Media(icon: ImageVector, label: String, onClick: () -> Unit) {
+    PremiumCircle(icon, label, 62.dp, onClick)
 }
 
 @Composable
