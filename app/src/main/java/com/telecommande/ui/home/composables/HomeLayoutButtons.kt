@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import com.telecommande.ui.theme.AppColors
 import com.telecommande.ui.theme.DefaultButtonColors
 import com.telecommande.ui.theme.HomeButtonShapes
 import com.telecommande.ui.theme.LegacyHomeAppButtonDimensions
@@ -43,7 +44,7 @@ fun HomeBaseButton(
     defaultBackgroundColorBrush: Brush = DefaultButtonColors.defaultBackgroundBrush,
     pressedBackgroundColorBrush: Brush = DefaultButtonColors.pressedBackgroundBrush,
     shape: Shape = HomeButtonShapes.baseButton,
-    iconTint: Color = Color.White,
+    iconTint: Color = AppColors.legacyHomeBaseButtonIcon,
     iconPadding: Dp = LegacyHomeBaseButtonDimensions.defaultIconPadding,
     borderWidth: Dp = LegacyHomeBaseButtonDimensions.defaultBorderWidth,
     borderColor: Color = DefaultButtonColors.defaultBorder,
@@ -114,7 +115,7 @@ fun HomeDpadButton(
     contentDescription: String,
     modifier: Modifier = Modifier,
     size: Dp = LegacyHomeDpadButtonDimensions.defaultSize,
-    iconTint: Color = Color.White,
+    iconTint: Color = AppColors.legacyHomeDpadButtonIcon,
     iconPadding: Dp
 ) {
     val source = remember { MutableInteractionSource() }
@@ -156,7 +157,7 @@ fun HomeAppButton(
     shape: Shape = HomeButtonShapes.appButton,
     defaultBackgroundBrush: Brush = DefaultButtonColors.defaultBackgroundBrush,
     pressedBackgroundBrush: Brush = DefaultButtonColors.pressedBackgroundBrush,
-    iconTint: Color = Color.White,
+    iconTint: Color = AppColors.legacyHomeAppButtonIcon,
     iconSize: Dp = LegacyHomeAppButtonDimensions.defaultIconSize
 ) {
     val source = remember { MutableInteractionSource() }
