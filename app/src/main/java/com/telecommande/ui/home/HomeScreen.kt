@@ -24,9 +24,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.telecommande.R
 import com.telecommande.navigation.Screen
-import com.telecommande.ui.home.composables.ContentSection
-import com.telecommande.ui.home.composables.FooterSection
-import com.telecommande.ui.home.composables.HeaderSection
+import com.telecommande.ui.home.layout.ContentSection
+import com.telecommande.ui.home.layout.FooterSection
+import com.telecommande.ui.home.layout.HeaderSection
 import com.telecommande.ui.theme.AppColors
 import com.telecommande.ui.theme.HomeScreenDimensions
 
