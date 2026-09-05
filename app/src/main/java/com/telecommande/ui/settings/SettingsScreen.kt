@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.AddToTv
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.Search
@@ -263,7 +262,7 @@ fun SettingsScreen(
                     item {
                         Spacer(Modifier.height(4.dp))
                         SectionTitle(
-                            icon = Icons.Rounded.AddToTv,
+                            icon = Icons.Rounded.Add,
                             title = "Ajouter une TV",
                             subtitle = "Appareils Android TV détectés sur votre réseau"
                         )
