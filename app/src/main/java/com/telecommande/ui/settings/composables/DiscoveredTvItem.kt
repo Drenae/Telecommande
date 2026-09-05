@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import com.telecommande.core.discovery.DiscoveredTv
 import com.telecommande.ui.theme.AppColors
@@ -43,7 +42,7 @@ fun DiscoveredTvItem(
             .fillMaxWidth()
             .outerRoundedShadow(
                 cornerRadius = DiscoveredTvItemDimensions.cornerRadius,
-                color = Color.Black,
+                color = AppColors.discoveredTvItemShadow,
                 alpha = 0.55f,
                 blurRadius = DiscoveredTvItemDimensions.shadowBlurRadius,
                 offsetY = DiscoveredTvItemDimensions.shadowOffsetY
@@ -51,16 +50,16 @@ fun DiscoveredTvItem(
             .background(
                 Brush.linearGradient(
                     listOf(
-                        AppColors.surfaceElevated,
-                        AppColors.surface,
-                        AppColors.remoteDeep
+                        AppColors.discoveredTvItemGradientTop,
+                        AppColors.discoveredTvItemGradientMiddle,
+                        AppColors.discoveredTvItemGradientBottom
                     )
                 ),
                 shape
             )
             .border(
                 width = DiscoveredTvItemDimensions.mainBorderWidth,
-                color = AppColors.border.copy(alpha = 0.9f),
+                color = AppColors.discoveredTvItemBorder,
                 shape = shape
             )
             .clickable(onClick = onClick)
@@ -70,10 +69,10 @@ fun DiscoveredTvItem(
         Box(
             modifier = Modifier
                 .size(DiscoveredTvItemDimensions.tvIconContainerSize)
-                .background(AppColors.accentMuted.copy(alpha = 0.75f), CircleShape)
+                .background(AppColors.discoveredTvItemIconBackground, CircleShape)
                 .border(
                     width = DiscoveredTvItemDimensions.tvIconContainerBorderWidth,
-                    color = AppColors.accent.copy(alpha = 0.35f),
+                    color = AppColors.discoveredTvItemIconBorder,
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
@@ -81,7 +80,7 @@ fun DiscoveredTvItem(
             Icon(
                 imageVector = Icons.Rounded.Tv,
                 contentDescription = null,
-                tint = AppColors.accent,
+                tint = AppColors.discoveredTvItemIcon,
                 modifier = Modifier.size(DiscoveredTvItemDimensions.tvIconSize)
             )
         }
@@ -93,14 +92,14 @@ fun DiscoveredTvItem(
                 text = tv.friendlyName ?: "Appareil inconnu",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = AppColors.appWhite
+                color = AppColors.discoveredTvItemTitle
             )
 
             tv.ipAddress?.let { ip ->
                 Text(
                     text = ip,
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.textSecondary
+                    color = AppColors.discoveredTvItemSubtitle
                 )
             }
         }
@@ -109,7 +108,7 @@ fun DiscoveredTvItem(
             modifier = Modifier
                 .size(DiscoveredTvItemDimensions.actionContainerSize)
                 .background(
-                    AppColors.accentMuted,
+                    AppColors.discoveredTvItemActionBackground,
                     RoundedCornerShape(DiscoveredTvItemDimensions.actionContainerCornerRadius)
                 ),
             contentAlignment = Alignment.Center
@@ -117,7 +116,7 @@ fun DiscoveredTvItem(
             Icon(
                 imageVector = Icons.Rounded.Add,
                 contentDescription = "Appairer cette TV",
-                tint = AppColors.accent,
+                tint = AppColors.discoveredTvItemActionIcon,
                 modifier = Modifier.size(DiscoveredTvItemDimensions.actionIconSize)
             )
         }
