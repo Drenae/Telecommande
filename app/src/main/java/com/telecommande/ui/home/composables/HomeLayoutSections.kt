@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.telecommande.R
 import com.telecommande.ui.theme.AppColors
+import com.telecommande.utils.outerShadow
 import kotlin.math.roundToInt
 
 @Composable
@@ -171,20 +173,46 @@ private fun PremiumCircle(
     Box(
         modifier
             .size(size)
-            .shadow(14.dp, CircleShape)
+            .outerShadow(
+                color = Color.Black,
+                alpha = 0.9f,
+                blurRadius = 5.dp,
+                offsetY = 3.dp
+            )
             .background(
                 Brush.linearGradient(
-                    listOf(AppColors.remoteRaisedTop, AppColors.remoteRaisedMid, AppColors.remoteRaisedBottom)
+                    colorStops = arrayOf(
+                        0.0f to AppColors.remoteButtonTop,
+                        0.35f to AppColors.remoteButtonBottom
+                    ),
+                    start = Offset(0f, 0f),
+                    end = Offset(0f, 500f)
                 ),
                 CircleShape
             )
-            .border(1.dp, AppColors.remoteButtonRim, CircleShape)
+            .border(
+                width = 1.dp,
+                brush = Brush.linearGradient(
+                    colorStops = arrayOf(
+                        0.0f to AppColors.remoteButtonBorderTop,
+                        0.15f to AppColors.remoteButtonBorderBottom
+                    ),
+                    start = Offset(0f, 0f),
+                    end = Offset(0f, 500f)
+                ),
+                shape = CircleShape
+            )
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Box(
             Modifier
                 .fillMaxSize()
+                .border(
+                    width = 1.dp,
+                    color = Color(0xFF000000),
+                    shape = CircleShape
+                )
                 .clip(CircleShape),
             contentAlignment = Alignment.Center
         ) {
