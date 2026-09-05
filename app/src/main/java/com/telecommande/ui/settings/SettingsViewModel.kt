@@ -12,7 +12,9 @@ import com.telecommande.ui.manager.PairingManager
 import com.telecommande.ui.manager.PairingStep
 import com.telecommande.ui.manager.RemoteManager
 import com.telecommande.ui.manager.RemoteState
-import com.telecommande.util.getMacAddressFromAttributesOrNull
+import com.telecommande.util.findMatchingPairedTv
+import com.telecommande.util.normalizePairingPin
+import com.telecommande.util.resolveDisplayName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -70,7 +72,7 @@ class SettingsViewModel @Inject constructor(
         _currentPinInput
     ) { discoveryState, remoteState, pairingStep, tvSelection, pinInput ->
         val (pairedList, activeTvInfo, displayNames) = tvSelection
-        val activeDisplayName = activeTvInfo?.let { displayNames[it.keystoreAlias] ?: it.name ?: it.ipAddress }
+        val activeDisplayName = activeTvInfo?.resolveDisplayName(displayNames)
 
         val isLoadingOverall = discoveryState.isDiscovering ||
             remoteState.isLoading ||
@@ -155,16 +157,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onDeviceSelected(tv: DiscoveredTv) {
-        val discoveredMac = tv.getMacAddressFromAttributesOrNull()
-        val existingPaired = uiState.value.pairedTvs.find { paired ->
-            when {
-                discoveredMac != null && paired.macAddress != null ->
-                    paired.macAddress.equals(discoveredMac, ignoreCase = true)
-                paired.name != null ->
-                    paired.name == tv.friendlyName || paired.name == tv.serviceName
-                else -> false
-            }
-        }
+        val existingPaired = tv.findMatchingPairedTv(uiState.value.pairedTvs)
 
         if (existingPaired != null) {
             setTvAsActive(existingPaired)
@@ -174,7 +167,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onPinChanged(pin: String) {
-        _currentPinInput.value = pin.uppercase().filter { it in 'A'..'Z' || it in '0'..'9' }
+        _currentPinInput.value = pin.normalizePairingPin()
     }
 
     fun onSubmitPin() {
@@ -196,7 +189,8 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 settingsRepository.setTvDisplayName(tvInfo.keystoreAlias, displayName)
-                val finalName = displayName?.trim()?.takeIf { it.isNotBlank() } ?: tvInfo.name ?: tvInfo.ipAddress
+                val finalName = displayName?.trim()?.takeIf { it.isNotBlank() }
+                    ?: tvInfo.resolveDisplayName(emptyMap())
                 _internalSnackbarMessage.value = "Nom de la TV mis à jour : $finalName"
             } catch (e: Exception) {
                 Timber.e(e, "Erreur lors du renommage de la TV ${tvInfo.name}")
@@ -206,7 +200,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun forgetTv(tvInfo: PairedTvInfo) {
-        val displayName = uiState.value.tvDisplayNames[tvInfo.keystoreAlias] ?: tvInfo.name ?: tvInfo.ipAddress
+        val displayName = tvInfo.resolveDisplayName(uiState.value.tvDisplayNames)
         viewModelScope.launch {
             _internalSnackbarMessage.value = "Oubli de $displayName..."
             try {
@@ -221,7 +215,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setTvAsActive(tvInfo: PairedTvInfo) {
-        val displayName = uiState.value.tvDisplayNames[tvInfo.keystoreAlias] ?: tvInfo.name ?: tvInfo.ipAddress
+        val displayName = tvInfo.resolveDisplayName(uiState.value.tvDisplayNames)
         if (
             uiState.value.activeTv?.keystoreAlias == tvInfo.keystoreAlias &&
             uiState.value.remoteState.isConnected
