@@ -33,9 +33,16 @@ class RemotePacketParser(
         val remoteMessage: Remotemessage.RemoteMessage = try {
             Remotemessage.RemoteMessage.parseFrom(buf)
         } catch (e: InvalidProtocolBufferException) {
-            Timber.e(e, "Échec de l'analyse du RemoteMessage: %s", e.message)
-            eventFlow.emit(RemoteEvent.Error("Erreur de protocole : impossible d'analyser le message distant reçu."))
-            messagesChannel.close(e)
+            // Certaines TV (notamment Philips Android TV 10) envoient des variantes IME
+            // que notre .proto historique ne décrit pas encore complètement. Un paquet
+            // inconnu ne doit surtout pas tuer toute la session de télécommande.
+            val hex = buf.joinToString(" ") { "%02X".format(it.toInt() and 0xFF) }
+            Timber.w(
+                e,
+                "TV RX non décodable, paquet ignoré sans fermer la session. longueur=%d, hex=[%s]",
+                buf.size,
+                hex
+            )
             return
         }
 
