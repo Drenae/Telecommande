@@ -148,6 +148,33 @@ class AndroidRemoteTv : BaseAndroidRemoteTv(), TvRemoteClient {
         sendNativeCommand(keyCode, Remotemessage.RemoteDirection.SHORT)
     }
 
+    fun sendTextInput(text: String) {
+        val session = currentRemoteSession
+        if (session == null || !_isConnected.value) {
+            _eventFlow.tryEmit(AndroidTvEvent.Error("Impossible d'envoyer le texte: session non connectée"))
+            return
+        }
+        if (text.isEmpty()) return
+        coroutineScope.launch {
+            try {
+                session.sendText(text)
+            } catch (e: Exception) {
+                _eventFlow.emit(AndroidTvEvent.Error("Erreur lors de l'envoi du texte: ${e.message}"))
+            }
+        }
+    }
+
+    fun deleteTextInput(count: Int = 1) {
+        if (count <= 0) return
+        repeat(count) {
+            sendNativeCommand(Remotemessage.RemoteKeyCode.KEYCODE_DEL, Remotemessage.RemoteDirection.SHORT)
+        }
+    }
+
+    fun submitTextInput() {
+        sendNativeCommand(Remotemessage.RemoteKeyCode.KEYCODE_ENTER, Remotemessage.RemoteDirection.SHORT)
+    }
+
     private fun sendNativeCommand(remoteKeyCode: Remotemessage.RemoteKeyCode, remoteDirection: Remotemessage.RemoteDirection) {
         val session = currentRemoteSession
         if (session == null || !_isConnected.value) { _eventFlow.tryEmit(AndroidTvEvent.Error("Impossible d'envoyer la commande: session non connectée")); return }
