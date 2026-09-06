@@ -33,9 +33,6 @@ class RemotePacketParser(
         val remoteMessage: Remotemessage.RemoteMessage = try {
             Remotemessage.RemoteMessage.parseFrom(buf)
         } catch (e: InvalidProtocolBufferException) {
-            // Certaines TV (notamment Philips Android TV 10) envoient des variantes IME
-            // que notre .proto historique ne décrit pas encore complètement. Un paquet
-            // inconnu ne doit surtout pas tuer toute la session de télécommande.
             val hex = buf.joinToString(" ") { "%02X".format(it.toInt() and 0xFF) }
             Timber.w(
                 e,
@@ -83,6 +80,32 @@ class RemotePacketParser(
                             max = volumeInfo.volumeMax.toInt(),
                             muted = volumeInfo.volumeMuted,
                             deviceName = volumeInfo.playerModel.takeIf { it.isNotEmpty() }
+                        )
+                    )
+                }
+
+                remoteMessage.hasRemoteImeKeyInject() -> {
+                    val ime = remoteMessage.remoteImeKeyInject
+                    val textField = ime.textFieldStatus
+                    val appPackage = ime.appInfo.appPackage.takeIf { it.isNotBlank() }
+                    val label = textField.label.takeIf { it.isNotBlank() }
+                    onImeCountersUpdated(null, textField.counterField)
+                    Timber.i(
+                        "TV IME active via RemoteImeKeyInject : app=%s, label=%s, valeur=%s, sélection=%d..%d, fieldCounter=%d",
+                        appPackage ?: "<inconnue>",
+                        label ?: "<sans label>",
+                        textField.value,
+                        textField.start,
+                        textField.end,
+                        textField.counterField
+                    )
+                    eventFlow.emit(
+                        RemoteEvent.TextInputRequested(
+                            value = textField.value,
+                            selectionStart = textField.start,
+                            selectionEnd = textField.end,
+                            fieldCounter = textField.counterField,
+                            label = label ?: appPackage
                         )
                     )
                 }
