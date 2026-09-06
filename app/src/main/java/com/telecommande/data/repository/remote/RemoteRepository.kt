@@ -17,5 +17,8 @@ interface RemoteRepository {
     )
     suspend fun disconnectFromTv()
     suspend fun sendCommand(command: TvCommand)
+    suspend fun sendTextInput(text: String)
+    suspend fun deleteTextInput(count: Int = 1)
+    suspend fun submitTextInput()
     fun launchApplication(appLink: String)
 }
