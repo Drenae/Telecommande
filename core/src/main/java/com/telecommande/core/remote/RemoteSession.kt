@@ -43,6 +43,12 @@ class RemoteSession(
     private var outputStream: OutputStream? = null
     private var inputStream: InputStream? = null
 
+    @Volatile
+    private var imeCounter: Int = 0
+
+    @Volatile
+    private var imeFieldCounter: Int = 0
+
     private val _eventFlow = MutableSharedFlow<RemoteEvent>(
         replay = 0,
         extraBufferCapacity = 16
@@ -162,8 +168,6 @@ class RemoteSession(
                 newSocket.useClientMode = true
                 newSocket.keepAlive = true
                 newSocket.tcpNoDelay = true
-                // Une session Android TV Remote est persistante. Un timeout de lecture ici
-                // transformait une simple période sans message en fausse déconnexion.
                 newSocket.soTimeout = 0
 
                 Timber.d("Démarrage du handshake SSL avec validation du certificat TV...")
@@ -203,7 +207,15 @@ class RemoteSession(
                     currentOutputStream,
                     incomingMessagesChannel,
                     _eventFlow
-                )
+                ) { newImeCounter, newFieldCounter ->
+                    newImeCounter?.let { imeCounter = it }
+                    newFieldCounter?.let { imeFieldCounter = it }
+                    Timber.d(
+                        "État IME session mis à jour : imeCounter=%d, fieldCounter=%d",
+                        imeCounter,
+                        imeFieldCounter
+                    )
+                }
                 remotePacketParser.parsePackets()
             } catch (e: IOException) {
                 if (isActive) {
@@ -272,6 +284,41 @@ class RemoteSession(
         }
     }
 
+    suspend fun sendText(text: String) {
+        if (text.isEmpty()) return
+        val currentOutStream = outputStream
+        if (currentOutStream == null || sslSocket?.isClosed == true || sslSocket?.isConnected == false) {
+            Timber.w("Impossible d'envoyer le texte IME, session non connectée.")
+            _eventFlow.emit(RemoteEvent.Error("Impossible d'envoyer le texte: session non connectée."))
+            return
+        }
+
+        try {
+            withContext(Dispatchers.IO) {
+                synchronized(currentOutStream) {
+                    val payload = remoteMessageManager.createImeBatchEdit(
+                        text = text,
+                        imeCounter = imeCounter,
+                        fieldCounter = imeFieldCounter
+                    )
+                    currentOutStream.write(payload)
+                    currentOutStream.flush()
+                }
+                Timber.d(
+                    "Texte IME envoyé: '%s' (imeCounter=%d, fieldCounter=%d)",
+                    text,
+                    imeCounter,
+                    imeFieldCounter
+                )
+            }
+        } catch (e: IOException) {
+            Timber.e(e, "IOException lors de l'envoi du texte IME: %s", e.message)
+            _eventFlow.emit(RemoteEvent.Error("Erreur d'E/S lors de l'envoi du texte: ${e.message}"))
+            closeSocketInternal()
+            _eventFlow.emit(RemoteEvent.Disconnected)
+        }
+    }
+
     suspend fun sendAppLinkLaunchRequest(appLink: String) {
         val currentOutStream = outputStream
         if (currentOutStream == null || sslSocket?.isClosed == true || sslSocket?.isConnected == false) {
@@ -317,6 +364,8 @@ class RemoteSession(
         outputStream = null
         inputStream = null
         sslSocket = null
+        imeCounter = 0
+        imeFieldCounter = 0
         Timber.d("Socket et flux distants nettoyés.")
     }
 
