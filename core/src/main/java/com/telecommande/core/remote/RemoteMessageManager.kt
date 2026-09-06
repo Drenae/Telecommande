@@ -2,6 +2,7 @@ package com.telecommande.core.remote
 
 import com.telecommande.core.wire.MessageManager
 import timber.log.Timber
+import java.io.ByteArrayOutputStream
 
 class RemoteMessageManager : MessageManager() {
 
@@ -85,6 +86,44 @@ class RemoteMessageManager : MessageManager() {
         return addLengthAndCreate(remoteMessageProto.toByteArray())
     }
 
+    /**
+     * Crée un RemoteImeBatchEdit compatible Android TV Remote v2.
+     *
+     * Le .proto historique du projet décrit imparfaitement RemoteEditInfo/RemoteImeObject.
+     * On encode donc ici uniquement cette petite structure au niveau wire afin de rester
+     * compatible avec la TV sans modifier le reste des messages générés.
+     */
+    fun createImeBatchEdit(text: String, imeCounter: Int, fieldCounter: Int): ByteArray {
+        require(text.isNotEmpty()) { "Le texte IME ne peut pas être vide." }
+
+        val cursor = text.length - 1
+        val imeObject = messageBytes {
+            writeVarintField(1, cursor)
+            writeVarintField(2, cursor)
+            writeBytesField(3, text.toByteArray(Charsets.UTF_8))
+        }
+        val editInfo = messageBytes {
+            writeVarintField(1, 1)
+            writeBytesField(2, imeObject)
+        }
+        val batchEdit = messageBytes {
+            writeVarintField(1, imeCounter)
+            writeVarintField(2, fieldCounter)
+            writeBytesField(3, editInfo)
+        }
+        val remoteMessage = messageBytes {
+            writeBytesField(21, batchEdit)
+        }
+
+        Timber.d(
+            "Création RemoteImeBatchEdit: texte='%s', imeCounter=%d, fieldCounter=%d",
+            text,
+            imeCounter,
+            fieldCounter
+        )
+        return addLengthAndCreate(remoteMessage)
+    }
+
     fun createAppLinkLaunchRequest(appLink: String): ByteArray {
         Timber.d("Création du message RemoteAppLinkLaunchRequest: appLink='%s'", appLink)
         val appLinkLaunchRequestProto = Remotemessage.RemoteAppLinkLaunchRequest.newBuilder()
@@ -94,5 +133,28 @@ class RemoteMessageManager : MessageManager() {
             .setRemoteAppLinkLaunchRequest(appLinkLaunchRequestProto)
             .build()
         return addLengthAndCreate(remoteMessageProto.toByteArray())
+    }
+
+    private inline fun messageBytes(block: ByteArrayOutputStream.() -> Unit): ByteArray =
+        ByteArrayOutputStream().apply(block).toByteArray()
+
+    private fun ByteArrayOutputStream.writeVarintField(fieldNumber: Int, value: Int) {
+        writeVarint((fieldNumber shl 3).toLong())
+        writeVarint(value.toLong() and 0xFFFF_FFFFL)
+    }
+
+    private fun ByteArrayOutputStream.writeBytesField(fieldNumber: Int, value: ByteArray) {
+        writeVarint(((fieldNumber shl 3) or 2).toLong())
+        writeVarint(value.size.toLong())
+        write(value)
+    }
+
+    private fun ByteArrayOutputStream.writeVarint(value: Long) {
+        var remaining = value
+        while ((remaining and -0x80L) != 0L) {
+            write(((remaining and 0x7FL) or 0x80L).toInt())
+            remaining = remaining ushr 7
+        }
+        write(remaining.toInt())
     }
 }
