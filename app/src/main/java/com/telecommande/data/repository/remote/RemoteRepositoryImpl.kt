@@ -71,6 +71,21 @@ class RemoteRepositoryImpl @Inject constructor(
         androidRemoteTv.sendCommand(command)
     }
 
+    override suspend fun sendTextInput(text: String) {
+        if (!isConnected.value || text.isEmpty()) return
+        androidRemoteTv.sendTextInput(text)
+    }
+
+    override suspend fun deleteTextInput(count: Int) {
+        if (!isConnected.value || count <= 0) return
+        androidRemoteTv.deleteTextInput(count)
+    }
+
+    override suspend fun submitTextInput() {
+        if (!isConnected.value) return
+        androidRemoteTv.submitTextInput()
+    }
+
     override fun launchApplication(appLink: String) {
         if (!isConnected.value) {
             Timber.w("RemoteRepo: Cannot launch application %s, not connected.", appLink)
