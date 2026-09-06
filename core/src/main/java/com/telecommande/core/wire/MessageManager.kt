@@ -1,30 +1,15 @@
 package com.telecommande.core.wire
 
 import timber.log.Timber
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import java.io.ByteArrayOutputStream
 
 abstract class MessageManager {
 
-    protected val packetBuffer: ByteBuffer = ByteBuffer.allocate(65539)
-
-    init {
-        packetBuffer.order(ByteOrder.BIG_ENDIAN)
-    }
-
     protected fun addLengthAndCreate(message: ByteArray): ByteArray {
-        val length = message.size
-        if (length > 255) {
-            Timber.e("La longueur du message (%d) dépasse le maximum autorisé par le préfixe d'un seul octet (255).", length)
-        }
-
-        packetBuffer.clear()
-        packetBuffer.put(length.toByte())
-        packetBuffer.put(message)
-        packetBuffer.flip()
-
-        val combinedArray = ByteArray(packetBuffer.remaining())
-        packetBuffer.get(combinedArray)
+        val output = ByteArrayOutputStream(message.size + 5)
+        writeVarint32(output, message.size)
+        output.write(message)
+        val combinedArray = output.toByteArray()
 
         val logMessage = "Envoi d'octets (longueur: ${combinedArray.size}): [${
             combinedArray.joinToString(separator = " ") { String.format("%02X", it) }
@@ -32,5 +17,19 @@ abstract class MessageManager {
         Timber.v(logMessage)
 
         return combinedArray
+    }
+
+    /** Android TV Remote v2 encadre chaque protobuf avec sa taille encodée en varint. */
+    private fun writeVarint32(output: ByteArrayOutputStream, value: Int) {
+        require(value >= 0) { "La longueur du message ne peut pas être négative." }
+        var remaining = value
+        while (true) {
+            if ((remaining and 0x7F.inv()) == 0) {
+                output.write(remaining)
+                return
+            }
+            output.write((remaining and 0x7F) or 0x80)
+            remaining = remaining ushr 7
+        }
     }
 }
