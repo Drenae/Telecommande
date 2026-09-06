@@ -21,6 +21,14 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
+data class RemoteTextInputState(
+    val value: String,
+    val selectionStart: Int,
+    val selectionEnd: Int,
+    val fieldCounter: Int,
+    val label: String?
+)
+
 data class RemoteState(
     val isConnected: Boolean = false,
     val isLoading: Boolean = false,
@@ -29,7 +37,9 @@ data class RemoteState(
     val volumeLevel: Int = 0,
     val volumeMax: Int = 100,
     val isMuted: Boolean = false,
-    val pairingRequiredOnActiveTv: Boolean = false
+    val pairingRequiredOnActiveTv: Boolean = false,
+    val textInputRequest: RemoteTextInputState? = null,
+    val textInputRequestId: Long = 0L
 )
 
 @ViewModelScoped
@@ -49,7 +59,13 @@ class RemoteManager @Inject constructor(
 
     fun initialize(scope: CoroutineScope) {
         managerScope = scope
-        _state.update { it.copy(isLoading = false, snackbarMessage = null, pairingRequiredOnActiveTv = false) }
+        _state.update {
+            it.copy(
+                isLoading = false,
+                snackbarMessage = null,
+                pairingRequiredOnActiveTv = false
+            )
+        }
         observeActiveTv(scope)
         observeConnectionState(scope)
         observeRemoteEvents(scope)
@@ -62,7 +78,13 @@ class RemoteManager @Inject constructor(
             .onEach { tvInfo ->
                 val previousTv = activeTvInfo
                 activeTvInfo = tvInfo
-                _state.update { it.copy(activeTvName = tvInfo?.name ?: tvInfo?.ipAddress, pairingRequiredOnActiveTv = false) }
+                _state.update {
+                    it.copy(
+                        activeTvName = tvInfo?.name ?: tvInfo?.ipAddress,
+                        pairingRequiredOnActiveTv = false,
+                        textInputRequest = if (tvInfo == previousTv) it.textInputRequest else null
+                    )
+                }
                 when {
                     tvInfo == null -> handleNoActiveTv()
                     previousTv != null && previousTv.ipAddress != tvInfo.ipAddress -> startConnection(tvInfo, disconnectFirst = true)
@@ -78,18 +100,41 @@ class RemoteManager @Inject constructor(
     }
 
     private fun handleNoActiveTv() {
-        connectionJob?.cancel(); connectionJob = null
+        connectionJob?.cancel()
+        connectionJob = null
         if (_state.value.isConnected || _state.value.isLoading) disconnect()
-        else _state.update { it.copy(isConnected = false, isLoading = false, activeTvName = null) }
+        else _state.update {
+            it.copy(
+                isConnected = false,
+                isLoading = false,
+                activeTvName = null,
+                textInputRequest = null
+            )
+        }
     }
 
     private fun observeConnectionState(scope: CoroutineScope) {
         connectionStateJob?.cancel()
         connectionStateJob = remoteRepository.isConnected
-            .onEach { connected -> _state.update { it.copy(isConnected = connected, isLoading = if (connected) false else connectionJob?.isActive == true) } }
+            .onEach { connected ->
+                _state.update {
+                    it.copy(
+                        isConnected = connected,
+                        isLoading = if (connected) false else connectionJob?.isActive == true,
+                        textInputRequest = if (connected) it.textInputRequest else null
+                    )
+                }
+            }
             .catch { e ->
                 Timber.e(e, "RemoteManager : Erreur lors de l'observation de l'état de connexion")
-                _state.update { it.copy(snackbarMessage = "Erreur de connexion.", isLoading = false, isConnected = false) }
+                _state.update {
+                    it.copy(
+                        snackbarMessage = "Erreur de connexion.",
+                        isLoading = false,
+                        isConnected = false,
+                        textInputRequest = null
+                    )
+                }
             }
             .launchIn(scope)
     }
@@ -100,19 +145,60 @@ class RemoteManager @Inject constructor(
             .onEach { event ->
                 _state.update { current ->
                     when (event) {
-                        is TvCoreEvent.SecretRequested -> current.copy(pairingRequiredOnActiveTv = true, isConnected = false, isLoading = false)
-                        is TvCoreEvent.Connected -> current.copy(isConnected = true, isLoading = false, pairingRequiredOnActiveTv = false)
-                        is TvCoreEvent.Disconnected -> current.copy(isConnected = false, isLoading = connectionJob?.isActive == true)
-                        is TvCoreEvent.Error -> current.copy(snackbarMessage = "Erreur TV: ${event.message}", isConnected = false, isLoading = false)
-                        is TvCoreEvent.VolumeUpdated -> current.copy(volumeLevel = event.level, volumeMax = if (event.max > 0) event.max else 100, isMuted = event.muted)
-                        is TvCoreEvent.AppLinkLaunchSent -> current.copy(snackbarMessage = "Lancement de l'application ${event.appLink} demandé.")
+                        is TvCoreEvent.SecretRequested -> current.copy(
+                            pairingRequiredOnActiveTv = true,
+                            isConnected = false,
+                            isLoading = false,
+                            textInputRequest = null
+                        )
+                        is TvCoreEvent.Connected -> current.copy(
+                            isConnected = true,
+                            isLoading = false,
+                            pairingRequiredOnActiveTv = false
+                        )
+                        is TvCoreEvent.Disconnected -> current.copy(
+                            isConnected = false,
+                            isLoading = connectionJob?.isActive == true,
+                            textInputRequest = null
+                        )
+                        is TvCoreEvent.Error -> current.copy(
+                            snackbarMessage = "Erreur TV: ${event.message}",
+                            isConnected = false,
+                            isLoading = false,
+                            textInputRequest = null
+                        )
+                        is TvCoreEvent.VolumeUpdated -> current.copy(
+                            volumeLevel = event.level,
+                            volumeMax = if (event.max > 0) event.max else 100,
+                            isMuted = event.muted
+                        )
+                        is TvCoreEvent.AppLinkLaunchSent -> current.copy(
+                            snackbarMessage = "Lancement de l'application ${event.appLink} demandé."
+                        )
+                        is TvCoreEvent.TextInputRequested -> current.copy(
+                            textInputRequest = RemoteTextInputState(
+                                value = event.value,
+                                selectionStart = event.selectionStart,
+                                selectionEnd = event.selectionEnd,
+                                fieldCounter = event.fieldCounter,
+                                label = event.label
+                            ),
+                            textInputRequestId = current.textInputRequestId + 1
+                        )
                         else -> current
                     }
                 }
             }
             .catch { e ->
                 Timber.e(e, "RemoteManager : Erreur lors de l'observation des événements distants")
-                _state.update { it.copy(snackbarMessage = "Erreur interne de communication TV.", isLoading = false, isConnected = false) }
+                _state.update {
+                    it.copy(
+                        snackbarMessage = "Erreur interne de communication TV.",
+                        isLoading = false,
+                        isConnected = false,
+                        textInputRequest = null
+                    )
+                }
             }
             .launchIn(scope)
     }
@@ -136,14 +222,29 @@ class RemoteManager @Inject constructor(
                 remoteRepository.connectToTv(tv.ipAddress, tv.keystoreAlias, protocolType)
             } catch (e: Exception) {
                 Timber.e(e, "RemoteManager : Échec de connexion à ${tv.ipAddress} via ${tv.protocolType}")
-                _state.update { it.copy(snackbarMessage = "Échec de connexion à ${tv.name ?: tv.ipAddress}.", isConnected = false, isLoading = false) }
-            } finally { connectionJob = null }
+                _state.update {
+                    it.copy(
+                        snackbarMessage = "Échec de connexion à ${tv.name ?: tv.ipAddress}.",
+                        isConnected = false,
+                        isLoading = false,
+                        textInputRequest = null
+                    )
+                }
+            } finally {
+                connectionJob = null
+            }
         }
     }
 
     fun connect() {
         val tv = activeTvInfo ?: run {
-            _state.update { it.copy(snackbarMessage = "Aucune TV active sélectionnée pour la connexion.", isConnected = false, isLoading = false) }
+            _state.update {
+                it.copy(
+                    snackbarMessage = "Aucune TV active sélectionnée pour la connexion.",
+                    isConnected = false,
+                    isLoading = false
+                )
+            }
             return
         }
         startConnection(tv)
@@ -151,13 +252,18 @@ class RemoteManager @Inject constructor(
 
     fun disconnect() {
         val scope = managerScope ?: return
-        connectionJob?.cancel(); connectionJob = null; _state.update { it.copy(isLoading = true) }
+        connectionJob?.cancel()
+        connectionJob = null
+        _state.update { it.copy(isLoading = true, textInputRequest = null) }
         scope.launch {
-            try { remoteRepository.disconnectFromTv() }
-            catch (e: Exception) {
+            try {
+                remoteRepository.disconnectFromTv()
+            } catch (e: Exception) {
                 Timber.e(e, "RemoteManager : Erreur pendant la déconnexion")
                 _state.update { it.copy(snackbarMessage = "Erreur de déconnexion.", isConnected = false) }
-            } finally { _state.update { it.copy(isLoading = false) } }
+            } finally {
+                _state.update { it.copy(isLoading = false) }
+            }
         }
     }
 
@@ -168,20 +274,75 @@ class RemoteManager @Inject constructor(
             return
         }
         scope.launch {
-            try { remoteRepository.sendCommand(command) }
-            catch (e: Exception) {
+            try {
+                remoteRepository.sendCommand(command)
+            } catch (e: Exception) {
                 Timber.e(e, "RemoteManager : Erreur lors de l'envoi de ${command.name}")
                 _state.update { it.copy(snackbarMessage = "Erreur d'envoi: ${e.message}") }
             }
         }
     }
 
-    fun launchApp(appLink: String, scope: CoroutineScope) {
-        if (appLink.isBlank()) { _state.update { it.copy(snackbarMessage = "Lien d'application non valide.") }; return }
-        if (!_state.value.isConnected) { _state.update { it.copy(snackbarMessage = "Non connecté pour lancer l'application.") }; return }
+    fun updateTextInput(previous: String, current: String, scope: CoroutineScope) {
+        if (!_state.value.isConnected || previous == current) return
+
         scope.launch {
-            try { remoteRepository.launchApplication(appLink) }
-            catch (e: Exception) {
+            try {
+                when {
+                    current.startsWith(previous) -> {
+                        val inserted = current.substring(previous.length)
+                        if (inserted.isNotEmpty()) remoteRepository.sendTextInput(inserted)
+                    }
+                    previous.startsWith(current) -> {
+                        remoteRepository.deleteTextInput(previous.length - current.length)
+                    }
+                    else -> {
+                        val commonPrefixLength = previous.zip(current)
+                            .takeWhile { (left, right) -> left == right }
+                            .size
+                        val deleteCount = previous.length - commonPrefixLength
+                        val inserted = current.substring(commonPrefixLength)
+                        if (deleteCount > 0) remoteRepository.deleteTextInput(deleteCount)
+                        if (inserted.isNotEmpty()) remoteRepository.sendTextInput(inserted)
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "RemoteManager : Erreur de saisie IME")
+                _state.update { it.copy(snackbarMessage = "Erreur d'envoi du texte à la TV.") }
+            }
+        }
+    }
+
+    fun submitTextInput(scope: CoroutineScope) {
+        if (!_state.value.isConnected) return
+        scope.launch {
+            try {
+                remoteRepository.submitTextInput()
+                dismissTextInput()
+            } catch (e: Exception) {
+                Timber.e(e, "RemoteManager : Erreur de validation IME")
+                _state.update { it.copy(snackbarMessage = "Erreur de validation du texte sur la TV.") }
+            }
+        }
+    }
+
+    fun dismissTextInput() {
+        _state.update { it.copy(textInputRequest = null) }
+    }
+
+    fun launchApp(appLink: String, scope: CoroutineScope) {
+        if (appLink.isBlank()) {
+            _state.update { it.copy(snackbarMessage = "Lien d'application non valide.") }
+            return
+        }
+        if (!_state.value.isConnected) {
+            _state.update { it.copy(snackbarMessage = "Non connecté pour lancer l'application.") }
+            return
+        }
+        scope.launch {
+            try {
+                remoteRepository.launchApplication(appLink)
+            } catch (e: Exception) {
                 Timber.e(e, "RemoteManager : Erreur lors du lancement de l'application $appLink")
                 _state.update { it.copy(snackbarMessage = "Erreur de lancement: ${e.message}") }
             }
@@ -192,7 +353,11 @@ class RemoteManager @Inject constructor(
     fun consumePairingRequiredEvent() { _state.update { it.copy(pairingRequiredOnActiveTv = false) } }
 
     fun cleanup() {
-        connectionJob?.cancel(); activeTvJob?.cancel(); connectionStateJob?.cancel(); remoteEventsJob?.cancel()
-        connectionJob = null; managerScope = null
+        connectionJob?.cancel()
+        activeTvJob?.cancel()
+        connectionStateJob?.cancel()
+        remoteEventsJob?.cancel()
+        connectionJob = null
+        managerScope = null
     }
 }
