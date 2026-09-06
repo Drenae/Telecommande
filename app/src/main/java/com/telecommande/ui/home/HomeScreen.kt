@@ -7,14 +7,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -22,9 +22,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
@@ -96,6 +96,13 @@ fun HomeScreen(
         }
     }
 
+    fun submitAndCloseInput() {
+        viewModel.submitTextInput()
+        viewModel.dismissTextInput()
+        keyboardController?.hide()
+        focusManager.clearFocus()
+    }
+
     Scaffold(
         containerColor = AppColors.homeScreenScaffoldBackground,
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -161,42 +168,30 @@ fun HomeScreen(
                 )
             }
 
-            BasicTextField(
-                value = remoteInputValue,
-                onValueChange = { newValue ->
-                    val previousText = remoteInputValue.text
-                    remoteInputValue = newValue
-                    viewModel.onTextInputChanged(previousText, newValue.text)
-                },
-                modifier = Modifier
-                    .size(1.dp)
-                    .alpha(0f)
-                    .focusRequester(remoteInputFocusRequester),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(
-                    onSearch = {
-                        viewModel.submitTextInput()
-                        keyboardController?.hide()
-                        focusManager.clearFocus()
+            if (uiState.textInputRequest != null) {
+                OutlinedTextField(
+                    value = remoteInputValue,
+                    onValueChange = { newValue ->
+                        val previousText = remoteInputValue.text
+                        remoteInputValue = newValue
+                        viewModel.onTextInputChanged(previousText, newValue.text)
                     },
-                    onDone = {
-                        viewModel.submitTextInput()
-                        keyboardController?.hide()
-                        focusManager.clearFocus()
-                    },
-                    onGo = {
-                        viewModel.submitTextInput()
-                        keyboardController?.hide()
-                        focusManager.clearFocus()
-                    },
-                    onSend = {
-                        viewModel.submitTextInput()
-                        keyboardController?.hide()
-                        focusManager.clearFocus()
-                    }
-                ),
-                singleLine = true
-            )
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .focusRequester(remoteInputFocusRequester),
+                    label = { Text("Saisie TV") },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(
+                        onSearch = { submitAndCloseInput() },
+                        onDone = { submitAndCloseInput() },
+                        onGo = { submitAndCloseInput() },
+                        onSend = { submitAndCloseInput() }
+                    ),
+                    singleLine = true
+                )
+            }
         }
     }
 }
