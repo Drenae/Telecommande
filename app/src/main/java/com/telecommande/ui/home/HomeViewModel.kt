@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.telecommande.core.protocol.TvCommand
 import com.telecommande.data.repository.SettingsRepository
 import com.telecommande.ui.manager.RemoteManager
+import com.telecommande.ui.manager.RemoteTextInputState
 import com.telecommande.util.resolveDisplayName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,7 +22,9 @@ data class HomeUiState(
     val pairingRequiredEvent: Boolean = false,
     val volumeLevel: Int = 0,
     val volumeMax: Int = 100,
-    val isMuted: Boolean = false
+    val isMuted: Boolean = false,
+    val textInputRequest: RemoteTextInputState? = null,
+    val textInputRequestId: Long = 0L
 )
 
 @HiltViewModel
@@ -46,7 +49,9 @@ class HomeViewModel @Inject constructor(
             pairingRequiredEvent = managerState.pairingRequiredOnActiveTv,
             volumeLevel = managerState.volumeLevel,
             volumeMax = managerState.volumeMax,
-            isMuted = managerState.isMuted
+            isMuted = managerState.isMuted,
+            textInputRequest = managerState.textInputRequest,
+            textInputRequestId = managerState.textInputRequestId
         )
     }.stateIn(
         scope = viewModelScope,
@@ -76,6 +81,18 @@ class HomeViewModel @Inject constructor(
 
     private fun sendCommand(command: TvCommand) {
         remoteManager.sendCommand(command, viewModelScope)
+    }
+
+    fun onTextInputChanged(previous: String, current: String) {
+        remoteManager.updateTextInput(previous, current, viewModelScope)
+    }
+
+    fun submitTextInput() {
+        remoteManager.submitTextInput(viewModelScope)
+    }
+
+    fun dismissTextInput() {
+        remoteManager.dismissTextInput()
     }
 
     fun launchAppByLink(appLink: String) {
