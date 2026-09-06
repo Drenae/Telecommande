@@ -114,10 +114,32 @@ class RemotePacketParser(
                     val batchEdit = remoteMessage.remoteImeBatchEdit
                     onImeCountersUpdated(batchEdit.imeCounter, batchEdit.fieldCounter)
                     Timber.d(
-                        "Compteurs IME reçus : imeCounter=%d, fieldCounter=%d",
+                        "Compteurs IME reçus : imeCounter=%d, fieldCounter=%d, edits=%d",
                         batchEdit.imeCounter,
-                        batchEdit.fieldCounter
+                        batchEdit.fieldCounter,
+                        batchEdit.editInfoCount
                     )
+
+                    val latestEdit = batchEdit.editInfoList.lastOrNull()
+                    if (latestEdit != null && latestEdit.hasTextFieldStatus()) {
+                        val textField = latestEdit.textFieldStatus
+                        Timber.i(
+                            "TV IME active via RemoteImeBatchEdit : valeur=%s, sélection=%d..%d, fieldCounter=%d",
+                            textField.value,
+                            textField.start,
+                            textField.end,
+                            batchEdit.fieldCounter
+                        )
+                        eventFlow.emit(
+                            RemoteEvent.TextInputRequested(
+                                value = textField.value,
+                                selectionStart = textField.start,
+                                selectionEnd = textField.end,
+                                fieldCounter = batchEdit.fieldCounter,
+                                label = null
+                            )
+                        )
+                    }
                 }
 
                 remoteMessage.hasRemoteImeShowRequest() -> {
@@ -125,7 +147,7 @@ class RemotePacketParser(
                     val label = textField.label.takeIf { it.isNotBlank() }
                     onImeCountersUpdated(null, textField.counterField)
                     Timber.i(
-                        "TV IME demandée : label=%s, valeur=%s, sélection=%d..%d, fieldCounter=%d",
+                        "TV IME demandée via RemoteImeShowRequest : label=%s, valeur=%s, sélection=%d..%d, fieldCounter=%d",
                         label ?: "<sans label>",
                         textField.value,
                         textField.start,
