@@ -16,7 +16,8 @@ class RemotePacketParser(
     inputStream: InputStream,
     private val outputStream: OutputStream,
     private val messagesChannel: SendChannel<Remotemessage.RemoteMessage>,
-    private val eventFlow: MutableSharedFlow<RemoteEvent>
+    private val eventFlow: MutableSharedFlow<RemoteEvent>,
+    private val onImeCountersUpdated: (imeCounter: Int?, fieldCounter: Int?) -> Unit = { _, _ -> }
 ) : PacketParser(inputStream) {
 
     private val remoteMessageManager: RemoteMessageManager = RemoteMessageManager()
@@ -79,9 +80,20 @@ class RemotePacketParser(
                     )
                 }
 
+                remoteMessage.hasRemoteImeBatchEdit() -> {
+                    val batchEdit = remoteMessage.remoteImeBatchEdit
+                    onImeCountersUpdated(batchEdit.imeCounter, batchEdit.fieldCounter)
+                    Timber.d(
+                        "Compteurs IME reçus : imeCounter=%d, fieldCounter=%d",
+                        batchEdit.imeCounter,
+                        batchEdit.fieldCounter
+                    )
+                }
+
                 remoteMessage.hasRemoteImeShowRequest() -> {
                     val textField = remoteMessage.remoteImeShowRequest.remoteTextFieldStatus
                     val label = textField.label.takeIf { it.isNotBlank() }
+                    onImeCountersUpdated(null, textField.counterField)
                     Timber.i(
                         "TV IME demandée : label=%s, valeur=%s, sélection=%d..%d, fieldCounter=%d",
                         label ?: "<sans label>",
