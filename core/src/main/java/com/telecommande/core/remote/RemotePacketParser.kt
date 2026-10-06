@@ -22,6 +22,9 @@ class RemotePacketParser(
     private val remoteMessageManager: RemoteMessageManager = RemoteMessageManager()
     private var hasNotifiedConnected = false
 
+    // Désactivé temporairement : on conserve l'implémentation IME pour la reprendre plus tard.
+    private val remoteImeEnabled = false
+
     override suspend fun messageBufferReceived(buf: ByteArray) {
         if (!currentCoroutineContext().isActive) return
         if (buf.isEmpty()) {
@@ -80,6 +83,10 @@ class RemotePacketParser(
                 }
 
                 remoteMessage.hasRemoteImeShowRequest() -> {
+                    if (!remoteImeEnabled) {
+                        Timber.d("TV IME demandée mais fonctionnalité clavier temporairement désactivée.")
+                        return
+                    }
                     val textField = remoteMessage.remoteImeShowRequest.remoteTextFieldStatus
                     val label = textField.label.takeIf { it.isNotBlank() }
                     Timber.i(
